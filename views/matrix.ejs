@@ -23,7 +23,7 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
 
@@ -31,12 +31,15 @@
             background: white; border-radius: 12px; padding: 18px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
             transition: 0.3s ease; cursor: pointer; position: relative;
+            display: flex; flex-direction: column;
         }
-        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-top-color: var(--gold); }
         
+        /* نبض التنبيه للرخص المنتهية */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
+            box-shadow: 0 0 8px var(--red);
         }
 
         .org-title { margin: 0; color: var(--navy); font-size: 1.1rem; font-weight: 700; }
@@ -48,7 +51,7 @@
             margin: 15px 0; border: 1px solid #eee;
         }
         .worker-item { text-align: center; flex: 1; }
-        .worker-item:first-child { border-left: 1px solid #ddd; }
+        .worker-item:not(:last-child) { border-left: 1px solid #ddd; }
         .w-label { font-size: 0.75rem; color: var(--gray); display: block; margin-bottom: 4px; }
         .w-count { font-weight: bold; font-size: 1.2rem; }
 
@@ -57,16 +60,19 @@
         .count-saudi { color: var(--saudi); }
         .count-expat { color: var(--expat); }
 
-        .footer-info { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .footer-info { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; margin-top: auto; }
 
         @keyframes blink { 
             0% { opacity: 1; transform: scale(1); } 
-            50% { opacity: 0.4; transform: scale(0.8); } 
+            50% { opacity: 0.4; transform: scale(1.2); } 
             100% { opacity: 1; transform: scale(1); } 
         }
 
-        @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
+        .btn-matrix-back {
+            color:white; text-decoration:none; background:rgba(255,255,255,0.1); 
+            padding:10px 20px; border-radius:8px; transition: 0.3s;
+        }
+        .btn-matrix-back:hover { background: var(--gold); color: var(--navy); }
     </style>
 </head>
 <body>
@@ -74,24 +80,24 @@
     <div class="header">
         <div>
             <h2 style="margin:0;"><i class="fas fa-layer-group"></i> مصفوفة إدارة المنشآت</h2>
-            <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">تحكم مركزي شامل | أبو حمزة</p>
+            <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">التحكم المركزي | أبو حمزة</p>
         </div>
-        <a href="/admin/dashboard" style="color:white; text-decoration:none; background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:8px;">
-            <i class="fas fa-arrow-right"></i> لوحة التحكم
+        <a href="/admin/dashboard" class="btn-matrix-back">
+            <i class="fas fa-chart-line"></i> الإحصائيات العامة
         </a>
     </div>
 
     <div class="grid-container">
         <% if (typeof orgs !== 'undefined' && orgs.length > 0) { %>
             <% orgs.forEach(org => { %>
-                <div class="org-card" onclick="location.href='/admin/view-scope/<%= org.uniqueId %>'">
+                <div class="org-card" onclick="goToDashboard('<%= org.uniqueId %>')">
                     
                     <% if(org.expiredLicenses > 0) { %> 
-                        <div class="alert-pulse"></div> 
+                        <div class="alert-pulse" title="يوجد رخص منتهية"></div> 
                     <% } %>
 
                     <h3 class="org-title"><%= org.name %></h3>
-                    <span class="org-id">معرف النطاق: <%= org.uniqueId %></span>
+                    <span class="org-id">ID: <%= org.uniqueId %></span>
 
                     <div class="worker-box">
                         <div class="worker-item">
@@ -105,19 +111,27 @@
                     </div>
 
                     <div class="footer-info <%= (org.expiredLicenses > 0) ? 'text-danger' : 'text-normal' %>">
-                        <i class="fas fa-file-invoice"></i>
+                        <i class="fas fa-file-invoice-dollar"></i>
                         <span>رخص منتهية: <%= org.expiredLicenses || 0 %></span>
                     </div>
                 </div>
             <% }) %>
         <% } else { %>
-            <div style="grid-column: span 4; text-align: center; padding: 100px; background: white; border-radius: 20px;">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 100px; background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
                 <i class="fas fa-folder-open" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
-                <h3 style="color: var(--navy);">لا توجد منشآت مرتبطة بقاعدة البيانات حالياً</h3>
-                <p style="color: #666;">قم بإضافة نطاقات جديدة لتظهر لك في المصفوفة الذكية.</p>
+                <h3 style="color: var(--navy);">لا توجد منشآت مرتبطة حالياً</h3>
+                <p style="color: #666;">ابدأ بإضافة نطاقات عمل جديدة من لوحة التحكم.</p>
             </div>
         <% } %>
     </div>
+
+    <script>
+        function goToDashboard(scopeId) {
+            // توجيه ذكي للوحة إدارة المنشأة مع تمرير المعرف
+            // سيقوم الكود في لوحة الإدارة باستقبال هذا المعرف وحفظه فورا
+            window.location.href = `/manager/dashboard?scope=${scopeId}`;
+        }
+    </script>
 
 </body>
 </html>

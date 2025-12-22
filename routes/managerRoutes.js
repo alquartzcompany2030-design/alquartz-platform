@@ -10,8 +10,22 @@ router.get('/login', (req, res) => {
     res.render('manager_login'); 
 });
 
+// التعديل الجوهري: جعل الداتشبورد يقرأ الـ scopeId من الرابط أو الجلسة
 router.get('/dashboard', (req, res) => {
-    res.render('manager_dashboard');
+    // جلب المعرف من الرابط (لخدمة السوبر أدمن) أو من الجلسة (لخدمة المدير)
+    const scopeId = req.query.scope || (req.session ? req.session.scopeId : null);
+
+    // إذا لم يوجد معرف، يتم التوجيه للرئيسية بدلاً من التعليق أو الخروج
+    if (!scopeId) {
+        console.log("⚠️ محاولة دخول بدون معرف نطاق - تحويل للرئيسية");
+        return res.redirect('/');
+    }
+
+    // إرسال البيانات للصفحة لضمان استمرار الجلسة وعرض الموظفين
+    res.render('manager_dashboard', { 
+        scopeId: scopeId,
+        user: req.session && req.session.user ? req.session.user : { name: 'أبو حمزة' }
+    });
 });
 
 router.get('/register/:uniqueId', async (req, res) => {
@@ -24,32 +38,33 @@ router.get('/register/:uniqueId', async (req, res) => {
 
 // --- [ العمليات - API ] ---
 
-// 1. تسجيل الدخول (تم التحديث ليتناسب مع Golden Cloud Server)
+// 1. تسجيل الدخول
 router.post('/api/login', async (req, res) => {
     try {
-        // تنظيف البيانات وتحويل الإيميل لأحرف صغيرة للمقارنة
         const email = req.body.email.toLowerCase().trim();
         const password = req.body.password.trim();
 
-        // البحث عن المدير باستخدام RegExp لتجاهل حالة الأحرف المخزنة في MongoDB
-        // هذا يحل مشكلة حساب "المتزن" الظاهر في صورتك
         const manager = await Manager.findOne({ 
             email: { $regex: new RegExp("^" + email + "$", "i") } 
         });
         
         if (manager && manager.password === password) {
-            console.log(`✅ دخول ناجح للمدير: ${manager.name}`);
+            // حفظ البيانات في الجلسة لمنع تسجيل الخروج التلقائي
+            if (req.session) {
+                req.session.scopeId = manager.scopeId;
+                req.session.role = 'manager';
+                req.session.user = { name: manager.name };
+            }
+
             res.json({ 
                 success: true, 
                 scopeId: manager.scopeId, 
                 name: manager.name 
             });
         } else {
-            console.log(`❌ فشل دخول المدير: ${email}`);
             res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
         }
     } catch (err) {
-        console.error("Manager Login Error:", err);
         res.status(500).json({ success: false, message: "خطأ داخلي في السيرفر" });
     }
 });
@@ -78,7 +93,7 @@ router.post('/api/update-employee', async (req, res) => {
     }
 });
 
-// 4. تغيير حالة الموظف (تعليق / تنشيط)
+// 4. تغيير حالة الموظف
 router.post('/api/update-status', async (req, res) => {
     try {
         const { empId, status } = req.body;
@@ -96,7 +111,6 @@ router.delete('/api/delete-employee/:id', async (req, res) => {
         if (!result) return res.status(404).json({ success: false, message: "الموظف غير موجود" });
         res.json({ success: true, message: "تم الحذف بنجاح" });
     } catch (err) {
-        console.error("خطأ أثناء الحذف:", err);
         res.status(500).json({ success: false, message: "فشل الحذف من السيرفر" });
     }
 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة الاحترافية | منصة أبو حمزة</title>
+    <title>لوحة الإدارة | Golden Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -23,7 +23,7 @@
         
         .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
 
-        /* بطاقات الإحصائيات المطورة */
+        /* بطاقات الإحصائيات */
         .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card {
             background: white; padding: 20px; border-radius: 15px; text-align: center;
@@ -44,58 +44,41 @@
             border-radius: 10px; font-size: 1rem; transition: 0.3s; outline: none;
         }
         .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #b2bec3; }
-        .search-box input:focus { border-color: var(--navy); }
 
-        /* الجدول الأنيق */
+        /* الجدول */
         .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .scroll-area { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 1rem; font-weight: 700; }
         tbody tr { transition: 0.2s; border-bottom: 1px solid #f1f2f6; }
-        tbody tr:hover { background-color: #f1f2f6 !important; }
         td { padding: 15px; text-align: center; vertical-align: middle; }
 
-        /* تلوين الصفوف */
+        .suspended-row { background-color: #f1f2f6; opacity: 0.8; }
         .warning-row { background-color: #fffaf0; }
         .danger-row { background-color: #fff5f5; }
-        .suspended-row { background-color: #f1f2f6; opacity: 0.8; }
 
-        /* أزرار العمليات */
         .action-group { display: flex; gap: 8px; justify-content: center; }
         .btn-circle {
             width: 40px; height: 40px; border-radius: 10px; border: none;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: 0.3s; font-size: 1.1rem; color: white;
         }
-        .btn-wa { background: var(--whatsapp); box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
-        .btn-ed { background: #3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
-        .btn-de { background: var(--danger); box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+        .btn-wa { background: var(--whatsapp); }
+        .btn-ed { background: #3498db; }
+        .btn-de { background: var(--danger); }
         .btn-st { background: var(--gray); }
-        .btn-circle:hover { transform: scale(1.15); filter: brightness(1.1); }
 
         /* المودال */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content {
             background:white; width:95%; max-width:550px; margin:40px auto; padding:30px;
-            border-radius:25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .modal-content h3 { color: var(--navy); margin-top: 0; display: flex; align-items: center; gap: 10px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2d3436; }
-        .input-group input {
-            width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px;
-            box-sizing: border-box; font-family: 'Tajawal'; font-size: 1rem;
+            border-radius:25px; position: relative;
         }
 
         .main-btn {
-            padding: 12px 25px; border-radius: 12px; border: none; font-family: 'Tajawal';
+            padding: 10px 20px; border-radius: 12px; border: none; font-family: 'Tajawal';
             font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
         }
-        .btn-save { background: var(--success); color: white; width: 100%; justify-content: center; font-size: 1.1rem; }
-        
-        /* زر خاص بالسجلات */
-        .btn-license { background: var(--navy); color: var(--gold); border: 1px solid var(--gold); }
-        .btn-license:hover { background: var(--gold); color: var(--navy); }
     </style>
 </head>
 <body>
@@ -103,12 +86,10 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <i class="fas fa-user-shield fa-2x"></i>
-        <h2>إدارة نطاق: <span id="mgrName" style="color:white">...</span></h2>
+        <h2>إدارة نطاق: <span id="mgrName" style="color:white">جاري التحميل...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
-        <button class="main-btn btn-license" onclick="window.location.href='/manager/licenses/page'"><i class="fas fa-file-contract"></i> السجلات والرخص</button>
-        <button class="main-btn" style="background:var(--success); color:white" onclick="sendBroadcast()"><i class="fas fa-bullhorn"></i> تعميم</button>
-        <button class="main-btn" style="background:var(--gold); color:var(--navy)" onclick="copyLink()"><i class="fas fa-link"></i> الرابط</button>
+        <button class="main-btn" style="background:var(--gold); color:var(--navy)" onclick="copyLink()"><i class="fas fa-link"></i> رابط التسجيل</button>
         <button class="main-btn" style="background:var(--danger); color:white" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
 </header>
@@ -116,21 +97,15 @@
 <div class="container">
     <div class="stats-bar">
         <div class="stat-card"> <span class="stat-val" id="totalCount">0</span> <span class="stat-label">إجمالي الموظفين</span> </div>
-        <div class="stat-card" style="border-top-color:var(--danger)"> <span class="stat-val" style="color:var(--danger)" id="expiredCount">0</span> <span class="stat-label">إقامات منتهية</span> </div>
-        <div class="stat-card" style="border-top-color:var(--warning)"> <span class="stat-val" style="color:var(--warning)" id="warningCount">0</span> <span class="stat-label">تجديد قريب</span> </div>
-        <div class="stat-card" style="border-top-color:var(--gray)"> <span class="stat-val" style="color:var(--gray)" id="suspendedCount">0</span> <span class="stat-label">حسابات معلقة</span> </div>
+        <div class="stat-card" style="border-top-color:var(--danger)"> <span class="stat-val" id="expiredCount" style="color:var(--danger)">0</span> <span class="stat-label">إقامات منتهية</span> </div>
+        <div class="stat-card" style="border-top-color:var(--warning)"> <span class="stat-val" id="warningCount" style="color:var(--warning)">0</span> <span class="stat-label">تجديد قريب</span> </div>
     </div>
 
     <div class="toolbar">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="ابحث باسم الموظف، رقم الإقامة، أو الجوال..." onkeyup="filterData()">
+            <input type="text" id="searchInput" placeholder="ابحث باسم الموظف أو رقم الإقامة..." onkeyup="filterData()">
         </div>
-        <select id="statusFilter" onchange="filterData()" style="padding: 12px; border-radius: 10px; border: 2px solid #eee; font-family: 'Tajawal'; outline:none;">
-            <option value="all">كل الحالات</option>
-            <option value="active">النشطين فقط</option>
-            <option value="suspended">المعلقين فقط</option>
-        </select>
     </div>
 
     <div class="table-wrapper">
@@ -138,7 +113,7 @@
             <table id="empTable">
                 <thead>
                     <tr>
-                        <th>الموظف / الإقامة</th>
+                        <th>الموظف</th>
                         <th>الجوال</th>
                         <th>المنشأة</th>
                         <th>انتهاء الإقامة</th>
@@ -147,7 +122,7 @@
                     </tr>
                 </thead>
                 <tbody id="empTableBody">
-                    <tr><td colspan="6" style="padding:50px; font-size:1.2rem; color:var(--gray)"><i class="fas fa-spinner fa-spin"></i> جاري جلب البيانات...</td></tr>
+                    <tr><td colspan="6">جاري جلب البيانات...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -156,25 +131,18 @@
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:20px;">
-            <h3><i class="fas fa-user-edit"></i> تعديل ملف الموظف</h3>
-            <button class="btn-circle btn-de" onclick="confirmDeleteFromModal()" title="حذف نهائي"><i class="fas fa-trash"></i></button>
-        </div>
+        <h3><i class="fas fa-user-edit"></i> تعديل بيانات الموظف</h3>
         <input type="hidden" id="edit_empId">
-        <div class="input-group">
+        <div style="margin-bottom:15px">
             <label>الاسم الكامل</label>
-            <input type="text" id="edit_fullName">
+            <input type="text" id="edit_fullName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd">
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-            <div class="input-group"><label>رقم الجوال</label><input type="text" id="edit_phoneNumber"></div>
-            <div class="input-group"><label>رقم الإقامة</label><input type="text" id="edit_idNumber"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px">
+            <div><label>الجوال</label><input type="text" id="edit_phoneNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd"></div>
+            <div><label>الإقامة</label><input type="text" id="edit_idNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd"></div>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-            <div class="input-group"><label>الراتب (ر.س)</label><input type="number" id="edit_salary"></div>
-            <div class="input-group"><label>المنشأة الكفيلة</label><input type="text" id="edit_sponsorName"></div>
-        </div>
-        <button class="main-btn btn-save" onclick="saveChanges()"><i class="fas fa-check-circle"></i> حفظ التغييرات</button>
-        <center><button style="background:none; border:none; color:var(--gray); cursor:pointer; margin-top:15px;" onclick="closeModal()">إلغاء</button></center>
+        <button class="main-btn" style="background:var(--success); color:white; width:100%; justify-content:center" onclick="saveChanges()">حفظ التعديلات</button>
+        <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:var(--gray)">إلغاء</button>
     </div>
 </div>
 
@@ -183,8 +151,13 @@
 
     async function loadData() {
         const scopeId = localStorage.getItem('scopeId');
+        const managerName = localStorage.getItem('userName'); // جلب اسم صاحب النطاق المخزن عند الدخول
+
         if (!scopeId) { window.location.href = '/manager/login'; return; }
-        document.getElementById('mgrName').innerText = localStorage.getItem('managerName') || "أبو حمزة";
+        
+        // تحديث اسم النطاق بشكل صحيح
+        document.getElementById('mgrName').innerText = managerName || "مدير النظام";
+
         try {
             const res = await fetch(`/manager/api/get-employees/${scopeId}`);
             allEmployees = await res.json();
@@ -195,54 +168,34 @@
 
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
-        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="6" style="padding:40px;">لا توجد سجلات مطابقة</td></tr>'; return; }
+        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="6">لا يوجد موظفين حالياً</td></tr>'; return; }
         
         body.innerHTML = data.map(emp => {
             const daysLeft = calculateDays(emp.idExpiry);
             const isSuspended = emp.status === 'suspended';
             let rowClass = isSuspended ? "suspended-row" : (daysLeft < 0 ? "danger-row" : (daysLeft <= 30 ? "warning-row" : ""));
-            const waLink = emp.phoneNumber ? `https://wa.me/${formatPhone(emp.phoneNumber)}` : '#';
             
             return `
                 <tr class="${rowClass}">
-                    <td><strong>${emp.fullName}</strong><br><small style="color:#636e72">${emp.idNumber || '---'}</small></td>
-                    <td><a href="${waLink}" target="_blank" style="color:var(--whatsapp); font-weight:bold; text-decoration:none"><i class="fab fa-whatsapp"></i> ${emp.phoneNumber || '---'}</a></td>
+                    <td><strong>${emp.fullName}</strong><br><small>${emp.idNumber || '---'}</small></td>
+                    <td>${emp.phoneNumber || '---'}</td>
                     <td>${emp.sponsorName || '---'}</td>
-                    <td><span style="font-weight:bold">${formatDate(emp.idExpiry)}</span><br><small>(${daysLeft} يوم)</small></td>
-                    <td><span style="color:var(--success); font-weight:bold">${emp.salary || 0}</span></td>
+                    <td>${formatDate(emp.idExpiry)}<br><small>(${daysLeft} يوم)</small></td>
+                    <td>${emp.salary || 0}</td>
                     <td>
                         <div class="action-group">
-                            <button class="btn-circle btn-wa" onclick="sendWhatsApp('${emp._id}')" title="تنبيه واتساب"><i class="fab fa-whatsapp"></i></button>
-                            <button class="btn-circle btn-ed" onclick="editEmp('${emp._id}')" title="تعديل"><i class="fas fa-edit"></i></button>
-                            <button class="btn-circle btn-st" onclick="toggleStatus('${emp._id}', '${isSuspended?'active':'suspended'}')" title="${isSuspended?'تنشيط':'تعليق'}">
-                                <i class="fas ${isSuspended?'fa-play':'fa-pause'}"></i>
-                            </button>
-                            <button class="btn-circle btn-de" onclick="deleteEmp('${emp._id}', '${emp.fullName}')" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                            <button class="btn-circle btn-ed" onclick="editEmp('${emp._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-circle btn-de" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
         }).join('');
     }
 
-    async function toggleStatus(empId, newStatus) {
-        await fetch(`/manager/api/update-status`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ empId, status: newStatus })
-        });
-        loadData();
-    }
-
     async function deleteEmp(id, name) {
-        if (!confirm(`⚠️ هل أنت متأكد من حذف الموظف (${name}) نهائياً؟`)) return;
-        await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
-        loadData();
-    }
-
-    function confirmDeleteFromModal() {
-        const id = document.getElementById('edit_empId').value;
-        const name = document.getElementById('edit_fullName').value;
-        deleteEmp(id, name).then(() => closeModal());
+        if (!confirm(`هل أنت متأكد من حذف ${name}؟`)) return;
+        const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
+        if(res.ok) loadData();
     }
 
     function editEmp(id) {
@@ -252,8 +205,6 @@
         document.getElementById('edit_fullName').value = emp.fullName;
         document.getElementById('edit_phoneNumber').value = emp.phoneNumber || '';
         document.getElementById('edit_idNumber').value = emp.idNumber || '';
-        document.getElementById('edit_salary').value = emp.salary || 0;
-        document.getElementById('edit_sponsorName').value = emp.sponsorName || '';
         document.getElementById('editModal').style.display = 'block';
     }
 
@@ -262,9 +213,7 @@
             empId: document.getElementById('edit_empId').value,
             fullName: document.getElementById('edit_fullName').value,
             phoneNumber: document.getElementById('edit_phoneNumber').value,
-            idNumber: document.getElementById('edit_idNumber').value,
-            salary: document.getElementById('edit_salary').value,
-            sponsorName: document.getElementById('edit_sponsorName').value
+            idNumber: document.getElementById('edit_idNumber').value
         };
         const res = await fetch('/manager/api/update-employee', {
             method: 'POST',
@@ -276,23 +225,13 @@
 
     function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        const stat = document.getElementById('statusFilter').value;
-        const filtered = allEmployees.filter(emp => {
-            const matchSearch = (emp.fullName || "").toLowerCase().includes(term) || (emp.idNumber && emp.idNumber.includes(term));
-            const matchStatus = stat === 'all' || emp.status === stat;
-            return matchSearch && matchStatus;
-        });
+        const filtered = allEmployees.filter(emp => 
+            (emp.fullName || "").toLowerCase().includes(term) || 
+            (emp.idNumber && emp.idNumber.includes(term))
+        );
         renderTable(filtered);
     }
 
-    function sendWhatsApp(empId) {
-        const emp = allEmployees.find(e => e._id === empId);
-        const days = calculateDays(emp.idExpiry);
-        let msg = `*تذكير من إدارة أبو حمزة*%0Aالأخ: *${emp.fullName}*%0Aإقامتك تنتهي خلال *${days}* يوم. يرجى المراجعة.`;
-        window.open(`https://wa.me/${formatPhone(emp.phoneNumber)}?text=${msg}`, '_blank');
-    }
-
-    function formatPhone(p) { if(!p) return ""; let phone = p.toString(); return phone.startsWith('0') ? '966' + phone.substring(1) : phone; }
     function calculateDays(date) { if(!date) return 0; return Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24)); }
     function formatDate(date) { return date ? new Date(date).toLocaleDateString('ar-SA') : "---"; }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
@@ -300,13 +239,12 @@
         document.getElementById('totalCount').innerText = allEmployees.length;
         document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
         document.getElementById('warningCount').innerText = allEmployees.filter(e => { const d = calculateDays(e.idExpiry); return d >= 0 && d <= 30; }).length;
-        document.getElementById('suspendedCount').innerText = allEmployees.filter(e => e.status === 'suspended').length;
     }
     function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
     function copyLink() {
-        const link = window.location.origin + '/employee/register/' + localStorage.getItem('scopeId');
+        const link = window.location.origin + '/manager/register/' + localStorage.getItem('scopeId');
         navigator.clipboard.writeText(link);
-        alert('تم نسخ رابط التسجيل بنجاح');
+        alert('تم نسخ رابط تسجيل الموظفين بنجاح');
     }
     loadData();
 </script>

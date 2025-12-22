@@ -1,14 +1,23 @@
 const mongoose = require('mongoose');
 
 const OrganizationSchema = new mongoose.Schema({
-    name: { type: String, required: true }, // اسم المنشأة
-    uniqueId: { type: String, required: true, unique: true }, // المعرف الرقمي
-    saudiWorkers: { type: Number, default: 0 }, // عمالة مواطنون
-    expatWorkers: { type: Number, default: 0 }, // عمالة مقيمون
-    expiredLicenses: { type: Number, default: 0 }, // عدد الرخص المنتهية
-    subscriptionExpiry: { type: Date, required: true }, // تاريخ انتهاء الاشتراك
-    linkedManager: { type: String }, // المدير المرتبط
-    lastAudit: { type: Date, default: Date.now } // آخر تحديث
+    name: { type: String, required: true },
+    uniqueId: { type: String, required: true, unique: true },
+    
+    // إحصائيات المواطنين
+    saudiWorkers: { type: Number, default: 0 },
+    saudiMale: { type: Number, default: 0 },
+    saudiFemale: { type: Number, default: 0 },
+    
+    // إحصائيات المقيمين
+    expatWorkers: { type: Number, default: 0 },
+    expatMale: { type: Number, default: 0 },
+    expatFemale: { type: Number, default: 0 },
+
+    expiredLicenses: { type: Number, default: 0 },
+    subscriptionExpiry: { type: Date, required: true },
+    linkedManager: { type: String },
+    lastAudit: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Organization', OrganizationSchema);

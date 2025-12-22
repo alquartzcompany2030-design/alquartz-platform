@@ -10,35 +10,24 @@ router.get('/login', (req, res) => {
     res.render('manager_login'); 
 });
 
-// التعديل الجوهري: جعل الداتشبورد يقرأ الـ scopeId من الرابط أو الجلسة
+// التعديل: دعم كامل للسوبر أدمن (أبو حمزة) والمدراء الفرعيين
 router.get('/dashboard', (req, res) => {
-    // جلب المعرف من الرابط (لخدمة السوبر أدمن) أو من الجلسة (لخدمة المدير)
     const scopeId = req.query.scope || (req.session ? req.session.scopeId : null);
 
-    // إذا لم يوجد معرف، يتم التوجيه للرئيسية بدلاً من التعليق أو الخروج
     if (!scopeId) {
         console.log("⚠️ محاولة دخول بدون معرف نطاق - تحويل للرئيسية");
-        return res.redirect('/');
+        return res.redirect('/manager/login');
     }
 
-    // إرسال البيانات للصفحة لضمان استمرار الجلسة وعرض الموظفين
     res.render('manager_dashboard', { 
         scopeId: scopeId,
         user: req.session && req.session.user ? req.session.user : { name: 'أبو حمزة' }
     });
 });
 
-router.get('/register/:uniqueId', async (req, res) => {
-    try {
-        const scope = await Scope.findOne({ uniqueId: req.params.uniqueId });
-        if (!scope) return res.status(404).render('404');
-        res.render('employee_form', { scope });
-    } catch (err) { res.status(500).send("خطأ في النظام"); }
-});
-
 // --- [ العمليات - API ] ---
 
-// 1. تسجيل الدخول
+// 1. تسجيل الدخول (محسن للتعامل مع الأحرف الكبيرة والصغيرة)
 router.post('/api/login', async (req, res) => {
     try {
         const email = req.body.email.toLowerCase().trim();
@@ -49,7 +38,6 @@ router.post('/api/login', async (req, res) => {
         });
         
         if (manager && manager.password === password) {
-            // حفظ البيانات في الجلسة لمنع تسجيل الخروج التلقائي
             if (req.session) {
                 req.session.scopeId = manager.scopeId;
                 req.session.role = 'manager';
@@ -65,63 +53,62 @@ router.post('/api/login', async (req, res) => {
             res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
         }
     } catch (err) {
-        res.status(500).json({ success: false, message: "خطأ داخلي في السيرفر" });
+        res.status(500).json({ success: false, message: "خطأ في السيرفر" });
     }
 });
 
-// 2. جلب الموظفين
+// 2. جلب الموظفين (مرتب بالأحدث)
 router.get('/api/get-employees/:scopeId', async (req, res) => {
     try {
+        // نجلب جميع الموظفين التابعين لهذا النطاق
         const employees = await Employee.find({ scopeId: req.params.scopeId }).sort({ createdAt: -1 });
         res.json(employees);
-    } catch (err) { res.status(500).json({ message: "خطأ في الجلب" }); }
+    } catch (err) { res.status(500).json({ message: "خطأ في جلب الموظفين" }); }
 });
 
-// 3. تحديث بيانات الموظف الشامل
+// 3. تحديث بيانات الموظف الشامل (يدعم الحقول الجديدة)
 router.post('/api/update-employee', async (req, res) => {
     try {
         const { empId, ...updateData } = req.body;
+        
+        // التأكد من معالجة حقل التأمين الصحي كقيمة منطقية إذا لزم الأمر
+        if(updateData.hasHealthInsurance) {
+            updateData.hasHealthInsurance = (updateData.hasHealthInsurance === 'true');
+        }
+
         const updatedEmployee = await Employee.findByIdAndUpdate(
             empId, 
             { $set: updateData }, 
             { new: true }
         );
+
         if (!updatedEmployee) return res.status(404).json({ success: false, message: "الموظف غير موجود" });
         res.status(200).json({ success: true });
     } catch (err) {
+        console.error("Update Error:", err);
         res.status(500).json({ success: false });
     }
 });
 
-// 4. تغيير حالة الموظف
-router.post('/api/update-status', async (req, res) => {
-    try {
-        const { empId, status } = req.body;
-        await Employee.findByIdAndUpdate(empId, { status: status });
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false });
-    }
-});
-
-// 5. مسار الحذف
+// 4. حذف موظف
 router.delete('/api/delete-employee/:id', async (req, res) => {
     try {
-        const result = await Employee.findByIdAndDelete(req.params.id);
-        if (!result) return res.status(404).json({ success: false, message: "الموظف غير موجود" });
+        await Employee.findByIdAndDelete(req.params.id);
         res.json({ success: true, message: "تم الحذف بنجاح" });
     } catch (err) {
-        res.status(500).json({ success: false, message: "فشل الحذف من السيرفر" });
+        res.status(500).json({ success: false });
     }
 });
 
-// 6. جلب بيانات موظف واحد
-router.get('/api/employee/:id', async (req, res) => {
+// 5. مسار تسجيل الموظف (الاستقبال من الفورم الخارجي)
+router.post('/api/register-employee', async (req, res) => {
     try {
-        const employee = await Employee.findById(req.params.id);
-        res.json(employee);
+        const newEmployee = new Employee(req.body);
+        await newEmployee.save();
+        res.status(201).json({ success: true, message: "تم تسجيلك بنجاح" });
     } catch (err) {
-        res.status(404).json({ message: "غير موجود" });
+        console.error("Registration Error:", err);
+        res.status(400).json({ success: false, message: "تأكد من إدخال جميع البيانات بشكل صحيح" });
     }
 });
 

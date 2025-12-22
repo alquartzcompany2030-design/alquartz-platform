@@ -21,7 +21,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 1000;
         }
         
-        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
         /* بطاقات الإحصائيات */
         .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
@@ -45,23 +45,28 @@
         }
         .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #b2bec3; }
 
-        /* الجدول */
+        /* الجدول المطور */
         .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .scroll-area { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 1rem; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 0.95rem; font-weight: 700; }
         tbody tr { transition: 0.2s; border-bottom: 1px solid #f1f2f6; }
-        td { padding: 15px; text-align: center; vertical-align: middle; }
+        td { padding: 12px 15px; text-align: center; vertical-align: middle; font-size: 0.9rem; }
 
-        .suspended-row { background-color: #f1f2f6; opacity: 0.8; }
-        .warning-row { background-color: #fffaf0; }
-        .danger-row { background-color: #fff5f5; }
+        /* حالات الألوان للتواريخ */
+        .expired { color: var(--danger); font-weight: bold; }
+        .near-expiry { color: var(--warning); font-weight: bold; }
+        .valid { color: var(--success); }
+
+        .gender-tag { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .male { background: #e3f2fd; color: #1976d2; }
+        .female { background: #fce4ec; color: #c2185b; }
 
         .action-group { display: flex; gap: 8px; justify-content: center; }
         .btn-circle {
-            width: 40px; height: 40px; border-radius: 10px; border: none;
+            width: 35px; height: 35px; border-radius: 8px; border: none;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s; font-size: 1.1rem; color: white;
+            cursor: pointer; transition: 0.3s; font-size: 1rem; color: white;
         }
         .btn-ed { background: #3498db; }
         .btn-de { background: var(--danger); }
@@ -71,20 +76,9 @@
             font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
         }
 
-        .btn-license { 
-            background: transparent; 
-            color: var(--gold); 
-            border: 1.5px solid var(--gold);
-        }
-        .btn-license:hover {
-            background: var(--gold);
-            color: var(--navy);
-        }
-
-        /* المودال */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content {
-            background:white; width:95%; max-width:550px; margin:40px auto; padding:30px;
+            background:white; width:95%; max-width:600px; margin:40px auto; padding:30px;
             border-radius:25px; position: relative;
         }
     </style>
@@ -98,11 +92,7 @@
     </div>
     <div style="display:flex; gap:10px;">
         <button id="backToMatrix" class="main-btn" style="background:#444; color:white; display:none;" onclick="window.location.href='/admin/matrix'">
-            <i class="fas fa-th"></i> العودة للمصفوفة
-        </button>
-
-        <button class="main-btn btn-license" onclick="window.location.href='/manager/licenses/page'">
-            <i class="fas fa-file-contract"></i> السجلات والرخص
+            <i class="fas fa-th"></i> المصفوفة
         </button>
         <button class="main-btn" style="background:var(--gold); color:var(--navy)" onclick="copyLink()">
             <i class="fas fa-link"></i> رابط التسجيل
@@ -117,19 +107,19 @@
     <div class="stats-bar">
         <div class="stat-card"> <span class="stat-val" id="totalCount">0</span> <span class="stat-label">إجمالي الموظفين</span> </div>
         <div class="stat-card" style="border-top-color:var(--danger)"> <span class="stat-val" id="expiredCount" style="color:var(--danger)">0</span> <span class="stat-label">إقامات منتهية</span> </div>
-        <div class="stat-card" style="border-top-color:var(--warning)"> <span class="stat-val" id="warningCount" style="color:var(--warning)">0</span> <span class="stat-label">تجديد قريب</span> </div>
-        <div class="stat-card" style="border-top-color:var(--gray)"> <span class="stat-val" id="suspendedCount" style="color:var(--gray)">0</span> <span class="stat-label">حسابات معلقة</span> </div>
+        <div class="stat-card" style="border-top-color:var(--success)"> <span class="stat-val" id="saudiCount" style="color:var(--success)">0</span> <span class="stat-label">مواطنون</span> </div>
+        <div class="stat-card" style="border-top-color:var(--gray)"> <span class="stat-val" id="expatCount" style="color:var(--gray)">0</span> <span class="stat-label">مقيمون</span> </div>
     </div>
 
     <div class="toolbar">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="ابحث باسم الموظف أو رقم الإقامة..." onkeyup="filterData()">
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم، الرقم، أو الجنسية..." onkeyup="filterData()">
         </div>
         <select id="statusFilter" onchange="filterData()" style="padding: 12px; border-radius: 10px; border: 2px solid #eee; font-family: 'Tajawal'; outline:none;">
-            <option value="all">كل الحالات</option>
-            <option value="active">النشطين فقط</option>
-            <option value="suspended">المعلقين فقط</option>
+            <option value="all">كل الجنسيات</option>
+            <option value="السعودية">سعودي</option>
+            <option value="غير سعودي">مقيم (أجنبي)</option>
         </select>
     </div>
 
@@ -138,16 +128,17 @@
             <table id="empTable">
                 <thead>
                     <tr>
-                        <th>الموظف / الإقامة</th>
+                        <th>الموظف / الهوية</th>
+                        <th>الجنسية / الجنس</th>
                         <th>الجوال</th>
-                        <th>المنشأة</th>
-                        <th>انتهاء الإقامة</th>
-                        <th>الراتب</th>
+                        <th>انتهاء الهوية</th>
+                        <th>انتهاء الجواز</th>
+                        <th>التأمين الصحي</th>
                         <th>العمليات</th>
                     </tr>
                 </thead>
                 <tbody id="empTableBody">
-                    <tr><td colspan="6">جاري جلب البيانات...</td></tr>
+                    <tr><td colspan="7">جاري جلب البيانات...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -158,13 +149,19 @@
     <div class="modal-content">
         <h3><i class="fas fa-user-edit"></i> تعديل بيانات الموظف</h3>
         <input type="hidden" id="edit_empId">
-        <div style="margin-bottom:15px">
-            <label>الاسم الكامل</label>
-            <input type="text" id="edit_fullName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
-        </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
-            <div><label>رقم الجوال</label><input type="text" id="edit_phoneNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;"></div>
-            <div><label>رقم الإقامة</label><input type="text" id="edit_idNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;"></div>
+            <div style="grid-column: span 2;">
+                <label>الاسم الكامل</label>
+                <input type="text" id="edit_fullName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            </div>
+            <div>
+                <label>رقم الهوية</label>
+                <input type="text" id="edit_idNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            </div>
+            <div>
+                <label>رقم الجوال</label>
+                <input type="text" id="edit_phoneNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            </div>
         </div>
         <button class="main-btn" style="background:var(--success); color:white; width:100%; justify-content:center" onclick="saveChanges()">حفظ التعديلات</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:var(--gray)">إلغاء</button>
@@ -176,75 +173,111 @@
     let currentScopeId = "";
 
     async function loadData() {
-        // 1. التقاط المعرف من الرابط (Query Params) أو من الذاكرة المحلية
         const urlParams = new URLSearchParams(window.location.search);
         const scopeFromURL = urlParams.get('scope');
         const scopeFromStorage = localStorage.getItem('scopeId');
         
-        // إذا وجدنا المعرف في الرابط، نقوم بتحديث الذاكرة فوراً (خاص بـ أبو حمزة)
         if (scopeFromURL) {
             localStorage.setItem('scopeId', scopeFromURL);
-            localStorage.setItem('userName', "أبو حمزة (إدارة عليا)");
             document.getElementById('backToMatrix').style.display = 'flex';
         }
 
         currentScopeId = scopeFromURL || scopeFromStorage;
-        const managerName = localStorage.getItem('userName') || "مدير النظام";
+        document.getElementById('mgrName').innerText = localStorage.getItem('userName') || "مدير النظام";
 
-        // التحقق من وجود المعرف قبل المتابعة لمنع التوجيه الخاطئ
         if (!currentScopeId || currentScopeId === "null") { 
-            console.log("❌ لا يوجد معرف نطاق، تحويل لتسجيل الدخول");
             window.location.href = '/manager/login'; 
             return; 
         }
 
-        document.getElementById('mgrName').innerText = managerName;
-
         try {
             const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
-            if (!res.ok) throw new Error("فشل جلب البيانات من السيرفر");
-            
             allEmployees = await res.json();
             filterData();
             updateStats();
         } catch (e) { 
-            console.error(e); 
-            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="6">تعذر جلب البيانات. تأكد من اتصال السيرفر.</td></tr>';
+            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">خطأ في جلب البيانات</td></tr>';
         }
+    }
+
+    function getExpiryClass(date) {
+        if (!date) return "";
+        const days = calculateDays(date);
+        if (days < 0) return "expired";
+        if (days <= 30) return "near-expiry";
+        return "valid";
     }
 
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
-        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="6">لا توجد سجلات مطابقة</td></tr>'; return; }
+        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="7">لا توجد سجلات</td></tr>'; return; }
         
         body.innerHTML = data.map(emp => {
-            const daysLeft = calculateDays(emp.idExpiry);
-            const isSuspended = emp.status === 'suspended';
-            let rowClass = isSuspended ? "suspended-row" : (daysLeft < 0 ? "danger-row" : (daysLeft <= 30 ? "warning-row" : ""));
-            
+            const genderClass = emp.gender === 'أنثى' ? 'female' : 'male';
+            const insuranceText = emp.hasHealthInsurance === 'true' || emp.hasHealthInsurance === true 
+                                  ? formatDate(emp.insuranceExpiry) 
+                                  : '<span style="color:#ccc">لا يوجد</span>';
+
             return `
-                <tr class="${rowClass}">
+                <tr>
                     <td><strong>${emp.fullName}</strong><br><small>${emp.idNumber || '---'}</small></td>
+                    <td>
+                        ${emp.nationality || '---'}<br>
+                        <span class="gender-tag ${genderClass}">${emp.gender || 'ذكر'}</span>
+                    </td>
                     <td>${emp.phoneNumber || '---'}</td>
-                    <td>${emp.sponsorName || '---'}</td>
-                    <td>${formatDate(emp.idExpiry)}<br><small>(${daysLeft} يوم)</small></td>
-                    <td>${emp.salary || 0}</td>
+                    <td class="${getExpiryClass(emp.idExpiry)}">
+                        ${formatDate(emp.idExpiry)}<br>
+                        <small>(${calculateDays(emp.idExpiry)} يوم)</small>
+                    </td>
+                    <td class="${getExpiryClass(emp.passportExpiry)}">
+                        ${emp.passportNumber ? formatDate(emp.passportExpiry) : '---'}
+                    </td>
+                    <td class="${getExpiryClass(emp.insuranceExpiry)}">${insuranceText}</td>
                     <td>
                         <div class="action-group">
-                            <button class="btn-circle btn-ed" onclick="editEmp('${emp._id}')"><i class="fas fa-edit" title="تعديل"></i></button>
-                            <button class="btn-circle btn-de" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash" title="حذف"></i></button>
+                            <button class="btn-circle btn-ed" onclick="editEmp('${emp._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-circle btn-de" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
         }).join('');
     }
 
-    async function deleteEmp(id, name) {
-        if (!confirm(`هل أنت متأكد من حذف الموظف: ${name}؟`)) return;
-        try {
-            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
-            if(res.ok) loadData();
-        } catch (err) { alert("حدث خطأ أثناء الحذف"); }
+    function calculateDays(date) { 
+        if(!date) return 0; 
+        const diff = new Date(date) - new Date();
+        return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
+    }
+
+    function formatDate(date) { 
+        if(!date) return "---";
+        return new Date(date).toLocaleDateString('ar-SA'); 
+    }
+
+    function filterData() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const filter = document.getElementById('statusFilter').value;
+        
+        const filtered = allEmployees.filter(emp => {
+            const matchSearch = emp.fullName?.toLowerCase().includes(term) || 
+                                emp.idNumber?.includes(term) || 
+                                emp.nationality?.includes(term);
+            
+            let matchType = true;
+            if (filter === 'السعودية') matchType = emp.nationality === 'السعودية';
+            if (filter === 'غير سعودي') matchType = emp.nationality !== 'السعودية';
+
+            return matchSearch && matchType;
+        });
+        renderTable(filtered);
+    }
+
+    function updateStats() {
+        document.getElementById('totalCount').innerText = allEmployees.length;
+        document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
+        document.getElementById('saudiCount').innerText = allEmployees.filter(e => e.nationality === 'السعودية').length;
+        document.getElementById('expatCount').innerText = allEmployees.filter(e => e.nationality !== 'السعودية').length;
     }
 
     function editEmp(id) {
@@ -257,72 +290,14 @@
         document.getElementById('editModal').style.display = 'block';
     }
 
-    async function saveChanges() {
-        const payload = {
-            empId: document.getElementById('edit_empId').value,
-            fullName: document.getElementById('edit_fullName').value,
-            phoneNumber: document.getElementById('edit_phoneNumber').value,
-            idNumber: document.getElementById('edit_idNumber').value
-        };
-        try {
-            const res = await fetch('/manager/api/update-employee', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            });
-            if(res.ok) { closeModal(); loadData(); }
-        } catch (err) { alert("فشل حفظ التعديلات"); }
-    }
-
-    function filterData() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const stat = document.getElementById('statusFilter').value;
-        const filtered = allEmployees.filter(emp => {
-            const matchSearch = (emp.fullName || "").toLowerCase().includes(term) || (emp.idNumber && emp.idNumber.includes(term));
-            const matchStatus = stat === 'all' || emp.status === stat;
-            return matchSearch && matchStatus;
-        });
-        renderTable(filtered);
-    }
-
-    function calculateDays(date) { 
-        if(!date) return 0; 
-        const diff = new Date(date) - new Date();
-        return Math.ceil(diff / (1000 * 60 * 60 * 24)); 
-    }
-
-    function formatDate(date) { 
-        return date ? new Date(date).toLocaleDateString('ar-SA') : "---"; 
-    }
-
-    function closeModal() { 
-        document.getElementById('editModal').style.display = 'none'; 
-    }
-    
-    function updateStats() {
-        document.getElementById('totalCount').innerText = allEmployees.length;
-        document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
-        document.getElementById('warningCount').innerText = allEmployees.filter(e => { 
-            const d = calculateDays(e.idExpiry); 
-            return d >= 0 && d <= 30; 
-        }).length;
-        document.getElementById('suspendedCount').innerText = allEmployees.filter(e => e.status === 'suspended').length;
-    }
-
-    function logout() { 
-        localStorage.clear(); 
-        window.location.href = '/manager/login'; 
-    }
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+    function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
 
     function copyLink() {
-        if(!currentScopeId) return alert('خطأ: المعرف غير موجود');
         const link = window.location.origin + '/employee/register/' + currentScopeId;
-        navigator.clipboard.writeText(link)
-            .then(() => alert('✅ تم نسخ رابط تسجيل الموظفين بنجاح'))
-            .catch(() => alert('❌ فشل النسخ تلقائياً'));
+        navigator.clipboard.writeText(link).then(() => alert('✅ تم نسخ رابط التسجيل'));
     }
 
-    // تشغيل جلب البيانات عند التحميل
     loadData();
 </script>
 </body>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مصفوفة المنشآت الموحدة | الكوارتز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; 
+            --red: #e74c3c; --gray: #777; --bg: #f4f7f6;
+            --saudi: #27ae60; --expat: #2980b9;
+        }
+        
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        /* الهيدر العلوي */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; background: var(--navy); color: white; 
+            padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* حاوية المصفوفة 4*4 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        /* بطاقة المنشأة */
+        .org-card {
+            background: white; border-radius: 12px; padding: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
+            transition: 0.3s ease; cursor: pointer; position: relative;
+        }
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        
+        /* التنبيه الوامض */
+        .alert-pulse {
+            position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
+            background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
+        }
+
+        .org-title { margin: 0; color: var(--navy); font-size: 1.1rem; font-weight: 700; }
+        .org-id { color: #999; font-size: 0.8rem; display: block; margin-bottom: 10px; }
+
+        /* صندوق العمالة (مواطن/مقيم) */
+        .worker-box { 
+            display: flex; justify-content: space-around; 
+            background: #f9f9f9; padding: 12px; border-radius: 10px; 
+            margin: 15px 0; border: 1px solid #eee;
+        }
+        .worker-item { text-align: center; flex: 1; }
+        .worker-item:first-child { border-left: 1px solid #ddd; }
+        .w-label { font-size: 0.75rem; color: var(--gray); display: block; margin-bottom: 4px; }
+        .w-count { font-weight: bold; font-size: 1.2rem; }
+
+        /* فئات الألوان والحالات */
+        .text-danger { color: var(--red) !important; font-weight: bold; }
+        .text-normal { color: var(--gray); }
+        .count-saudi { color: var(--saudi); }
+        .count-expat { color: var(--expat); }
+
+        .footer-info { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+
+        @keyframes blink { 
+            0% { opacity: 1; transform: scale(1); } 
+            50% { opacity: 0.4; transform: scale(0.8); } 
+            100% { opacity: 1; transform: scale(1); } 
+        }
+
+        /* استجابة الشاشات الصغيرة */
+        @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h2 style="margin:0;"><i class="fas fa-layer-group"></i> مصفوفة إدارة المنشآت</h2>
+            <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">تحكم مركزي شامل | أبو حمزة</p>
+        </div>
+        <a href="/admin/dashboard" style="color:white; text-decoration:none; background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:8px;">
+            <i class="fas fa-arrow-right"></i> لوحة التحكم
+        </a>
+    </div>
+
+    <div class="grid-container">
+        <% if (typeof orgs !== 'undefined' && orgs.length > 0) { %>
+            <% orgs.forEach(org => { %>
+                <div class="org-card" onclick="location.href='/manager/dashboard?scope=<%= org.uniqueId %>'">
+                    
+                    <% if(org.expiredLicenses > 0) { %> 
+                        <div class="alert-pulse"></div> 
+                    <% } %>
+
+                    <h3 class="org-title"><%= org.name %></h3>
+                    <span class="org-id">معرف النطاق: <%= org.uniqueId %></span>
+
+                    <div class="worker-box">
+                        <div class="worker-item">
+                            <span class="w-label">مواطنون</span>
+                            <span class="w-count count-saudi"><%= org.saudiWorkers || 0 %></span>
+                        </div>
+                        <div class="worker-item">
+                            <span class="w-label">مقيمون</span>
+                            <span class="w-count count-expat"><%= org.expatWorkers || 0 %></span>
+                        </div>
+                    </div>
+
+                    <div class="footer-info <%= (org.expiredLicenses > 0) ? 'text-danger' : 'text-normal' %>">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>رخص منتهية: <%= org.expiredLicenses || 0 %></span>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div style="grid-column: span 4; text-align: center; padding: 100px; background: white; border-radius: 20px;">
+                <i class="fas fa-folder-open" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                <h3 style="color: var(--navy);">لا توجد منشآت مرتبطة بقاعدة البيانات حالياً</h3>
+                <p style="color: #666;">قم بإضافة نطاقات جديدة لتظهر لك في المصفوفة الذكية.</p>
+            </div>
+        <% } %>
+    </div>
+
+</body>
+</html>

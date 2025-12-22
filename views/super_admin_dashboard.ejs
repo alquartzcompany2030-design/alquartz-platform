@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم العليا | منصة الكوارتز</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; --bg: #f4f7f6; --red: #e74c3c; }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; overflow-x: hidden; }
 
-        /* القائمة الجانبية المصلحة */
+        /* القائمة الجانبية */
         .sidebar { 
             width: 280px; background: var(--navy); color: white; height: 100vh; 
             position: fixed; right: 0; top: 0; padding: 20px; z-index: 1000;
@@ -27,6 +28,13 @@
             background: rgba(255,255,255,0.05);
         }
         .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--teal); }
+        
+        /* تمييز زر إدارة المنشآت الجديد */
+        .btn-matrix { 
+            background: linear-gradient(45deg, var(--teal), #16a085) !important; 
+            font-weight: bold; border: 1px solid var(--gold);
+        }
+
         .btn-logout { background: var(--red) !important; color: white !important; font-weight: bold; margin-top: 50px; text-align: center; }
 
         /* البطاقات والجداول */
@@ -49,6 +57,8 @@
     <div class="sidebar">
         <h2>الكوارتز السحابي</h2>
         <ul class="sidebar-nav">
+            <li><a href="/admin/matrix" class="btn-matrix">🏢 إدارة المنشآت (المصفوفة)</a></li>
+            <hr style="opacity: 0.1; margin: 15px 0;">
             <li><a onclick="showSection('add-scope-section', this)" class="active">✨ إضافة نطاق جديد</a></li>
             <li><a onclick="showSection('scopes-section', this)">📦 إدارة النطاقات</a></li>
             <li><a onclick="showSection('managers-section', this)">👥 حسابات المدراء</a></li>
@@ -57,7 +67,7 @@
     </div>
 
     <div class="main-content">
-        <h1>لوحة التحكم العليا | أبو حمزة</h1>
+        <h1>لوحة التحكم العليا | <span style="color:var(--navy)">أبو حمزة</span></h1>
         
         <div id="add-scope-section" class="page-section">
             <div class="card">
@@ -110,12 +120,20 @@
     </div>
 
     <script>
-        // --- [ الدوال البرمجية ] ---
+        // دالة التنقل بين أقسام الصفحة الحالية
+        function showSection(id, el) {
+            document.querySelectorAll('.page-section').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            el.classList.add('active');
+            if(id === 'scopes-section') loadScopes();
+            if(id === 'managers-section') { loadScopes(); loadManagers(); }
+        }
+
         async function createScope() {
             const name = document.getElementById('scopeName').value;
             const months = document.getElementById('scopeMonths').value;
             if(!name) return alert("يرجى كتابة اسم الشركة");
-            
             const res = await fetch('/admin/add-scope', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -185,15 +203,6 @@
                 body: JSON.stringify({ id, type, password: pass })
             });
             if(res.ok) location.reload();
-        }
-
-        function showSection(id, el) {
-            document.querySelectorAll('.page-section').forEach(s => s.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-            el.classList.add('active');
-            if(id === 'scopes-section') loadScopes();
-            if(id === 'managers-section') { loadScopes(); loadManagers(); }
         }
 
         function logoutMaster() {

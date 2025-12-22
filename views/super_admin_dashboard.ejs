@@ -5,261 +5,82 @@
     <title>لوحة التحكم العليا | أبو حمزة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; --bg: #f4f7f6; --red: #e74c3c; --green: #2ecc71; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; overflow-x: hidden; }
-        
-        /* القائمة الجانبية */
-        .sidebar { width: 260px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .sidebar h2 { color: var(--gold); text-align: center; border-bottom: 1px solid #ffffff33; padding-bottom: 15px; margin-bottom: 30px; }
+        :root { --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; --bg: #f4f7f6; --red: #e74c3c; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        .sidebar { width: 260px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; }
+        .main-content { margin-right: 260px; flex: 1; padding: 30px; }
         .sidebar-nav { list-style: none; padding: 0; }
-        .sidebar-nav a { color: white; text-decoration: none; display: block; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: 500; }
-        .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--teal); color: white; }
-        
-        /* المحتوى الرئيسي */
-        .main-content { margin-right: 260px; flex: 1; padding: 30px; min-height: 100vh; width: calc(100% - 260px); }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        
-        /* الأزرار والجداول */
-        .btn-main { background: var(--gold); color: var(--navy); border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; }
-        .btn-logout { background: var(--red); color: white !important; margin-top: 40px; text-align: center; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: var(--navy); }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Tajawal'; box-sizing: border-box; }
-        
-        .status-active { color: var(--green); font-weight: bold; }
-        .status-expired { color: var(--red); font-weight: bold; }
+        .sidebar-nav a { color: white; text-decoration: none; display: block; padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 10px; }
+        .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--teal); }
+        .btn-logout { background: var(--red) !important; text-align: center; font-weight: bold; margin-top: 50px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
     </style>
 </head>
 <body>
 
     <script>
-        // 🛡️ الحارس الأمني المطور (منع الثقل وتحسين التوجيه)
+        // 🛡️ الحارس الأمني المطور لمنع الثقل (أبو حمزة)
         (function checkAuth() {
             const role = localStorage.getItem('role');
-            const token = localStorage.getItem('token');
-            
-            // إذا لم يكن سوبر أدمن، يتم توجيهه فوراً لصفحة الدخول
-            if (role !== 'super-admin' || !token) {
-                // نستخدم replace لمنع العودة للخلف بالمتصفح
-                window.location.replace('/admin/master-setup'); 
+            if (role !== 'super-admin') {
+                const pass = prompt("أدخل كلمة مرور السوبر أدمن للوصول:");
+                if (pass === 'hDB3xqff@') {
+                    localStorage.setItem('role', 'super-admin');
+                    localStorage.setItem('token', 'true');
+                } else {
+                    alert("عذراً، كلمة المرور خاطئة!");
+                    window.location.replace('/'); 
+                }
             }
         })();
 
-        // 🚪 دالة تسجيل الخروج النهائية - أبو حمزة
         function logoutMaster() {
-            if(confirm("يا أبو حمزة، هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟")) {
-                // 1. مسح شامل لبيانات الجلسة
+            if(confirm("أبو حمزة، هل أنت متأكد من تسجيل الخروج؟")) {
                 localStorage.clear();
-                sessionStorage.clear();
-                
-                // 2. التوجيه إلى صفحة تسجيل الدخول الأساسية (التي تظهر فيها خانة الباسورد)
-                // نستخدم URL كامل لضمان عدم حدوث Loop
-                window.location.replace('/admin/master-setup');
+                window.location.replace('/');
             }
         }
     </script>
 
     <div class="sidebar">
-        <h2>السحابة الذهبية</h2>
+        <h2 style="color: var(--gold); text-align: center;">السحابة الذهبية</h2>
         <ul class="sidebar-nav">
             <li><a onclick="showSection('add-scope-section', this)" class="active">✨ إضافة نطاق جديد</a></li>
-            <li><a onclick="showSection('scopes-section', this)">📦 إدارة النطاقات (الشركات)</a></li>
+            <li><a onclick="showSection('scopes-section', this)">📦 إدارة النطاقات</a></li>
             <li><a onclick="showSection('managers-section', this)">👥 حسابات المدراء</a></li>
             <li><a onclick="logoutMaster()" class="btn-logout">تسجيل الخروج 🚪</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <h1 style="color: var(--navy);">لوحة التحكم العليا | أبو حمزة</h1>
-
+        <h1>لوحة التحكم العليا | أبو حمزة</h1>
         <div id="add-scope-section" class="page-section">
-            <div class="card" style="max-width: 600px; margin: auto;">
-                <h3>🆕 تأسيس نطاق (شركة) جديد</h3>
-                <form id="addScopeForm">
-                    <div class="form-group">
-                        <label>اسم الشركة / النطاق:</label>
-                        <input type="text" id="scopeName" placeholder="مثلاً: شركة الوفاق" required>
-                    </div>
-                    <div class="form-group">
-                        <label>مدة الاشتراك (بالشهور):</label>
-                        <select id="scopeMonths">
-                            <option value="1">شهر واحد</option>
-                            <option value="3">3 شهور</option>
-                            <option value="6">6 شهور</option>
-                            <option value="12">سنة كاملة</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-main">إنشاء النطاق وتوليد المعرف 🚀</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="scopes-section" class="page-section" style="display:none;">
             <div class="card">
-                <h3>📦 سجل النطاقات النشطة والمعلقة</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الشركة</th>
-                            <th>المعرف الموحد</th>
-                            <th>تاريخ الانتهاء</th>
-                            <th>الحالة</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scopes-table-body"></tbody>
-                </table>
-            </div>
+                <h3>🆕 تأسيس نطاق جديد</h3>
+                </div>
         </div>
-
-        <div id="managers-section" class="page-section" style="display:none;">
-            <div class="card">
-                <h3>👤 إضافة مدير جديد للنطاق</h3>
-                <form id="addManagerForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="text" id="mgrName" placeholder="اسم المدير" required>
-                    <input type="email" id="mgrEmail" placeholder="البريد الإلكتروني" required>
-                    <input type="password" id="mgrPass" placeholder="كلمة المرور" required>
-                    <select id="mgrScopeId" required>
-                        <option value="">اختر النطاق التابع له</option>
-                    </select>
-                    <button type="submit" class="btn-main" style="grid-column: span 2; background: var(--teal); color: white;">تفعيل حساب المدير 🔗</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3>👥 قائمة مدراء النظام</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>المدير</th>
-                            <th>البريد</th>
-                            <th>النطاق</th>
-                            <th>آخر دخول</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="managers-table-body"></tbody>
-                </table>
-            </div>
         </div>
-    </div>
 
     <script>
-        // دالة التبديل بين الأقسام
         function showSection(id, el) {
             document.querySelectorAll('.page-section').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'block';
             document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
             el.classList.add('active');
-            
             if(id === 'scopes-section') loadScopes();
-            if(id === 'managers-section') { loadManagers(); updateScopeDropdown(); }
-        }
-
-        async function loadScopes() {
-            try {
-                const res = await fetch('/admin/get-all-scopes');
-                const data = await res.json();
-                const tbody = document.getElementById('scopes-table-body');
-                tbody.innerHTML = '';
-                data.forEach(scope => {
-                    tbody.innerHTML += `<tr>
-                        <td><b>${scope.name}</b></td>
-                        <td><code>${scope.uniqueId}</code></td>
-                        <td>${new Date(scope.expiry).toLocaleDateString('ar-SA')}</td>
-                        <td class="${scope.status === 'active' ? 'status-active' : 'status-expired'}">${scope.status === 'active' ? 'نشط ✅' : 'معلق 🚫'}</td>
-                        <td><button style="color:red; cursor:pointer;" onclick="deleteItem('${scope._id}', 'scope')">حذف</button></td>
-                    </tr>`;
-                });
-            } catch (e) { console.error("Error loading scopes", e); }
+            if(id === 'managers-section') loadManagers();
         }
 
         async function loadManagers() {
             try {
+                // استدعاء المسار الذي أصلحناه في السيرفر
                 const res = await fetch('/admin/get-all-managers');
-                if (!res.ok) return;
                 const data = await res.json();
-                const tbody = document.getElementById('managers-table-body');
-                tbody.innerHTML = '';
-                data.forEach(mgr => {
-                    tbody.innerHTML += `<tr>
-                        <td>${mgr.name}</td>
-                        <td>${mgr.email}</td>
-                        <td><span style="background:#eee; padding:3px 8px; border-radius:5px;">${mgr.scopeId}</span></td>
-                        <td>${mgr.lastLogin || 'لم يدخل بعد'}</td>
-                        <td><button style="color:red; cursor:pointer;" onclick="deleteItem('${mgr._id}', 'manager')">حذف</button></td>
-                    </tr>`;
-                });
-            } catch (e) { console.error("Error loading managers:", e); }
+                // كود عرض الجدول هنا...
+            } catch (e) { console.error("Error:", e); }
         }
-
-        async function updateScopeDropdown() {
-            try {
-                const res = await fetch('/admin/get-all-scopes');
-                const scopes = await res.json();
-                const select = document.getElementById('mgrScopeId');
-                select.innerHTML = '<option value="">اختر النطاق التابع له</option>';
-                scopes.forEach(s => select.innerHTML += `<option value="${s.uniqueId}">${s.name}</option>`);
-            } catch (e) { console.error(e); }
-        }
-
-        // الحذف الآمن بكلمة مرورك (hDB3xqff@)
-        async function deleteItem(id, type) {
-            const password = prompt("⚠️ إجراء أمني: أدخل كلمة مرور السوبر أدمن للتأكيد:");
-            if(!password) return;
-            const res = await fetch('/admin/verify-and-delete', {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id, type, password })
-            });
-            if(res.ok) {
-                alert("تم الحذف بنجاح");
-                type === 'scope' ? loadScopes() : loadManagers();
-            } else {
-                alert("خطأ: كلمة المرور غير صحيحة");
-            }
-        }
-
-        // معالجة نموذج إضافة النطاق
-        document.getElementById('addScopeForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const res = await fetch('/admin/add-scope', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: document.getElementById('scopeName').value,
-                    months: document.getElementById('scopeMonths').value
-                })
-            });
-            if(res.ok) { 
-                alert("تم إنشاء النطاق بنجاح يا أبو حمزة"); 
-                document.getElementById('addScopeForm').reset();
-            }
-        };
-
-        // معالجة نموذج إضافة المدير
-        document.getElementById('addManagerForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const res = await fetch('/admin/add-manager', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: document.getElementById('mgrName').value,
-                    email: document.getElementById('mgrEmail').value,
-                    password: document.getElementById('mgrPass').value,
-                    scopeId: document.getElementById('mgrScopeId').value
-                })
-            });
-            if(res.ok) { 
-                alert("تم تفعيل حساب المدير الجديد"); 
-                document.getElementById('addManagerForm').reset();
-                loadManagers();
-            }
-        };
     </script>
 </body>
 </html>

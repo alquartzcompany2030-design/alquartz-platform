@@ -6,27 +6,40 @@
     <title>تحديث بيانات الموظفين | منصة أبو حمزة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --navy: #0b1d2a; --gold: #ffcc00; --bg: #f4f7f6; --success: #27ae60; }
+        :root { --navy: #0b1d2a; --gold: #ffcc00; --bg: #f4f7f6; --success: #27ae60; --gray: #666; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .form-card { background: white; width: 100%; max-width: 600px; padding: 35px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 10px solid var(--navy); position: relative; }
+        
+        .form-card { 
+            background: white; width: 100%; max-width: 600px; padding: 35px; 
+            border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            border-top: 10px solid var(--navy); position: relative; 
+        }
+
         .progress-container { width: 100%; background: #eee; height: 8px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--gold); transition: 0.5s ease; }
+        
         .motivation { color: var(--success); font-weight: bold; margin-bottom: 20px; text-align: center; min-height: 24px; font-size: 18px; }
+        
         .step { display: none; }
         .step.active { display: block; animation: fadeIn 0.5s forwards; }
-        label { display: block; margin-bottom: 12px; font-size: 1.1rem; color: var(--navy); font-weight: 700; }
-        input, select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 12px; font-family: 'Tajawal'; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        input:focus { border-color: var(--gold); outline: none; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        
+        label { display: block; margin-bottom: 8px; font-size: 1rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
+        input, select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 12px; font-family: 'Tajawal'; font-size: 16px; margin-bottom: 5px; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--gold); outline: none; background: #fffcf0; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
         button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; }
         .btn-next { background: var(--navy); color: var(--gold); }
-        .btn-prev { background: #ccc; color: #333; }
+        .btn-next:hover { background: #162e42; }
+        .btn-prev { background: #eee; color: #333; }
+        
         .hidden-fields { display: none; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ddd; margin-top: 10px; }
-        .phone-hint { font-size: 0.8rem; color: #666; margin-top: -8px; margin-bottom: 10px; display: block; }
+        .phone-hint { font-size: 0.8rem; color: #888; display: block; margin-bottom: 10px; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         #success-container { display: none; text-align: center; padding: 20px; }
-        .success-icon { font-size: 50px; color: var(--success); margin-bottom: 15px; }
+        .success-icon { font-size: 60px; color: var(--success); margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -40,15 +53,25 @@
             <input type="hidden" name="scopeId" value="<%= scope.uniqueId %>">
 
             <div class="step active" data-step="1">
-                <label>ما هو اسمك الكامل كما في الإقامة؟</label>
+                <label>الاسم الكامل (كما في الإقامة)</label>
                 <input type="text" name="fullName" placeholder="الاسم الرباعي" required>
                 
-                <label>رقم الجوال (لإرسال تنبيهات الواتساب)</label>
-                <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" required title="يرجى إدخال رقم جوال سعودي صحيح يبدأ بـ 05">
-                <span class="phone-hint">مثال: 0512345678</span>
+                <label>رقم الجوال (المرتبط بالواتساب)</label>
+                <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" required>
+                <span class="phone-hint">يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</span>
 
-                <label>اسم المنشأة الكفيلة المسجلة في إقامتك</label>
-                <input type="text" name="sponsorName" placeholder="اسم الكفيل الحالي" required>
+                <label>الجنسية</label>
+                <select name="nationality" required>
+                    <option value="">اختر الجنسية...</option>
+                    <option value="مصر">مصر</option>
+                    <option value="باكستان">باكستان</option>
+                    <option value="الهند">الهند</option>
+                    <option value="اليمن">اليمن</option>
+                    <option value="السودان">السودان</option>
+                    <option value="بنجلاديش">بنجلاديش</option>
+                    <option value="الفلبين">الفلبين</option>
+                    <option value="أخرى">أخرى</option>
+                </select>
                 
                 <div class="btn-group">
                     <button type="button" class="btn-next" onclick="nextStep(1, 'خطوة رائعة! الآن لننتقل لبيانات الهوية')">التالي ⮕</button>
@@ -56,12 +79,18 @@
             </div>
 
             <div class="step" data-step="2">
-                <label>رقم الإقامة وتاريخ انتهائها</label>
-                <input type="text" name="idNumber" placeholder="10xxxxxxxx" required>
+                <label>رقم الإقامة</label>
+                <input type="text" name="idNumber" placeholder="10xxxxxxxx" required pattern="[0-9]{10}">
+                
+                <label>تاريخ انتهاء الإقامة</label>
                 <input type="date" name="idExpiry" required>
-                <label>رقم الجواز وتاريخ انتهائه</label>
+                
+                <label>رقم الجواز</label>
                 <input type="text" name="passportNumber" placeholder="رقم الجواز">
+                
+                <label>تاريخ انتهاء الجواز</label>
                 <input type="date" name="passportExpiry">
+
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(2)">السابق</button>
                     <button type="button" class="btn-next" onclick="nextStep(2, 'أحسنت! ماذا عن التأمين والوضع الصحي؟')">التالي ⮕</button>
@@ -79,10 +108,7 @@
                     <input type="date" name="insuranceExpiry">
                 </div>
 
-                <label>كيف تصف وضعك الصحي؟</label>
-                <input type="text" name="healthStatus" placeholder="مثال: جيد، مستقر..">
-
-                <label>هل لديك تابعين في المملكة؟</label>
+                <label>هل لديك تابعين (أسرة) في المملكة؟</label>
                 <select name="hasFamilyInKSA" onchange="toggleBox(this, 'familyBox')">
                     <option value="false">لا</option>
                     <option value="true">نعم</option>
@@ -90,50 +116,29 @@
                 <div id="familyBox" class="hidden-fields">
                     <label>نوع إقامة الأسرة</label>
                     <select name="familyStatus">
-                        <option value="مقيمين">إقامة نظامية (مقيمين)</option>
+                        <option value="مقيمين">إقامة نظامية</option>
                         <option value="زوار">تأشيرة زيارة</option>
                     </select>
                 </div>
+
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(3)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات العمل والراتب.. شارفت على الانتهاء!')">التالي ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3, 'شارفت على الانتهاء! بقي القليل')">التالي ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="4">
-                <label>متى تم نقل كفالتك للشركة؟</label>
-                <input type="date" name="sponsorshipTransferDate">
-                <label>ما هو الراتب الإجمالي المتفق عليه؟</label>
-                <input type="number" name="salary" placeholder="مثال: 5000">
-                
-                <label>هل لديك تفويض على سيارة من الشركة؟</label>
-                <select name="hasCarAuthorization" onchange="toggleBox(this, 'carBox')">
-                    <option value="false">لا</option>
-                    <option value="true">نعم</option>
-                </select>
-                <div id="carBox" class="hidden-fields">
-                    <input type="text" name="carPlate" placeholder="رقم اللوحة">
-                    <input type="text" name="carType" placeholder="نوع السيارة">
-                    <input type="text" name="carRegistrationNumber" placeholder="رقم الاستمارة">
-                </div>
+                <label>اسم المنشأة الكفيلة (الحالية)</label>
+                <input type="text" name="sponsorName" placeholder="كما في الإقامة" required>
+
+                <label>الفرع / مدينة العمل</label>
+                <input type="text" name="branch" placeholder="مثال: فرع الرياض - الملز">
+
+                <label>عنوان السكن بالتفصيل</label>
+                <input type="text" name="address" placeholder="الحي، الشارع، رقم المبنى">
+
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(4)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(4, 'الخطوة الأخيرة.. أنت رائع فعلاً!')">التالي ⮕</button>
-                </div>
-            </div>
-
-            <div class="step" data-step="5">
-                <label>في أي فرع تعمل حالياً؟</label>
-                <input type="text" name="branch" placeholder="اسم الفرع أو المدينة">
-                <label>عنوان السكن بالتفصيل</label>
-                <input type="text" name="address" placeholder="الحي، الشارع">
-                <label>هل لديك رخصة قيادة سارية؟</label>
-                <select name="hasDrivingLicense">
-                    <option value="true">نعم</option>
-                    <option value="false">لا</option>
-                </select>
-                <div class="btn-group">
-                    <button type="button" class="btn-prev" onclick="prevStep(5)">السابق</button>
                     <button type="submit" class="btn-next" style="background:var(--success); color:white;">إرسال البيانات واعتمادها 🚀</button>
                 </div>
             </div>
@@ -141,27 +146,38 @@
     </div>
 
     <div id="success-container">
-        <div class="success-icon">✅</div>
-        <h2>تم حفظ بياناتك بنجاح!</h2>
-        <p>شكراً لك، سيتم التواصل معك عبر الواتساب عند الحاجة لتجديد وثائقك.</p>
+        <div class="success-icon">✓</div>
+        <h2>تم الحفظ بنجاح يا بطل!</h2>
+        <p>شكراً لتحديث بياناتك، سيتم مراجعتها من قبل الإدارة.</p>
         <button class="btn-next" onclick="window.location.reload()">تحديث بيانات موظف آخر</button>
     </div>
 </div>
 
 <script>
     let current = 1;
-    const total = 5;
+    const total = 4; // تم تقليص الخطوات لسرعة الإدخال
+
+    function updateProgress() {
+        const progress = ((current - 1) / (total - 1)) * 100;
+        document.getElementById('pBar').style.width = progress + '%';
+    }
 
     function nextStep(step, msg) {
-        // التحقق من صحة الحقول في الخطوة الحالية قبل الانتقال
-        const inputs = document.querySelector(`[data-step="${step}"]`).querySelectorAll('input[required]');
+        const currentStepEl = document.querySelector(`[data-step="${step}"]`);
+        const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
+        
+        // التحقق من الحقول
         for (let input of inputs) {
-            if (!input.checkValidity()) {
+            if (!input.value) {
+                input.style.borderColor = 'red';
                 input.reportValidity();
                 return;
+            } else {
+                input.style.borderColor = '#eee';
             }
         }
-        document.querySelector(`[data-step="${step}"]`).classList.remove('active');
+
+        currentStepEl.classList.remove('active');
         document.querySelector(`[data-step="${step+1}"]`).classList.add('active');
         document.getElementById('motivationMsg').innerText = msg;
         current++;
@@ -175,18 +191,21 @@
         updateProgress();
     }
 
-    function updateProgress() {
-        document.getElementById('pBar').style.width = ((current-1) / (total-1) * 100) + '%';
-    }
-
     function toggleBox(select, boxId) {
         document.getElementById(boxId).style.display = select.value === 'true' ? 'block' : 'none';
     }
 
+    // إرسال البيانات للسيرفر
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target));
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
         
+        // إظهار حالة التحميل على الزر
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.innerText = "جاري الحفظ...";
+        submitBtn.disabled = true;
+
         try {
             const res = await fetch('/employee/api/register', { 
                 method: 'POST',
@@ -198,12 +217,19 @@
                 document.getElementById('form-content').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } else {
-                alert('حدث خطأ في الإرسال، يرجى المحاولة لاحقاً.');
+                alert('عذراً، حدث خطأ أثناء الحفظ. تأكد من رقم الإقامة.');
+                submitBtn.innerText = "إرسال البيانات واعتمادها 🚀";
+                submitBtn.disabled = false;
             }
         } catch (error) {
-            alert('تعذر الاتصال بالسيرفر.');
+            alert('فشل الاتصال بالسيرفر، يرجى المحاولة لاحقاً.');
+            submitBtn.disabled = false;
         }
     };
+
+    // تهيئة البار عند التحميل
+    updateProgress();
 </script>
+
 </body>
 </html>

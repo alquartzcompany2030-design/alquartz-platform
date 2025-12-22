@@ -22,14 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 // --- [ مسار تسجيل الدخول الموحد الذكي ] ---
 app.post('/api/unified-login', async (req, res) => {
     try {
-        // تنظيف البيانات المدخلة من الفراغات وتحويل البريد لأحرف صغيرة
-        const email = req.body.email.toLowerCase().trim();
-        const password = req.body.password;
+        // تنظيف البريد من الفراغات وتحويله لأحرف صغيرة لضمان المطابقة
+        const email = req.body.email ? req.body.email.toLowerCase().trim() : "";
+        // تنظيف كلمة المرور من الفراغات لضمان عدم وجود أخطاء عند النسخ واللصق
+        const password = req.body.password ? req.body.password.trim() : "";
 
         console.log(`محاولة دخول للنظام: ${email}`);
 
         // 1. فحص السوبر أدمن (أبو حمزة) - بيانات ثابتة (Hardcoded)
-        // ملاحظة: هذا الحساب لا يظهر في MongoDB لأنه مفتاح النظام الأساسي
         if (email === "admin@golden.com" && password === "Golden2025@") {
             console.log("✅ تم دخول أبو حمزة بنجاح (سوبر أدمن)");
             return res.json({ 
@@ -39,11 +39,12 @@ app.post('/api/unified-login', async (req, res) => {
             });
         }
 
-        // 2. فحص المدراء في قاعدة البيانات (مثل حساب أسامة المذكور في صورتك)
-        const manager = await Manager.findOne({ email: email, password: password });
+        // 2. فحص المدراء في قاعدة البيانات
+        const manager = await Manager.findOne({ email: email });
         
-        if (manager) {
-            console.log(`✅ تم دخول المدير: ${manager.name}`);
+        // التحقق من وجود المدير ومطابقة كلمة المرور
+        if (manager && manager.password === password) {
+            console.log(`✅ تم دخول المدير بنجاح: ${manager.name}`);
             return res.json({ 
                 success: true, 
                 role: 'manager', 
@@ -52,7 +53,7 @@ app.post('/api/unified-login', async (req, res) => {
             });
         }
 
-        console.log("❌ فشل الدخول: البريد أو كلمة المرور غير صحيحة");
+        console.log(`❌ فشل الدخول للبريد: ${email} - بيانات غير صحيحة`);
         res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
 
     } catch (err) {

@@ -9,38 +9,27 @@
         :root { --navy: #0b1d2a; --gold: #ffcc00; --white: #ffffff; --gray: #f4f7f6; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--gray); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .login-card { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 10px solid var(--gold); text-align: center; }
-        .logo-icon { font-size: 50px; margin-bottom: 10px; }
-        h2 { color: var(--navy); margin-bottom: 10px; font-weight: 700; }
-        p { color: #666; font-size: 14px; margin-bottom: 30px; }
+        h2 { color: var(--navy); margin-bottom: 30px; font-weight: 700; }
         .input-group { text-align: right; margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; color: var(--navy); font-weight: bold; }
-        input { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
-        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 8px rgba(255, 204, 0, 0.2); }
-        .btn-login { width: 100%; padding: 15px; background: var(--navy); color: var(--gold); border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-login:hover { background: #162e40; transform: translateY(-2px); }
-        .error-msg { color: #e74c3c; background: #fdeaea; padding: 10px; border-radius: 8px; margin-bottom: 20px; display: none; font-size: 14px; }
+        input { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 15px; background: var(--navy); color: var(--gold); border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .error-msg { color: #e74c3c; background: #fdeaea; padding: 10px; border-radius: 8px; margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
-
     <div class="login-card">
-        <div class="logo-icon">☁️</div>
         <h2>Golden Cloud Server</h2>
-        <p>مرحباً بك في نظام الإدارة الموحد</p>
-
         <div id="errorBox" class="error-msg"></div>
-
         <form id="loginForm">
             <div class="input-group">
                 <label>البريد الإلكتروني</label>
                 <input type="email" id="email" placeholder="example@mail.com" required>
             </div>
-
             <div class="input-group">
                 <label>كلمة المرور</label>
                 <input type="password" id="password" placeholder="••••••••" required>
             </div>
-
             <button type="submit" class="btn-login">دخول النظام 🚀</button>
         </form>
     </div>
@@ -48,44 +37,26 @@
     <script>
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            const errorBox = document.getElementById('errorBox');
-            errorBox.style.display = 'none';
-
-            // تنظيف المدخلات من الفراغات لضمان المطابقة مع السيرفر
             const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const password = document.getElementById('password').value.trim();
+            const errorBox = document.getElementById('errorBox');
 
             try {
-                // استخدام المسار الموحد الجديد
-                const response = await fetch('/api/unified-login', { 
+                const response = await fetch('/api/unified-login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
                 const data = await response.json();
-
                 if (data.success) {
-                    // تخزين بيانات الجلسة في المتصفح لاستخدامها في اللوحات الداخلية
-                    localStorage.setItem('userName', data.name);
                     localStorage.setItem('role', data.role);
-                    
-                    if (data.role === 'super-admin') {
-                        // توجيه أبو حمزة للوحة الإدارة العامة
-                        window.location.href = '/admin/dashboard';
-                    } else {
-                        // توجيه المدير للوحة الإدارة الخاصة بشركته
-                        localStorage.setItem('scopeId', data.scopeId);
-                        window.location.href = '/manager/dashboard';
-                    }
+                    window.location.href = data.role === 'super-admin' ? '/admin/dashboard' : '/manager/dashboard';
                 } else {
-                    // عرض رسالة الخطأ الواردة من السيرفر
-                    errorBox.textContent = data.message || "بيانات الدخول غير صحيحة";
+                    errorBox.textContent = data.message;
                     errorBox.style.display = 'block';
                 }
             } catch (err) {
-                console.error("Connection Error:", err);
-                errorBox.textContent = "فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى";
+                errorBox.textContent = "خطأ في الاتصال";
                 errorBox.style.display = 'block';
             }
         };

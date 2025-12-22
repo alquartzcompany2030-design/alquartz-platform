@@ -15,21 +15,18 @@
         
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         
-        /* الهيدر العلوي */
         .header { 
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 30px; background: var(--navy); color: white; 
             padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        /* حاوية المصفوفة 4*4 */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
         }
 
-        /* بطاقة المنشأة */
         .org-card {
             background: white; border-radius: 12px; padding: 18px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
@@ -37,7 +34,6 @@
         }
         .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         
-        /* التنبيه الوامض */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
@@ -46,7 +42,6 @@
         .org-title { margin: 0; color: var(--navy); font-size: 1.1rem; font-weight: 700; }
         .org-id { color: #999; font-size: 0.8rem; display: block; margin-bottom: 10px; }
 
-        /* صندوق العمالة (مواطن/مقيم) */
         .worker-box { 
             display: flex; justify-content: space-around; 
             background: #f9f9f9; padding: 12px; border-radius: 10px; 
@@ -57,7 +52,6 @@
         .w-label { font-size: 0.75rem; color: var(--gray); display: block; margin-bottom: 4px; }
         .w-count { font-weight: bold; font-size: 1.2rem; }
 
-        /* فئات الألوان والحالات */
         .text-danger { color: var(--red) !important; font-weight: bold; }
         .text-normal { color: var(--gray); }
         .count-saudi { color: var(--saudi); }
@@ -71,7 +65,6 @@
             100% { opacity: 1; transform: scale(1); } 
         }
 
-        /* استجابة الشاشات الصغيرة */
         @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
     </style>
@@ -91,7 +84,7 @@
     <div class="grid-container">
         <% if (typeof orgs !== 'undefined' && orgs.length > 0) { %>
             <% orgs.forEach(org => { %>
-                <div class="org-card" onclick="location.href='/manager/dashboard?scope=<%= org.uniqueId %>'">
+                <div class="org-card" onclick="location.href='/admin/view-scope/<%= org.uniqueId %>'">
                     
                     <% if(org.expiredLicenses > 0) { %> 
                         <div class="alert-pulse"></div> 

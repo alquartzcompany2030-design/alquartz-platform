@@ -51,11 +51,12 @@
             const errorBox = document.getElementById('errorBox');
             errorBox.style.display = 'none';
 
-            const email = document.getElementById('email').value;
+            // تنظيف المدخلات من الفراغات لضمان المطابقة مع السيرفر
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
             try {
-                // التعديل الجوهري: استخدام المسار الموحد الجديد
+                // استخدام المسار الموحد الجديد
                 const response = await fetch('/api/unified-login', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -65,25 +66,26 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // تخزين بيانات الجلسة
+                    // تخزين بيانات الجلسة في المتصفح لاستخدامها في اللوحات الداخلية
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('role', data.role);
                     
                     if (data.role === 'super-admin') {
-                        // توجيه أبو حمزة للوحة العليا
+                        // توجيه أبو حمزة للوحة الإدارة العامة
                         window.location.href = '/admin/dashboard';
                     } else {
-                        // توجيه المدير للوحة شركته
+                        // توجيه المدير للوحة الإدارة الخاصة بشركته
                         localStorage.setItem('scopeId', data.scopeId);
                         window.location.href = '/manager/dashboard';
                     }
                 } else {
+                    // عرض رسالة الخطأ الواردة من السيرفر
                     errorBox.textContent = data.message || "بيانات الدخول غير صحيحة";
                     errorBox.style.display = 'block';
                 }
             } catch (err) {
                 console.error("Connection Error:", err);
-                errorBox.textContent = "فشل الاتصال بالسيرفر، تأكد من تشغيل المشروع";
+                errorBox.textContent = "فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى";
                 errorBox.style.display = 'block';
             }
         };

@@ -2,66 +2,72 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم العليا | أبو حمزة</title>
+    <title>لوحة التحكم | أبو حمزة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; --bg: #f4f7f6; --red: #e74c3c; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; }
-        .sidebar { width: 260px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; }
-        .main-content { margin-right: 260px; flex: 1; padding: 30px; }
+        .sidebar { width: 250px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; }
+        .main-content { margin-right: 250px; flex: 1; padding: 30px; }
         .sidebar-nav { list-style: none; padding: 0; }
-        .sidebar-nav a { color: white; text-decoration: none; display: block; padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 10px; }
+        .sidebar-nav a { color: white; text-decoration: none; display: block; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; }
         .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--teal); }
-        .btn-logout { background: var(--red) !important; text-align: center; font-weight: bold; margin-top: 50px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
     <script>
-        // 🛡️ الحارس الأمني المطور لمنع الثقل (أبو حمزة)
+        // 🛡️ حارس الأمان المطور لمنع الثقل
         (function checkAuth() {
-            const role = localStorage.getItem('role');
-            if (role !== 'super-admin') {
-                const pass = prompt("أدخل كلمة مرور السوبر أدمن للوصول:");
+            if (localStorage.getItem('role') !== 'super-admin') {
+                const pass = prompt("أدخل كلمة المرور يا أبو حمزة:");
                 if (pass === 'hDB3xqff@') {
                     localStorage.setItem('role', 'super-admin');
-                    localStorage.setItem('token', 'true');
                 } else {
-                    alert("عذراً، كلمة المرور خاطئة!");
-                    window.location.replace('/'); 
+                    window.location.replace('/');
                 }
             }
         })();
 
-        function logoutMaster() {
-            if(confirm("أبو حمزة، هل أنت متأكد من تسجيل الخروج؟")) {
-                localStorage.clear();
-                window.location.replace('/');
-            }
+        function logout() {
+            localStorage.clear();
+            window.location.replace('/');
         }
     </script>
 
     <div class="sidebar">
-        <h2 style="color: var(--gold); text-align: center;">السحابة الذهبية</h2>
+        <h2 style="color: var(--gold);">الكوارتز السحابي</h2>
         <ul class="sidebar-nav">
-            <li><a onclick="showSection('add-scope-section', this)" class="active">✨ إضافة نطاق جديد</a></li>
-            <li><a onclick="showSection('scopes-section', this)">📦 إدارة النطاقات</a></li>
-            <li><a onclick="showSection('managers-section', this)">👥 حسابات المدراء</a></li>
-            <li><a onclick="logoutMaster()" class="btn-logout">تسجيل الخروج 🚪</a></li>
+            <li><a onclick="showSection('add-scope', this)" class="active">✨ إضافة نطاق</a></li>
+            <li><a onclick="showSection('view-managers', this)">👥 المدراء</a></li>
+            <li><a onclick="logout()" style="color: var(--red);">تسجيل الخروج 🚪</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <h1>لوحة التحكم العليا | أبو حمزة</h1>
-        <div id="add-scope-section" class="page-section">
+        <h1>لوحة التحكم | أبو حمزة</h1>
+        
+        <div id="add-scope" class="page-section">
             <div class="card">
-                <h3>🆕 تأسيس نطاق جديد</h3>
+                <h3>🆕 إنشاء نطاق شركة جديد</h3>
                 </div>
         </div>
+
+        <div id="view-managers" class="page-section" style="display:none;">
+            <div class="card">
+                <h3>👥 قائمة المدراء</h3>
+                <table>
+                    <thead>
+                        <tr><th>الاسم</th><th>البريد</th><th>النطاق</th></tr>
+                    </thead>
+                    <tbody id="mgr-table"></tbody>
+                </table>
+            </div>
         </div>
+    </div>
 
     <script>
         function showSection(id, el) {
@@ -69,17 +75,15 @@
             document.getElementById(id).style.display = 'block';
             document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
             el.classList.add('active');
-            if(id === 'scopes-section') loadScopes();
-            if(id === 'managers-section') loadManagers();
+            if(id === 'view-managers') loadManagers();
         }
 
         async function loadManagers() {
-            try {
-                // استدعاء المسار الذي أصلحناه في السيرفر
-                const res = await fetch('/admin/get-all-managers');
-                const data = await res.json();
-                // كود عرض الجدول هنا...
-            } catch (e) { console.error("Error:", e); }
+            // ✅ تم إضافة /admin/ ليتطابق مع تعريف السيرفر
+            const res = await fetch('/admin/get-all-managers');
+            const data = await res.json();
+            const tbody = document.getElementById('mgr-table');
+            tbody.innerHTML = data.map(m => `<tr><td>${m.name}</td><td>${m.email}</td><td>${m.scopeId}</td></tr>`).join('');
         }
     </script>
 </body>

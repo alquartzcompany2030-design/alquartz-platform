@@ -4,24 +4,24 @@ const crypto = require('crypto');
 const Scope = require('../models/Scope');
 const Manager = require('../models/Manager');
 
-// --- [ واجهات السوبر أدمن ] ---
+// --- [ واجهات العرض - Render ] ---
 
-// عرض لوحة التحكم العليا (تم فصلها عن مسار الدخول لمنع الثقل)
+// هذا المسار سيصبح: /admin/dashboard
 router.get('/dashboard', (req, res) => {
     res.render('super_admin_dashboard');
 });
 
-// --- [ عمليات الـ API للأسفل ] ---
+// --- [ عمليات الـ API ] ---
 
-// 1. جلب كل الشركات
+// جلب الشركات: /admin/get-all-scopes
 router.get('/get-all-scopes', async (req, res) => {
     try {
         const scopes = await Scope.find().sort({ createdAt: -1 });
         res.json(scopes);
-    } catch (err) { res.status(500).json({ message: "خطأ في جلب النطاقات" }); }
+    } catch (err) { res.status(500).json({ message: "خطأ في الجلب" }); }
 });
 
-// ✅ 2. جلب كل المدراء (هذا هو السطر الذي كان ينقصك ويسبب 404)
+// جلب المدراء: /admin/get-all-managers
 router.get('/get-all-managers', async (req, res) => {
     try {
         const managers = await Manager.find().sort({ createdAt: -1 });
@@ -29,40 +29,38 @@ router.get('/get-all-managers', async (req, res) => {
     } catch (err) { res.status(500).json({ message: "خطأ في جلب المدراء" }); }
 });
 
-// 3. إضافة شركة (نطاق) جديد
+// إضافة نطاق: /admin/add-scope
 router.post('/add-scope', async (req, res) => {
     try {
         const { name, months } = req.body;
         const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
         const expiryDate = new Date();
         expiryDate.setMonth(expiryDate.getMonth() + parseInt(months));
-
         const newScope = new Scope({ name, uniqueId, expiry: expiryDate, status: 'active' });
         await newScope.save();
-        res.status(200).json({ message: "تم إنشاء النطاق بنجاح" });
-    } catch (err) { res.status(400).json({ message: "فشل إنشاء النطاق" }); }
+        res.status(200).json({ message: "تم الإنشاء بنجاح" });
+    } catch (err) { res.status(400).json({ message: "فشل الإنشاء" }); }
 });
 
-// 4. إضافة مدير لنطاق
+// إضافة مدير: /admin/add-manager
 router.post('/add-manager', async (req, res) => {
     try {
         const { name, email, password, scopeId } = req.body;
         const newManager = new Manager({ name, email, password, scopeId });
         await newManager.save();
-        res.status(200).json({ message: "تم تفعيل حساب المدير" });
-    } catch (err) { res.status(400).json({ message: "الإيمييل مسجل مسبقاً" }); }     
+        res.status(200).json({ message: "تم التفعيل" });
+    } catch (err) { res.status(400).json({ message: "الإيميل مكرر" }); }     
 });
 
-// 5. الحذف الآمن بكلمة مرور الماستر (أبو حمزة)
+// الحذف الآمن: /admin/verify-and-delete
 router.delete('/verify-and-delete', async (req, res) => {
     const { id, type, password } = req.body;
-    if (password !== 'hDB3xqff@') return res.status(403).json({ message: "كلمة المرور خاطئة!" });
-
+    if (password !== 'hDB3xqff@') return res.status(403).json({ message: "خطأ!" });
     try {
         if (type === 'scope') await Scope.findByIdAndDelete(id);
         else await Manager.findByIdAndDelete(id);
-        res.status(200).json({ message: "تم الحذف بنجاح" });
-    } catch (err) { res.status(500).json({ message: "حدث خطأ أثناء الحذف" }); }
+        res.status(200).json({ message: "تم الحذف" });
+    } catch (err) { res.status(500).json({ message: "خطأ" }); }
 });
 
 module.exports = router;

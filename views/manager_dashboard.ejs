@@ -45,7 +45,7 @@
 
         .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .scroll-area { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; }
         thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 0.95rem; font-weight: 700; }
         tbody tr { transition: 0.2s; border-bottom: 1px solid #f1f2f6; }
         td { padding: 12px 15px; text-align: center; vertical-align: middle; font-size: 0.9rem; }
@@ -54,9 +54,12 @@
         .near-expiry { color: var(--warning); font-weight: bold; }
         .valid { color: var(--success); }
 
+        .badge-nat { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: #f1f2f6; color: var(--navy); border: 1px solid #ddd; }
         .gender-tag { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
         .male { background: #e3f2fd; color: #1976d2; }
         .female { background: #fce4ec; color: #c2185b; }
+        
+        .car-info { font-size: 0.75rem; color: #555; background: #fff9db; padding: 4px; border-radius: 5px; margin-top: 5px; border: 1px solid #ffe066; }
 
         .action-group { display: flex; gap: 8px; justify-content: center; }
         .btn-circle {
@@ -84,7 +87,7 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <i class="fas fa-user-shield fa-2x"></i>
-        <h2 style="margin:0">إدارة نطاق: <span id="mgrName" style="color:white">...</span></h2>
+        <h2 style="margin:0">إدارة نطاق: <span id="mgrName" style="color:white">جاري التحميل...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
         <button class="main-btn" style="background:#6c5ce7; color:white;" onclick="window.location.href='/manager/licenses?scope=' + currentScopeId">
@@ -129,7 +132,7 @@
                         <th>الجوال</th>
                         <th>انتهاء الهوية</th>
                         <th>انتهاء الجواز</th>
-                        <th>التأمين الصحي</th>
+                        <th>التأمين / السيارة</th>
                         <th>العمليات</th>
                     </tr>
                 </thead>
@@ -173,19 +176,22 @@
         const scopeFromURL = urlParams.get('scope');
         const scopeFromStorage = localStorage.getItem('scopeId');
         
-        if (scopeFromURL) {
-            localStorage.setItem('scopeId', scopeFromURL);
-        }
-
         currentScopeId = scopeFromURL || scopeFromStorage;
-        document.getElementById('mgrName').innerText = localStorage.getItem('userName') || "مدير النظام";
 
         if (!currentScopeId || currentScopeId === "null") { 
             window.location.href = '/manager/login'; 
             return; 
         }
 
+        if (scopeFromURL) localStorage.setItem('scopeId', scopeFromURL);
+
         try {
+            const scopeRes = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
+            if(scopeRes.ok) {
+                const scopeData = await scopeRes.json();
+                document.getElementById('mgrName').innerText = scopeData.name || "نطاق غير معروف";
+            }
+
             const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
             allEmployees = await res.json();
             filterData();
@@ -220,15 +226,22 @@
         
         body.innerHTML = data.map(emp => {
             const genderClass = emp.gender === 'أنثى' ? 'female' : 'male';
+            
+            // معالجة التأمين
             const insuranceText = (emp.hasHealthInsurance === 'true' || emp.hasHealthInsurance === true)
-                                  ? formatDate(emp.insuranceExpiry) 
-                                  : '<span style="color:#ccc">لا يوجد</span>';
+                                  ? `<span class="${getExpiryClass(emp.insuranceExpiry)}">تأمين: ${formatDate(emp.insuranceExpiry)}</span>` 
+                                  : '<span style="color:#ccc">بدون تأمين</span>';
+
+            // معالجة السيارة
+            const carInfo = emp.hasCarAuthorization 
+                            ? `<div class="car-info"><i class="fas fa-car"></i> ${emp.carType || 'سيارة'} - ${emp.carPlate || ''}</div>`
+                            : '';
 
             return `
                 <tr>
                     <td><strong>${emp.fullName}</strong><br><small>${emp.idNumber || '---'}</small></td>
                     <td>
-                        ${emp.nationality || '---'}<br>
+                        <span class="badge-nat">${emp.nationality || 'غير محدد'}</span><br>
                         <span class="gender-tag ${genderClass}">${emp.gender || 'ذكر'}</span>
                     </td>
                     <td>${emp.phoneNumber || '---'}</td>
@@ -239,7 +252,10 @@
                     <td class="${getExpiryClass(emp.passportExpiry)}">
                         ${emp.passportNumber ? formatDate(emp.passportExpiry) : '---'}
                     </td>
-                    <td class="${getExpiryClass(emp.insuranceExpiry)}">${insuranceText}</td>
+                    <td>
+                        ${insuranceText}
+                        ${carInfo}
+                    </td>
                     <td>
                         <div class="action-group">
                             <button class="btn-circle btn-ed" onclick="editEmp('${emp._id}')"><i class="fas fa-edit"></i></button>

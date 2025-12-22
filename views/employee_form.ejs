@@ -10,39 +10,34 @@
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
         
         .form-card { 
-            background: white; width: 100%; max-width: 600px; padding: 35px; 
+            background: white; width: 100%; max-width: 650px; padding: 35px; 
             border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            border-top: 10px solid var(--navy); position: relative; 
+            border-top: 10px solid var(--navy); 
         }
 
         .progress-container { width: 100%; background: #eee; height: 8px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
-        .progress-bar { width: 0%; height: 100%; background: var(--gold); transition: 0.5s ease; }
+        .progress-bar { width: 20%; height: 100%; background: var(--gold); transition: 0.5s ease; }
         
         .motivation { color: var(--success); font-weight: bold; margin-bottom: 20px; text-align: center; min-height: 24px; font-size: 18px; }
         
         .step { display: none; }
         .step.active { display: block; animation: fadeIn 0.5s forwards; }
         
-        label { display: block; margin-bottom: 8px; font-size: 1rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
-        input, select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 12px; font-family: 'Tajawal'; font-size: 16px; margin-bottom: 5px; box-sizing: border-box; transition: 0.3s; }
+        label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; box-sizing: border-box; transition: 0.3s; }
         input:focus, select:focus { border-color: var(--gold); outline: none; background: #fffcf0; }
         
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn-group { display: flex; gap: 10px; margin-top: 30px; }
         button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; }
         .btn-next { background: var(--navy); color: var(--gold); }
-        .btn-next:hover { background: #162e42; }
         .btn-prev { background: #eee; color: #333; }
         
         .hidden-fields { display: none; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ddd; margin-top: 10px; }
-        .phone-hint { font-size: 0.8rem; color: #888; display: block; margin-bottom: 10px; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         #success-container { display: none; text-align: center; padding: 20px; }
-        .success-icon { font-size: 60px; color: var(--success); margin-bottom: 15px; }
-
-        /* ستايل مخصص للتنبيهات */
-        .error-msg { color: var(--red); font-size: 0.85rem; margin-top: -5px; display: none; }
+        .success-icon { font-size: 60px; color: var(--success); }
     </style>
 </head>
 <body>
@@ -50,72 +45,60 @@
 <div class="form-card">
     <div id="form-content">
         <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-        <div id="motivationMsg" class="motivation">مرحباً بك! لنبدأ بتحديث بياناتك..</div>
+        <div id="motivationMsg" class="motivation">مرحباً بك! لنحدث بياناتك..</div>
 
         <form id="smartForm">
-            <input type="hidden" name="scopeId" value="<%= typeof scope !== 'undefined' ? scope.uniqueId : '' %>">
+            <input type="hidden" name="scopeId" value="<%= scopeId %>">
 
             <div class="step active" data-step="1">
-                <label>الاسم الكامل (كما في الهوية/الإقامة)</label>
-                <input type="text" name="fullName" placeholder="الاسم الرباعي" required>
+                <label>الاسم الكامل</label>
+                <input type="text" name="fullName" required>
                 
-                <label>النوع (الجنس)</label>
-                <select name="gender" required>
-                    <option value="">اختر الجنس...</option>
-                    <option value="ذكر">ذكر</option>
-                    <option value="أنثى">أنثى</option>
-                </select>
+                <div class="grid-2">
+                    <div>
+                        <label>رقم الجوال</label>
+                        <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" required>
+                    </div>
+                    <div>
+                        <label>مدينة العمل / الفرع</label>
+                        <input type="text" name="branch" placeholder="مثال: الرياض">
+                    </div>
+                </div>
 
-                <label>رقم الجوال (واتساب)</label>
-                <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" pattern="05[0-9]{8}" required>
-                <span class="phone-hint">يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</span>
+                <label>عنوان السكن بالتفصيل</label>
+                <input type="text" name="address">
 
                 <div class="btn-group">
-                    <button type="button" class="btn-next" onclick="nextStep(1, 'ممتاز! الآن حدد نوع الهوية')">التالي ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(1, 'ممتاز، ننتقل لبيانات الهوية')">التالي ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="2">
-                <label>نوع الهوية</label>
-                <select name="idType" id="idType" onchange="handleIdTypeChange()" required>
-                    <option value="">اختر نوع الهوية...</option>
-                    <option value="saudi">مواطن (هوية وطنية)</option>
-                    <option value="expat">مقيم (إقامة)</option>
-                </select>
-
-                <div id="nationalityBox" class="hidden-fields">
-                    <label>الجنسية</label>
-                    <select name="nationality" id="nationality">
-                        <option value="السعودية" id="saudiOpt">المملكة العربية السعودية</option>
-                        <option value="مصر">مصر</option>
-                        <option value="باكستان">باكستان</option>
-                        <option value="الهند">الهند</option>
-                        <option value="اليمن">اليمن</option>
-                        <option value="السودان">السودان</option>
-                        <option value="بنجلاديش">بنجلاديش</option>
-                        <option value="أخرى">أخرى</option>
-                    </select>
-                </div>
-
-                <label id="idLabel">رقم الهوية/الإقامة</label>
-                <input type="text" name="idNumber" id="idNumber" placeholder="أدخل الرقم هنا" required pattern="[1-2][0-9]{9}">
-                <span id="idError" class="error-msg">رقم الهوية يجب أن يبدأ بـ 1 للسعوديين و 2 للمقيمين</span>
-
-                <label>تاريخ انتهاء الهوية/الإقامة</label>
+                <label>رقم الهوية / الإقامة</label>
+                <input type="text" name="idNumber" required maxlength="10">
+                
+                <label>تاريخ انتهاء الهوية</label>
                 <input type="date" name="idExpiry" required>
+
+                <label>اسم المنشأة الكفيلة الحالية</label>
+                <input type="text" name="sponsorName" placeholder="كما تظهر في أبشر/مقيم">
 
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(2)">السابق</button>
-                    <button type="button" class="btn-next" onclick="validateIdAndNext(2, 'أحسنت! لنكمل بقية البيانات')">التالي ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(2, 'رائع، الآن بيانات الجواز والتأمين')">التالي ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="3">
-                <div id="passportSection">
-                    <label>رقم الجواز</label>
-                    <input type="text" name="passportNumber" placeholder="رقم الجواز">
-                    <label>تاريخ انتهاء الجواز</label>
-                    <input type="date" name="passportExpiry">
+                <div class="grid-2">
+                    <div>
+                        <label>رقم الجواز</label>
+                        <input type="text" name="passportNumber">
+                    </div>
+                    <div>
+                        <label>انتهاء الجواز</label>
+                        <input type="date" name="passportExpiry">
+                    </div>
                 </div>
 
                 <label>هل لديك تأمين صحي؟</label>
@@ -123,30 +106,71 @@
                     <option value="false">لا يوجد</option>
                     <option value="true">نعم، يوجد</option>
                 </select>
+
                 <div id="insuranceBox" class="hidden-fields">
                     <label>تاريخ انتهاء التأمين</label>
                     <input type="date" name="insuranceExpiry">
+                    <label>الحالة الصحية (إن وجد ملاحظات)</label>
+                    <input type="text" name="healthStatus" placeholder="مثال: سليم">
                 </div>
 
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(3)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3, 'شارفت على الانتهاء!')">التالي ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3, 'ماذا عن قيادة السيارة؟')">التالي ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="4">
-                <label>اسم المنشأة الكفيلة (الحالية)</label>
-                <input type="text" name="sponsorName" placeholder="كما في الإقامة" required>
+                <div class="grid-2">
+                    <div>
+                        <label>هل لديك رخصة قيادة؟</label>
+                        <select name="hasDrivingLicense">
+                            <option value="false">لا</option>
+                            <option value="true">نعم</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>هل لديك تفويض سيارة؟</label>
+                        <select name="hasCarAuthorization">
+                            <option value="false">لا</option>
+                            <option value="true">نعم</option>
+                        </select>
+                    </div>
+                </div>
 
-                <label>الفرع / مدينة العمل</label>
-                <input type="text" name="branch" placeholder="مثال: فرع الرياض - الملز">
-
-                <label>عنوان السكن بالتفصيل</label>
-                <input type="text" name="address" placeholder="الحي، الشارع، رقم المبنى">
+                <div class="grid-2">
+                    <div>
+                        <label>نوع السيارة</label>
+                        <input type="text" name="carType">
+                    </div>
+                    <div>
+                        <label>رقم اللوحة</label>
+                        <input type="text" name="carPlate">
+                    </div>
+                </div>
 
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(4)">السابق</button>
-                    <button type="submit" class="btn-next" style="background:var(--success); color:white;">إرسال البيانات واعتمادها 🚀</button>
+                    <button type="button" class="btn-next" onclick="nextStep(4, 'الخطوة الأخيرة: الوضع الاجتماعي')">التالي ⮕</button>
+                </div>
+            </div>
+
+            <div class="step" data-step="5">
+                <label>هل العائلة موجودة في السعودية؟</label>
+                <select name="hasFamilyInKSA">
+                    <option value="false">لا</option>
+                    <option value="true">نعم</option>
+                </select>
+
+                <label>الوضع الاجتماعي (أعزب/متأهل)</label>
+                <input type="text" name="familyStatus" placeholder="مثال: متزوج وعائل">
+
+                <label>تاريخ نقل الكفالة (إن وجد)</label>
+                <input type="date" name="sponsorshipTransferDate">
+
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" onclick="prevStep(5)">السابق</button>
+                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ البيانات 🚀</button>
                 </div>
             </div>
         </form>
@@ -154,68 +178,23 @@
 
     <div id="success-container">
         <div class="success-icon">✓</div>
-        <h2>تم الحفظ بنجاح يا بطل!</h2>
-        <p>شكراً لتحديث بياناتك، سيتم مراجعتها من قبل الإدارة.</p>
-        <button class="btn-next" onclick="window.location.reload()">تحديث بيانات موظف آخر</button>
+        <h2>شكراً لك يا بطل!</h2>
+        <p>تم استلام وتحديث بياناتك في نظام أبو حمزة بنجاح.</p>
+        <button class="btn-next" onclick="window.location.reload()">تسجيل جديد</button>
     </div>
 </div>
 
 <script>
     let current = 1;
-    const total = 4;
-
-    function handleIdTypeChange() {
-        const type = document.getElementById('idType').value;
-        const natBox = document.getElementById('nationalityBox');
-        const natSelect = document.getElementById('nationality');
-        const idLabel = document.getElementById('idLabel');
-        const idInput = document.getElementById('idNumber');
-        const passportSection = document.getElementById('passportSection');
-
-        if (type === 'saudi') {
-            natBox.style.display = 'none';
-            natSelect.value = 'السعودية';
-            idLabel.innerText = 'رقم الهوية الوطنية';
-            idInput.placeholder = 'يبدأ برقم 1...';
-            passportSection.style.display = 'none'; // المواطن غالباً لا يرفع الجواز هنا
-        } else if (type === 'expat') {
-            natBox.style.display = 'block';
-            natSelect.value = ''; // يترك فارغاً ليختار المقيم جنسيته
-            idLabel.innerText = 'رقم الإقامة';
-            idInput.placeholder = 'يبدأ برقم 2...';
-            passportSection.style.display = 'block';
-        }
-    }
-
-    function validateIdAndNext(step, msg) {
-        const type = document.getElementById('idType').value;
-        const idVal = document.getElementById('idNumber').value;
-        const errorEl = document.getElementById('idError');
-
-        if (type === 'saudi' && !idVal.startsWith('1')) {
-            errorEl.style.display = 'block';
-            return;
-        } else if (type === 'expat' && !idVal.startsWith('2')) {
-            errorEl.style.display = 'block';
-            return;
-        } else if (idVal.length !== 10) {
-            errorEl.innerText = "يجب أن يتكون الرقم من 10 خانات";
-            errorEl.style.display = 'block';
-            return;
-        }
-
-        errorEl.style.display = 'none';
-        nextStep(step, msg);
-    }
+    const total = 5;
 
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
-        const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
+        const inputs = currentStepEl.querySelectorAll('input[required]');
         
         for (let input of inputs) {
             if (!input.value) {
                 input.style.borderColor = 'red';
-                input.reportValidity();
                 return;
             }
             input.style.borderColor = '#eee';
@@ -236,7 +215,7 @@
     }
 
     function updateProgress() {
-        const progress = ((current - 1) / (total - 1)) * 100;
+        const progress = (current / total) * 100;
         document.getElementById('pBar').style.width = progress + '%';
     }
 
@@ -246,31 +225,33 @@
 
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.innerText = "جاري الحفظ...";
-        submitBtn.disabled = true;
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = "جاري الحفظ...";
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
+        // تحويل القيم المنطقية لتناسب الـ Schema
+        const booleans = ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'];
+        booleans.forEach(key => { data[key] = (data[key] === 'true'); });
+
         try {
-            const res = await fetch('/employee/api/register', { 
+            const res = await fetch('/employee/api/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
-            
             if(res.ok) {
                 document.getElementById('form-content').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } else {
-                alert('عذراً، حدث خطأ. تأكد من صحة البيانات.');
-                submitBtn.innerText = "إرسال البيانات واعتمادها 🚀";
-                submitBtn.disabled = false;
+                alert('حدث خطأ في الحفظ، يرجى المحاولة لاحقاً');
+                btn.disabled = false;
             }
-        } catch (error) {
-            alert('فشل الاتصال بالسيرفر.');
-            submitBtn.disabled = false;
+        } catch (err) {
+            alert('فشل الاتصال بالسيرفر');
+            btn.disabled = false;
         }
     };
 </script>

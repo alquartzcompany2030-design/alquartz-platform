@@ -1,11 +1,11 @@
 // ==========================================
-// 🚀 منصة أبو حمزة السحابية - النسخة المحدثة 2025
+// ☁️ Golden Cloud Server - النسخة المحدثة 2025
 // ==========================================
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const connectDB = require('./config/db');
-const Manager = require('./models/Manager'); // استيراد الموديل في الأعلى
+const Manager = require('./models/Manager');
 
 const app = express();
 
@@ -20,13 +20,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- [ مسار تسجيل الدخول الموحد الذكي ] ---
-// وضعناه هنا لضمان سرعة الاستجابة قبل الدخول في دهاليز الراوترات
 app.post('/api/unified-login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        // تنظيف البيانات المدخلة من الفراغات وتحويل البريد لأحرف صغيرة
+        const email = req.body.email.toLowerCase().trim();
+        const password = req.body.password;
 
-        // 1. فحص السوبر أدمن (أبو حمزة)
-        if (email === "admin@quartz.com" && password === "hDB3xqff@") {
+        console.log(`محاولة دخول للنظام: ${email}`);
+
+        // 1. فحص السوبر أدمن (أبو حمزة) - بيانات ثابتة (Hardcoded)
+        // ملاحظة: هذا الحساب لا يظهر في MongoDB لأنه مفتاح النظام الأساسي
+        if (email === "admin@golden.com" && password === "Golden2025@") {
+            console.log("✅ تم دخول أبو حمزة بنجاح (سوبر أدمن)");
             return res.json({ 
                 success: true, 
                 role: 'super-admin', 
@@ -34,10 +39,11 @@ app.post('/api/unified-login', async (req, res) => {
             });
         }
 
-        // 2. فحص المدراء في قاعدة البيانات
-        const manager = await Manager.findOne({ email, password });
+        // 2. فحص المدراء في قاعدة البيانات (مثل حساب أسامة المذكور في صورتك)
+        const manager = await Manager.findOne({ email: email, password: password });
         
         if (manager) {
+            console.log(`✅ تم دخول المدير: ${manager.name}`);
             return res.json({ 
                 success: true, 
                 role: 'manager', 
@@ -46,10 +52,12 @@ app.post('/api/unified-login', async (req, res) => {
             });
         }
 
+        console.log("❌ فشل الدخول: البريد أو كلمة المرور غير صحيحة");
         res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
+
     } catch (err) {
         console.error("Login Error:", err);
-        res.status(500).json({ success: false, message: "خطأ في السيرفر" });
+        res.status(500).json({ success: false, message: "خطأ في السيرفر الداخلي" });
     }
 });
 
@@ -59,22 +67,22 @@ const adminRoutes = require('./routes/adminRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const licenseRouter = require('./routes/licenseRouter');
 
-app.use('/manager', managerRoutes);          // لوحة المدير
-app.use('/manager/licenses', licenseRouter); // السجلات والرخص
-app.use('/admin', adminRoutes);              // السوبر أدمن
-app.use('/employee', employeeRoutes);        // روابط الموظفين
+app.use('/manager', managerRoutes);
+app.use('/manager/licenses', licenseRouter);
+app.use('/admin', adminRoutes);
+app.use('/employee', employeeRoutes);
 
 // --- [ النظام العام ] ---
 app.get('/', (req, res) => res.render('index'));
 
-// 🛑 معالجة الخطأ 404 (يجب أن يكون دائماً في الأخير)
+// 🛑 معالجة الخطأ 404
 app.use((req, res) => res.status(404).render('404'));
 
 // --- [ تشغيل السيرفر ] ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`=========================================`);
-    console.log(`✅ منصة أبو حمزة تعمل بنظام الدخول الموحد`);
-    console.log(`🌍 الرابط الرئيسي: http://localhost:${PORT}`);
+    console.log(`✅ Golden Cloud Server يعمل بنجاح`);
+    console.log(`🌍 الرابط الموحد: http://localhost:${PORT}`);
     console.log(`=========================================`);
 });

@@ -66,18 +66,27 @@
         .btn-wa { background: var(--whatsapp); }
         .btn-ed { background: #3498db; }
         .btn-de { background: var(--danger); }
-        .btn-st { background: var(--gray); }
+
+        .main-btn {
+            padding: 10px 20px; border-radius: 12px; border: none; font-family: 'Tajawal';
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+
+        .btn-license { 
+            background: transparent; 
+            color: var(--gold); 
+            border: 1.5px solid var(--gold);
+        }
+        .btn-license:hover {
+            background: var(--gold);
+            color: var(--navy);
+        }
 
         /* المودال */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content {
             background:white; width:95%; max-width:550px; margin:40px auto; padding:30px;
             border-radius:25px; position: relative;
-        }
-
-        .main-btn {
-            padding: 10px 20px; border-radius: 12px; border: none; font-family: 'Tajawal';
-            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
         }
     </style>
 </head>
@@ -86,11 +95,18 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <i class="fas fa-user-shield fa-2x"></i>
-        <h2>إدارة نطاق: <span id="mgrName" style="color:white">جاري التحميل...</span></h2>
+        <h2 style="margin:0">إدارة نطاق: <span id="mgrName" style="color:white">...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
-        <button class="main-btn" style="background:var(--gold); color:var(--navy)" onclick="copyLink()"><i class="fas fa-link"></i> رابط التسجيل</button>
-        <button class="main-btn" style="background:var(--danger); color:white" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+        <button class="main-btn btn-license" onclick="window.location.href='/manager/licenses/page'">
+            <i class="fas fa-file-contract"></i> السجلات والرخص
+        </button>
+        <button class="main-btn" style="background:var(--gold); color:var(--navy)" onclick="copyLink()">
+            <i class="fas fa-link"></i> رابط التسجيل
+        </button>
+        <button class="main-btn" style="background:var(--danger); color:white" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> خروج
+        </button>
     </div>
 </header>
 
@@ -99,6 +115,7 @@
         <div class="stat-card"> <span class="stat-val" id="totalCount">0</span> <span class="stat-label">إجمالي الموظفين</span> </div>
         <div class="stat-card" style="border-top-color:var(--danger)"> <span class="stat-val" id="expiredCount" style="color:var(--danger)">0</span> <span class="stat-label">إقامات منتهية</span> </div>
         <div class="stat-card" style="border-top-color:var(--warning)"> <span class="stat-val" id="warningCount" style="color:var(--warning)">0</span> <span class="stat-label">تجديد قريب</span> </div>
+        <div class="stat-card" style="border-top-color:var(--gray)"> <span class="stat-val" id="suspendedCount" style="color:var(--gray)">0</span> <span class="stat-label">حسابات معلقة</span> </div>
     </div>
 
     <div class="toolbar">
@@ -106,6 +123,11 @@
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="ابحث باسم الموظف أو رقم الإقامة..." onkeyup="filterData()">
         </div>
+        <select id="statusFilter" onchange="filterData()" style="padding: 12px; border-radius: 10px; border: 2px solid #eee; font-family: 'Tajawal'; outline:none;">
+            <option value="all">كل الحالات</option>
+            <option value="active">النشطين فقط</option>
+            <option value="suspended">المعلقين فقط</option>
+        </select>
     </div>
 
     <div class="table-wrapper">
@@ -113,7 +135,7 @@
             <table id="empTable">
                 <thead>
                     <tr>
-                        <th>الموظف</th>
+                        <th>الموظف / الإقامة</th>
                         <th>الجوال</th>
                         <th>المنشأة</th>
                         <th>انتهاء الإقامة</th>
@@ -135,11 +157,11 @@
         <input type="hidden" id="edit_empId">
         <div style="margin-bottom:15px">
             <label>الاسم الكامل</label>
-            <input type="text" id="edit_fullName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd">
+            <input type="text" id="edit_fullName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px">
-            <div><label>الجوال</label><input type="text" id="edit_phoneNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd"></div>
-            <div><label>الإقامة</label><input type="text" id="edit_idNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+            <div><label>رقم الجوال</label><input type="text" id="edit_phoneNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;"></div>
+            <div><label>رقم الإقامة</label><input type="text" id="edit_idNumber" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;"></div>
         </div>
         <button class="main-btn" style="background:var(--success); color:white; width:100%; justify-content:center" onclick="saveChanges()">حفظ التعديلات</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:var(--gray)">إلغاء</button>
@@ -151,11 +173,9 @@
 
     async function loadData() {
         const scopeId = localStorage.getItem('scopeId');
-        const managerName = localStorage.getItem('userName'); // جلب اسم صاحب النطاق المخزن عند الدخول
+        const managerName = localStorage.getItem('userName'); 
 
         if (!scopeId) { window.location.href = '/manager/login'; return; }
-        
-        // تحديث اسم النطاق بشكل صحيح
         document.getElementById('mgrName').innerText = managerName || "مدير النظام";
 
         try {
@@ -168,7 +188,7 @@
 
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
-        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="6">لا يوجد موظفين حالياً</td></tr>'; return; }
+        if(!data || data.length === 0) { body.innerHTML = '<tr><td colspan="6">لا توجد سجلات مطابقة</td></tr>'; return; }
         
         body.innerHTML = data.map(emp => {
             const daysLeft = calculateDays(emp.idExpiry);
@@ -194,8 +214,8 @@
 
     async function deleteEmp(id, name) {
         if (!confirm(`هل أنت متأكد من حذف ${name}؟`)) return;
-        const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
-        if(res.ok) loadData();
+        await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
+        loadData();
     }
 
     function editEmp(id) {
@@ -225,10 +245,12 @@
 
     function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allEmployees.filter(emp => 
-            (emp.fullName || "").toLowerCase().includes(term) || 
-            (emp.idNumber && emp.idNumber.includes(term))
-        );
+        const stat = document.getElementById('statusFilter').value;
+        const filtered = allEmployees.filter(emp => {
+            const matchSearch = (emp.fullName || "").toLowerCase().includes(term) || (emp.idNumber && emp.idNumber.includes(term));
+            const matchStatus = stat === 'all' || emp.status === stat;
+            return matchSearch && matchStatus;
+        });
         renderTable(filtered);
     }
 
@@ -239,12 +261,13 @@
         document.getElementById('totalCount').innerText = allEmployees.length;
         document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
         document.getElementById('warningCount').innerText = allEmployees.filter(e => { const d = calculateDays(e.idExpiry); return d >= 0 && d <= 30; }).length;
+        document.getElementById('suspendedCount').innerText = allEmployees.filter(e => e.status === 'suspended').length;
     }
     function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
     function copyLink() {
-        const link = window.location.origin + '/manager/register/' + localStorage.getItem('scopeId');
+        const link = window.location.origin + '/employee/register/' + localStorage.getItem('scopeId');
         navigator.clipboard.writeText(link);
-        alert('تم نسخ رابط تسجيل الموظفين بنجاح');
+        alert('تم نسخ رابط التسجيل بنجاح');
     }
     loadData();
 </script>

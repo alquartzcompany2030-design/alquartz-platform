@@ -23,7 +23,6 @@
         
         .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
 
-        /* بطاقات الإحصائيات */
         .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card {
             background: white; padding: 20px; border-radius: 15px; text-align: center;
@@ -33,7 +32,6 @@
         .stat-val { font-size: 1.8rem; font-weight: 700; display: block; color: var(--navy); }
         .stat-label { font-size: 1rem; color: #636e72; font-weight: 500; }
 
-        /* شريط الأدوات */
         .toolbar {
             background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;
             display: flex; gap: 15px; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -45,7 +43,6 @@
         }
         .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #b2bec3; }
 
-        /* الجدول */
         .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         .scroll-area { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
@@ -82,7 +79,6 @@
             color: var(--navy);
         }
 
-        /* المودال */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content {
             background:white; width:95%; max-width:550px; margin:40px auto; padding:30px;
@@ -98,6 +94,10 @@
         <h2 style="margin:0">إدارة نطاق: <span id="mgrName" style="color:white">...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
+        <button id="backToMatrix" class="main-btn" style="background:#444; color:white; display:none;" onclick="window.location.href='/admin/matrix'">
+            <i class="fas fa-th"></i> العودة للمصفوفة
+        </button>
+
         <button class="main-btn btn-license" onclick="window.location.href='/manager/licenses/page'">
             <i class="fas fa-file-contract"></i> السجلات والرخص
         </button>
@@ -170,21 +170,47 @@
 
 <script>
     let allEmployees = [];
+    let currentScopeId = "";
 
     async function loadData() {
-        const scopeId = localStorage.getItem('scopeId');
-        const managerName = localStorage.getItem('userName'); 
+        // --- التعديل الذكي لحل مشكلة تسجيل الخروج ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const scopeFromURL = urlParams.get('scope');
+        const scopeFromStorage = localStorage.getItem('scopeId');
+        
+        currentScopeId = scopeFromURL || scopeFromStorage;
+        const managerName = localStorage.getItem('userName') || "أبو حمزة (مدير النظام)";
 
-        if (!scopeId) { window.location.href = '/manager/login'; return; }
-        document.getElementById('mgrName').innerText = managerName || "مدير النظام";
+        // إذا كان قادم من المصفوفة، أظهر زر العودة
+        if (scopeFromURL) {
+            document.getElementById('backToMatrix').style.display = 'flex';
+        }
+
+        if (!currentScopeId) { 
+            console.log("❌ لا يوجد معرف نطاق، تحويل لتسجيل الدخول");
+            window.location.href = '/manager/login'; 
+            return; 
+        }
+
+        document.getElementById('mgrName').innerText = managerName;
 
         try {
-            const res = await fetch(`/manager/api/get-employees/${scopeId}`);
+            const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
             allEmployees = await res.json();
             filterData();
             updateStats();
         } catch (e) { console.error(e); }
     }
+
+    // تعديل دالة نسخ الرابط لتستخدم المعرف الصحيح
+    function copyLink() {
+        if(!currentScopeId) return alert('خطأ في المعرف');
+        const link = window.location.origin + '/employee/register/' + currentScopeId;
+        navigator.clipboard.writeText(link);
+        alert('تم نسخ رابط التسجيل بنجاح');
+    }
+
+    // --- بقية الدوال كما هي مع تعديلات طفيفة للاستقرار ---
 
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
@@ -257,18 +283,17 @@
     function calculateDays(date) { if(!date) return 0; return Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24)); }
     function formatDate(date) { return date ? new Date(date).toLocaleDateString('ar-SA') : "---"; }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+    
     function updateStats() {
         document.getElementById('totalCount').innerText = allEmployees.length;
         document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
         document.getElementById('warningCount').innerText = allEmployees.filter(e => { const d = calculateDays(e.idExpiry); return d >= 0 && d <= 30; }).length;
         document.getElementById('suspendedCount').innerText = allEmployees.filter(e => e.status === 'suspended').length;
     }
+
     function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
-    function copyLink() {
-        const link = window.location.origin + '/employee/register/' + localStorage.getItem('scopeId');
-        navigator.clipboard.writeText(link);
-        alert('تم نسخ رابط التسجيل بنجاح');
-    }
+
+    // بدء التحميل
     loadData();
 </script>
 </body>

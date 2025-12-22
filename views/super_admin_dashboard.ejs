@@ -1,22 +1,4 @@
 <!DOCTYPE html>
-<script>
-    // 🛡️ الحارس الأمني
-    (function checkAuth() {
-        const role = localStorage.getItem('role');
-        const token = localStorage.getItem('token');
-        if (role !== 'super-admin' || !token) {
-            window.location.href = 'master-setup';
-        }
-    })();
-
-    function logoutMaster() {
-        if(confirm("هل تريد تسجيل الخروج من لوحة التحكم العليا؟")) {
-            localStorage.clear();
-            window.location.href = 'master-setup';
-        }
-    }
-</script>
-
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -24,38 +6,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; --bg: #f4f7f6; --red: #e74c3c; --green: #2ecc71; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; display: flex; overflow-x: hidden; }
         
-        .sidebar { width: 260px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        /* القائمة الجانبية */
+        .sidebar { width: 260px; background: var(--navy); color: white; height: 100vh; position: fixed; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
         .sidebar h2 { color: var(--gold); text-align: center; border-bottom: 1px solid #ffffff33; padding-bottom: 15px; margin-bottom: 30px; }
         .sidebar-nav { list-style: none; padding: 0; }
         .sidebar-nav a { color: white; text-decoration: none; display: block; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: 500; }
         .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--teal); color: white; }
         
-        .main-content { margin-right: 260px; flex: 1; padding: 30px; min-height: 100vh; }
+        /* المحتوى الرئيسي */
+        .main-content { margin-right: 260px; flex: 1; padding: 30px; min-height: 100vh; width: calc(100% - 260px); }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .card h3 { margin-top: 0; color: var(--navy); border-right: 4px solid var(--gold); padding-right: 10px; margin-bottom: 20px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        
+        /* الأزرار والجداول */
+        .btn-main { background: var(--gold); color: var(--navy); border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; }
+        .btn-logout { background: var(--red); color: white !important; margin-top: 40px; text-align: center; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: var(--navy); }
         
-        .btn-action { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; margin-left: 5px; color: white; transition: 0.2s; }
-        .btn-edit { background: var(--navy); }
-        .btn-toggle { background: var(--teal); }
-        .btn-delete { background: var(--red); }
-        .btn-main { background: var(--gold); color: var(--navy); border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
-        
-        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .active-bg { background: #e8f8f5; color: var(--teal); }
-        .suspended-bg { background: #fdedec; color: var(--red); }
-
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Tajawal'; box-sizing: border-box; }
+        
+        .status-active { color: var(--green); font-weight: bold; }
+        .status-expired { color: var(--red); font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <script>
+        // 🛡️ الحارس الأمني المطور (منع الثقل وتحسين التوجيه)
+        (function checkAuth() {
+            const role = localStorage.getItem('role');
+            const token = localStorage.getItem('token');
+            
+            // إذا لم يكن سوبر أدمن، يتم توجيهه فوراً لصفحة الدخول
+            if (role !== 'super-admin' || !token) {
+                // نستخدم replace لمنع العودة للخلف بالمتصفح
+                window.location.replace('/admin/master-setup'); 
+            }
+        })();
+
+        // 🚪 دالة تسجيل الخروج النهائية - أبو حمزة
+        function logoutMaster() {
+            if(confirm("يا أبو حمزة، هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟")) {
+                // 1. مسح شامل لبيانات الجلسة
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 2. التوجيه إلى صفحة تسجيل الدخول الأساسية (التي تظهر فيها خانة الباسورد)
+                // نستخدم URL كامل لضمان عدم حدوث Loop
+                window.location.replace('/admin/master-setup');
+            }
+        }
+    </script>
 
     <div class="sidebar">
         <h2>السحابة الذهبية</h2>
@@ -63,12 +69,12 @@
             <li><a onclick="showSection('add-scope-section', this)" class="active">✨ إضافة نطاق جديد</a></li>
             <li><a onclick="showSection('scopes-section', this)">📦 إدارة النطاقات (الشركات)</a></li>
             <li><a onclick="showSection('managers-section', this)">👥 حسابات المدراء</a></li>
-            <li><a onclick="logoutMaster()" style="background: var(--red); margin-top: 40px; text-align: center; color: white;">تسجيل الخروج 🚪</a></li>
+            <li><a onclick="logoutMaster()" class="btn-logout">تسجيل الخروج 🚪</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <h1>لوحة التحكم العليا | أبو حمزة</h1>
+        <h1 style="color: var(--navy);">لوحة التحكم العليا | أبو حمزة</h1>
 
         <div id="add-scope-section" class="page-section">
             <div class="card" style="max-width: 600px; margin: auto;">
@@ -111,7 +117,7 @@
         </div>
 
         <div id="managers-section" class="page-section" style="display:none;">
-            <div class="card" style="border: 1px solid var(--teal); background: #f9fdfd;">
+            <div class="card">
                 <h3>👤 إضافة مدير جديد للنطاق</h3>
                 <form id="addManagerForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <input type="text" id="mgrName" placeholder="اسم المدير" required>
@@ -143,7 +149,7 @@
     </div>
 
     <script>
-        // التبديل بين الأقسام
+        // دالة التبديل بين الأقسام
         function showSection(id, el) {
             document.querySelectorAll('.page-section').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'block';
@@ -154,62 +160,74 @@
             if(id === 'managers-section') { loadManagers(); updateScopeDropdown(); }
         }
 
-        // جلب النطاقات
         async function loadScopes() {
             try {
-                const res = await fetch('/api/admin/get-all-scopes');
+                const res = await fetch('/admin/get-all-scopes');
                 const data = await res.json();
                 const tbody = document.getElementById('scopes-table-body');
                 tbody.innerHTML = '';
                 data.forEach(scope => {
-                    const isActive = scope.status === 'active';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><b>${scope.name}</b></td>
-                            <td><code>${scope.uniqueId}</code></td>
-                            <td>${new Date(scope.expiry).toLocaleDateString('ar-SA')}</td>
-                            <td><span class="status-badge ${isActive ? 'active-bg' : 'suspended-bg'}">${isActive ? 'نشط ✅' : 'معلق 🚫'}</span></td>
-                            <td>
-                                <button class="btn-action btn-edit" onclick="editScope('${scope._id}', '${scope.name}')">تعديل</button>
-                                <button class="btn-action btn-toggle" onclick="toggleScope('${scope._id}', '${scope.status}')">${isActive ? 'تعليق 🚫' : 'تنشيط ✅'}</button>
-                                <button class="btn-action btn-delete" onclick="secureDelete('${scope._id}', 'scope')">حذف</button>
-                            </td>
-                        </tr>`;
+                    tbody.innerHTML += `<tr>
+                        <td><b>${scope.name}</b></td>
+                        <td><code>${scope.uniqueId}</code></td>
+                        <td>${new Date(scope.expiry).toLocaleDateString('ar-SA')}</td>
+                        <td class="${scope.status === 'active' ? 'status-active' : 'status-expired'}">${scope.status === 'active' ? 'نشط ✅' : 'معلق 🚫'}</td>
+                        <td><button style="color:red; cursor:pointer;" onclick="deleteItem('${scope._id}', 'scope')">حذف</button></td>
+                    </tr>`;
                 });
             } catch (e) { console.error("Error loading scopes", e); }
         }
 
-        // 🔄 وظيفة تعديل النطاق
-        async function editScope(id, currentName) {
-            const newName = prompt("أدخل اسم الشركة الجديد:", currentName);
-            const newMonths = prompt("أدخل شهور التمديد (مثلاً 12) أو اتركها فارغة:", "");
-            if (!newName) return;
-
-            const res = await fetch(`/api/admin/update-scope/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, months: newMonths || 0 })
-            });
-            if (res.ok) { alert("تم تحديث بيانات الشركة"); loadScopes(); }
+        async function loadManagers() {
+            try {
+                const res = await fetch('/admin/get-all-managers');
+                if (!res.ok) return;
+                const data = await res.json();
+                const tbody = document.getElementById('managers-table-body');
+                tbody.innerHTML = '';
+                data.forEach(mgr => {
+                    tbody.innerHTML += `<tr>
+                        <td>${mgr.name}</td>
+                        <td>${mgr.email}</td>
+                        <td><span style="background:#eee; padding:3px 8px; border-radius:5px;">${mgr.scopeId}</span></td>
+                        <td>${mgr.lastLogin || 'لم يدخل بعد'}</td>
+                        <td><button style="color:red; cursor:pointer;" onclick="deleteItem('${mgr._id}', 'manager')">حذف</button></td>
+                    </tr>`;
+                });
+            } catch (e) { console.error("Error loading managers:", e); }
         }
 
-        // تنشيط وتعليق النطاق
-        async function toggleScope(id, currentStatus) {
-            const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
-            if(confirm(`هل تريد ${nextStatus === 'active' ? 'تنشيط' : 'تعليق'} هذا النطاق؟`)) {
-                const res = await fetch('/api/admin/toggle-scope', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id, status: nextStatus })
-                });
-                if(res.ok) { loadScopes(); }
+        async function updateScopeDropdown() {
+            try {
+                const res = await fetch('/admin/get-all-scopes');
+                const scopes = await res.json();
+                const select = document.getElementById('mgrScopeId');
+                select.innerHTML = '<option value="">اختر النطاق التابع له</option>';
+                scopes.forEach(s => select.innerHTML += `<option value="${s.uniqueId}">${s.name}</option>`);
+            } catch (e) { console.error(e); }
+        }
+
+        // الحذف الآمن بكلمة مرورك (hDB3xqff@)
+        async function deleteItem(id, type) {
+            const password = prompt("⚠️ إجراء أمني: أدخل كلمة مرور السوبر أدمن للتأكيد:");
+            if(!password) return;
+            const res = await fetch('/admin/verify-and-delete', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id, type, password })
+            });
+            if(res.ok) {
+                alert("تم الحذف بنجاح");
+                type === 'scope' ? loadScopes() : loadManagers();
+            } else {
+                alert("خطأ: كلمة المرور غير صحيحة");
             }
         }
 
-        // إضافة نطاق جديد
+        // معالجة نموذج إضافة النطاق
         document.getElementById('addScopeForm').onsubmit = async (e) => {
             e.preventDefault();
-            const res = await fetch('/api/admin/add-scope', {
+            const res = await fetch('/admin/add-scope', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -218,61 +236,15 @@
                 })
             });
             if(res.ok) { 
-                alert("تم إنشاء النطاق بنجاح"); 
+                alert("تم إنشاء النطاق بنجاح يا أبو حمزة"); 
                 document.getElementById('addScopeForm').reset();
             }
         };
 
-        // جلب المدراء
-        async function loadManagers() {
-            const res = await fetch('/api/admin/get-all-managers');
-            const data = await res.json();
-            const tbody = document.getElementById('managers-table-body');
-            tbody.innerHTML = '';
-            data.forEach(mgr => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${mgr.name}</td>
-                        <td>${mgr.email}</td>
-                        <td><b>${mgr.scopeName}</b></td>
-                        <td>${mgr.lastLogin}</td>
-                        <td>
-                            <button class="btn-action btn-edit" onclick="editManager('${mgr._id}', '${mgr.name}', '${mgr.email}')">تعديل</button>
-                            <button class="btn-action btn-delete" onclick="secureDelete('${mgr._id}', 'manager')">حذف</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        // 👤 وظيفة تعديل المدير
-        async function editManager(id, name, email) {
-            const newName = prompt("تعديل الاسم:", name);
-            const newEmail = prompt("تعديل الإيميل:", email);
-            const newPass = prompt("كلمة مرور جديدة (اختياري - اتركها فارغة للحفاظ على القديمة):");
-            
-            if (!newName || !newEmail) return;
-
-            const res = await fetch(`/api/admin/update-manager/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, email: newEmail, password: newPass })
-            });
-            if (res.ok) { alert("تم تحديث بيانات المدير"); loadManagers(); }
-        }
-
-        // تحديث قائمة النطاقات في نموذج المدير
-        async function updateScopeDropdown() {
-            const res = await fetch('/api/admin/get-all-scopes');
-            const scopes = await res.json();
-            const select = document.getElementById('mgrScopeId');
-            select.innerHTML = '<option value="">اختر النطاق التابع له</option>';
-            scopes.forEach(s => select.innerHTML += `<option value="${s.uniqueId}">${s.name}</option>`);
-        }
-
-        // إضافة مدير
+        // معالجة نموذج إضافة المدير
         document.getElementById('addManagerForm').onsubmit = async (e) => {
             e.preventDefault();
-            const res = await fetch('/api/admin/add-manager', {
+            const res = await fetch('/admin/add-manager', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -282,26 +254,12 @@
                     scopeId: document.getElementById('mgrScopeId').value
                 })
             });
-            if(res.ok) { alert("تم إضافة المدير بنجاح"); document.getElementById('addManagerForm').reset(); loadManagers(); }
-        };
-
-        // الحذف الآمن (للنطاق أو المدير)
-        async function secureDelete(id, type) {
-            const password = prompt("⚠️ هذا الإجراء لا يمكن التراجع عنه! أدخل كلمة مرور السوبر أدمن للتأكيد:");
-            if(!password) return;
-            const res = await fetch('/api/admin/verify-and-delete', {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id, type, password, adminEmail: 'Mohsen86330@gmail.com' })
-            });
-            if(res.ok) {
-                alert("تم الحذف بنجاح");
-                type === 'scope' ? loadScopes() : loadManagers();
-            } else {
-                const err = await res.json();
-                alert("خطأ: " + err.message);
+            if(res.ok) { 
+                alert("تم تفعيل حساب المدير الجديد"); 
+                document.getElementById('addManagerForm').reset();
+                loadManagers();
             }
-        }
+        };
     </script>
 </body>
 </html>

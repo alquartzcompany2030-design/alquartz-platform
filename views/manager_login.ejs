@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول المدير | منصة أبو حمزة</title>
+    <title>دخول النظام | Golden Cloud Server</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --navy: #0b1d2a; --gold: #ffcc00; --white: #ffffff; --gray: #f4f7f6; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--gray); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-card { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 10px solid var(--navy); text-align: center; }
+        .login-card { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 10px solid var(--gold); text-align: center; }
         .logo-icon { font-size: 50px; margin-bottom: 10px; }
         h2 { color: var(--navy); margin-bottom: 10px; font-weight: 700; }
         p { color: #666; font-size: 14px; margin-bottom: 30px; }
@@ -24,9 +24,9 @@
 <body>
 
     <div class="login-card">
-        <div class="logo-icon">🔑</div>
-        <h2>دخول المدير</h2>
-        <p>مرحباً بك في نظام إدارة النطاقات الذكي</p>
+        <div class="logo-icon">☁️</div>
+        <h2>Golden Cloud Server</h2>
+        <p>مرحباً بك في نظام الإدارة الموحد</p>
 
         <div id="errorBox" class="error-msg"></div>
 
@@ -55,8 +55,8 @@
             const password = document.getElementById('password').value;
 
             try {
-                // التعديل الجوهري هنا: إضافة /manager قبل رابط الـ API
-                const response = await fetch('/manager/api/login', { 
+                // التعديل الجوهري: استخدام المسار الموحد الجديد
+                const response = await fetch('/api/unified-login', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -65,13 +65,20 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    localStorage.setItem('managerName', data.name);
-                    localStorage.setItem('scopeId', data.scopeId);
+                    // تخزين بيانات الجلسة
+                    localStorage.setItem('userName', data.name);
+                    localStorage.setItem('role', data.role);
                     
-                    // التوجيه للمسار الجديد المنظم
-                    window.location.href = '/manager/dashboard';
+                    if (data.role === 'super-admin') {
+                        // توجيه أبو حمزة للوحة العليا
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        // توجيه المدير للوحة شركته
+                        localStorage.setItem('scopeId', data.scopeId);
+                        window.location.href = '/manager/dashboard';
+                    }
                 } else {
-                    errorBox.textContent = "بيانات الدخول غير صحيحة";
+                    errorBox.textContent = data.message || "بيانات الدخول غير صحيحة";
                     errorBox.style.display = 'block';
                 }
             } catch (err) {

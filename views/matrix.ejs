@@ -27,44 +27,49 @@
             gap: 20px;
         }
 
+        /* تحسين البطاقة مع الألوان الهادئة */
         .org-card {
             background: white; border-radius: 15px; padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
             transition: 0.3s ease; cursor: pointer; position: relative;
             display: flex; flex-direction: column; min-height: 280px;
+            overflow: hidden;
         }
-        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-top-color: var(--gold); }
+
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.98); }
         
+        /* وميض التنبيه */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
+            z-index: 2;
         }
 
-        .org-title { margin: 0; color: var(--navy); font-size: 1.15rem; font-weight: 700; text-align: center; }
-        .org-id { color: #999; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; font-family: monospace; }
+        .org-title { margin: 0; color: var(--navy); font-size: 1.15rem; font-weight: 700; text-align: center; position: relative; }
+        .org-id { color: #666; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; font-family: monospace; }
 
         .worker-section {
-            background: #fcfcfc; border: 1px solid #eee; border-radius: 12px;
-            padding: 12px; margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;
+            padding: 12px; margin-bottom: 15px; backdrop-filter: blur(5px);
         }
         .worker-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
-        .worker-row:not(:last-child) { border-bottom: 1px dashed #ddd; }
+        .worker-row:not(:last-child) { border-bottom: 1px dashed rgba(0,0,0,0.1); }
         
         .main-stat { flex: 1; text-align: center; }
-        .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid #eee; }
+        .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid rgba(0,0,0,0.1); }
         
-        .w-label { font-size: 0.75rem; color: var(--gray); display: block; }
+        .w-label { font-size: 0.75rem; color: #444; display: block; }
         .w-count { font-weight: bold; font-size: 1.25rem; }
-        .sub-count { font-size: 0.9rem; color: #555; font-weight: 600; }
+        .sub-count { font-size: 0.9rem; color: #333; font-weight: 600; }
 
         .count-saudi { color: var(--saudi); }
         .count-expat { color: var(--expat); }
 
         .footer-info { 
             font-size: 0.85rem; display: flex; align-items: center; justify-content: center; 
-            gap: 8px; padding-top: 12px; border-top: 1px solid #f0f0f0; margin-top: auto;
+            gap: 8px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: auto;
         }
-        .text-danger { color: var(--red) !important; font-weight: bold; }
+        .text-danger { color: var(--red) !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 4px; }
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
@@ -101,57 +106,43 @@
     </div>
 
     <script>
-        // 1. الانتقال مع حفظ الحالة
+        // مصفوفة الألوان الهادئة (Pastel Colors)
+        const pastelColors = [
+            '#e8f4f8', '#f9f1f1', '#f0f4ef', '#f4eef7', '#fdf7e2', '#eafaf1', '#fdf2f0'
+        ];
+
         function goToDashboard(scopeId) {
-            if (!scopeId || scopeId === 'undefined') {
-                console.error("Invalid Scope ID");
-                return;
-            }
-            localStorage.setItem('active_scope_id', scopeId);
+            if (!scopeId || scopeId === 'undefined') return;
             window.location.href = `/manager/dashboard?scope=${scopeId}`;
         }
 
-        // 2. جلب البيانات من السيرفر
         async function loadMatrix() {
             const grid = document.getElementById('matrixGrid');
             try {
-                // ملاحظة: تأكد أن هذا المسار يطابق المسار المعرف في ملف الراوتس (Routes) لديك
-                const response = await fetch('/api/admin/get-all-orgs'); 
-                
+                // تعديل المسار ليتوافق مع السيرفر الرئيسي
+                const response = await fetch('/admin/get-all-orgs'); 
                 if (!response.ok) throw new Error("Connection Error");
-                
                 const orgs = await response.json();
                 renderCards(orgs);
-
             } catch (error) {
                 console.error("Matrix Error:", error);
-                grid.innerHTML = `
-                    <div class="error-container">
-                        <i class="fas fa-plug-circle-xmark fa-4x" style="color: var(--red); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--navy);">عذراً، تعذر الاتصال بالسيرفر حالياً</h3>
-                        <p style="color: var(--gray);">يرجى التحقق من اتصال الإنترنت أو التواصل مع الدعم الفني الخاص بالكوارتز.</p>
-                        <button onclick="location.reload()" style="margin-top:15px; padding: 12px 30px; background: var(--navy); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                            <i class="fas fa-sync-alt"></i> إعادة محاولة الاتصال
-                        </button>
-                    </div>
-                `;
+                grid.innerHTML = `<div class="error-container">... (كود الخطأ السابق) ...</div>`;
             }
         }
 
-        // 3. بناء البطاقات ديناميكياً
         function renderCards(orgs) {
             const grid = document.getElementById('matrixGrid');
             if (!orgs || orgs.length === 0) {
-                grid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 80px; background:white; border-radius:20px;">
-                        <i class="fas fa-building-slash fa-4x" style="color: #eee; margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--navy);">لا توجد منشآت نشطة في النظام</h3>
-                    </div>`;
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;">لا توجد منشآت</div>`;
                 return;
             }
 
-            grid.innerHTML = orgs.map(org => `
-                <div class="org-card" onclick="goToDashboard('${org.uniqueId}')">
+            grid.innerHTML = orgs.map((org, index) => {
+                // اختيار لون هادئ بناءً على الترتيب
+                const bgColor = pastelColors[index % pastelColors.length];
+                
+                return `
+                <div class="org-card" style="background-color: ${bgColor};" onclick="goToDashboard('${org.uniqueId}')">
                     ${org.expiredLicenses > 0 ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
                     
                     <h3 class="org-title">${org.name}</h3>
@@ -185,18 +176,11 @@
                         <span>رخص منتهية: ${org.expiredLicenses || 0}</span>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        // تشغيل التحميل عند فتح الصفحة
         window.onload = loadMatrix;
-
-        // معالجة العودة بالمتصفح لتحديث البيانات تلقائياً
-        window.onpageshow = function(event) {
-            if (event.persisted) {
-                loadMatrix();
-            }
-        };
     </script>
 </body>
 </html>

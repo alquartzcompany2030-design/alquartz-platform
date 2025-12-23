@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const Manager = require('./models/Manager');
 
 // 1. استيراد الروترات
-const orgRouter = require('./routes/orgRouter'); // راوتر المصفوفات والمنشآت
+const orgRouter = require('./routes/orgRouter');
 const managerRoutes = require('./routes/managerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
@@ -29,12 +29,10 @@ app.post('/api/unified-login', async (req, res) => {
         const { email, password } = req.body;
         const cleanEmail = email ? email.toLowerCase().trim() : "";
 
-        // أ. فحص السوبر أدمن (أبو حمزة)
         if (cleanEmail === "admin@golden.com" && password === "Golden2025@") {
             return res.json({ success: true, role: 'super-admin', name: 'أبو حمزة' });
         }
 
-        // ب. فحص المدراء
         const manager = await Manager.findOne({ 
             email: { $regex: new RegExp("^" + cleanEmail + "$", "i") } 
         });
@@ -47,7 +45,6 @@ app.post('/api/unified-login', async (req, res) => {
                 scopeId: manager.scopeId 
             });
         }
-
         return res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
     } catch (err) {
         return res.status(500).json({ success: false, message: "خطأ فني في السيرفر" });
@@ -59,8 +56,8 @@ app.post('/api/unified-login', async (req, res) => {
 // 1. مسارات الموظفين
 app.use('/employee', employeeRoutes); 
 
-// 2. مسارات الإدارة العليا (تضمين orgRouter و adminRoutes)
-// ملاحظة: الترتيب هنا يسمح لـ orgRouter بمعالجة مسار /admin/matrix و /admin/get-all-orgs
+// 2. مسارات الإدارة والمصفوفة (تعديل هام هنا)
+// جعلنا orgRouter يتعامل مع بادئة /admin مباشرة
 app.use('/admin', orgRouter); 
 app.use('/admin', adminRoutes);
 

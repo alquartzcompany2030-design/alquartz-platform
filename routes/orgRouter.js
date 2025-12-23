@@ -1,45 +1,70 @@
 const express = require('express');
 const router = express.Router();
-const Scope = require('../models/Scope'); 
-const Employee = require('../models/Employee');
-const License = require('../models/License'); // أضفت موديل الرخص لحسابها بدقة
+const Organization = require('../models/Organization'); // الموديل الجديد الذي أرسلته
+const Employee = require('../models/Employee');         // لحساب الموظفين فعلياً
+const License = require('../models/License');           // لحساب الرخص المنتهية
 
 // 1. عرض صفحة المصفوفة
 router.get('/matrix', (req, res) => {
     res.render('matrix'); 
 });
 
-// 2. نقطة جلب البيانات (API) - لاحظ المسار المختصر هنا
+// 2. نقطة جلب البيانات (API) - الحساب الذكي والشامل
 router.get('/get-all-orgs', async (req, res) => {
     try {
-        const scopes = await Scope.find(); 
+        // جلب قائمة المنشآت الأساسية
+        const orgs = await Organization.find(); 
         const today = new Date();
-        
-        const processedOrgs = await Promise.all(scopes.map(async (s) => {
-            // حساب الإحصائيات من قاعدة البيانات مباشرة
-            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredLics] = await Promise.all([
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
-                License.countDocuments({ scopeId: s.uniqueId, expiryDate: { $lt: today } }) // حساب الرخص المنتهية
+
+        // معالجة كل منشأة لحساب إحصائياتها الحية
+        const processedOrgs = await Promise.all(orgs.map(async (org) => {
+            
+            // تنفيذ استعلامات متوازية للحصول على أرقام دقيقة من جدول الموظفين
+            const [
+                saudiMale, 
+                saudiFemale, 
+                expatMale, 
+                expatFemale, 
+                expiredLicsCount
+            ] = await Promise.all([
+                // عدد السعوديين الذكور
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
+                // عدد السعوديات الإناث
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
+                // عدد المقيمين الذكور
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
+                // عدد المقيمات الإناث
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
+                // عدد الرخص المنتهية في جدول الرخص
+                License.countDocuments({ scopeId: org.uniqueId, expiryDate: { $lt: today } })
             ]);
 
+            // تجميع البيانات في كائن واحد لإرساله للواجهة
             return {
-                name: s.name,
-                uniqueId: s.uniqueId,
+                _id: org._id,
+                name: org.name,
+                uniqueId: org.uniqueId,
+                // حساب المجاميع
                 saudiWorkers: saudiMale + saudiFemale,
                 expatWorkers: expatMale + expatFemale,
-                saudiMale, saudiFemale,
-                expatMale, expatFemale,
-                expiredLicenses: expiredLics || 0
+                // تفاصيل النوع الاجتماعي
+                saudiMale: saudiMale,
+                saudiFemale: saudiFemale,
+                expatMale: expatMale,
+                expatFemale: expatFemale,
+                // حالة التنبيهات
+                expiredLicenses: expiredLicsCount || 0,
+                subscriptionExpiry: org.subscriptionExpiry,
+                lastAudit: org.lastAudit
             };
         }));
 
+        // إرسال المصفوفة كاملة للواجهة الأمامية
         res.json(processedOrgs);
+
     } catch (err) {
-        console.error("Database Error:", err);
-        res.status(500).json({ error: "فشل جلب البيانات" });
+        console.error("Matrix Data Error:", err);
+        res.status(500).json({ error: "حدث خطأ أثناء تجميع بيانات المصفوفة" });
     }
 });
 

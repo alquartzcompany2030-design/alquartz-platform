@@ -22,9 +22,9 @@ router.get('/register', async (req, res) => {
 // --- [ ثانياً: عمليات الـ API للموظف - حفظ التسجيل الجديد ] ---
 router.post('/api/register', async (req, res) => {
     try {
-        const data = req.body;
+        let data = req.body;
         
-        // تحويل الحقول المنطقية لضمان تخزينها كـ Boolean في MongoDB
+        // 1. تحويل الحقول المنطقية لضمان تخزينها كـ Boolean
         const booleanFields = ['hasHealthInsurance', 'hasFamilyInKSA', 'hasCarAuthorization', 'hasDrivingLicense'];
         booleanFields.forEach(field => {
             if (data[field] !== undefined) {
@@ -32,12 +32,18 @@ router.post('/api/register', async (req, res) => {
             }
         });
 
-        // منع تكرار التسجيل برقم الهوية
+        // 2. ذكاء اصطناعي بسيط: تحديد الجنسية تلقائياً إذا بدأت الهوية بـ 1
+        if (data.idNumber && data.idNumber.startsWith('1')) {
+            data.nationality = "السعودية";
+        }
+
+        // 3. منع تكرار التسجيل برقم الهوية
         const existingEmp = await Employee.findOne({ idNumber: data.idNumber });
         if (existingEmp) {
             return res.status(400).json({ success: false, message: "عذراً، رقم الهوية/الإقامة مسجل لدينا مسبقاً" });
         }
 
+        // 4. إنشاء وحفظ الموظف الجديد
         const newEmployee = new Employee({ 
             ...data, 
             status: 'active',
@@ -64,7 +70,7 @@ router.get('/manager/api/get-employee/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ message: "خطأ في السيرفر" }); }
 });
 
-// 2. جلب جميع موظفي المنشأة (للعرض في الجدول الرئيسي)
+// 2. جلب جميع موظفي المنشأة
 router.get('/manager/api/get-employees/:scopeId', async (req, res) => {
     try {
         const emps = await Employee.find({ scopeId: req.params.scopeId }).sort({ createdAt: -1 });
@@ -75,14 +81,20 @@ router.get('/manager/api/get-employees/:scopeId', async (req, res) => {
 // 3. تحديث بيانات الموظف (PUT)
 router.put('/manager/api/update-employee/:id', async (req, res) => {
     try {
-        const updateData = req.body;
-        // معالجة البيانات المنطقية في التحديث أيضاً
+        let updateData = req.body;
+
+        // معالجة البيانات المنطقية في التحديث
         const booleanFields = ['hasHealthInsurance', 'hasCarAuthorization'];
         booleanFields.forEach(field => {
             if (updateData[field] !== undefined) {
                 updateData[field] = (updateData[field] === 'true' || updateData[field] === true);
             }
         });
+
+        // تصحيح الجنسية تلقائياً إذا تم تعديل رقم الهوية ليبدأ بـ 1
+        if (updateData.idNumber && updateData.idNumber.startsWith('1')) {
+            updateData.nationality = "السعودية";
+        }
 
         await Employee.findByIdAndUpdate(req.params.id, { $set: updateData });
         res.json({ success: true, message: "تم تحديث ملف الموظف بنجاح" });
@@ -94,19 +106,31 @@ router.put('/manager/api/update-employee/:id', async (req, res) => {
 // 4. حذف موظف نهائياً
 router.delete('/manager/api/delete-employee/:id', async (req, res) => {
     try {
-        // يمكنك إضافة شرط هنا يا أبو حمزة: إذا كان المستخدم أدمن فقط
         await Employee.findByIdAndDelete(req.params.id);
         res.json({ success: true, message: "تم الحذف بنجاح" });
     } catch (err) { res.status(500).json({ success: false, message: "فشل عملية الحذف" }); }
 });
 
-// 5. جلب إحصائيات سريعة للمنشأة (جديد لخدمة الـ Stat Cards)
+// 5. جلب إحصائيات سريعة للمنشأة (محدث لخدمة الـ Stat Cards)
 router.get('/manager/api/scope-stats/:scopeId', async (req, res) => {
     try {
         const scopeId = req.params.scopeId;
         const total = await Employee.countDocuments({ scopeId });
-        const expired = await Employee.countDocuments({ scopeId, idExpiry: { $lt: new Date() } });
-        const saudi = await Employee.countDocuments({ scopeId, nationality: 'السعودية' });
+        
+        // الموظفين ذوي الإقامات المنتهية (أقل من تاريخ اليوم)
+        const expired = await Employee.countDocuments({ 
+            scopeId, 
+            idExpiry: { $lt: new Date().toISOString().split('T')[0] } 
+        });
+        
+        // الموظفين السعوديين (تلقائياً من الجنسية أو رقم الهوية)
+        const saudi = await Employee.countDocuments({ 
+            scopeId, 
+            $or: [
+                { nationality: 'السعودية' },
+                { idNumber: { $regex: '^1' } }
+            ]
+        });
         
         res.json({ total, expired, saudi });
     } catch (err) { res.status(500).json({ message: "خطأ في الإحصائيات" }); }

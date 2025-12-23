@@ -31,7 +31,7 @@ router.get('/api/get-scope-info/:scopeId', async (req, res) => {
 
 // --- [ ثالثاً: إدارة الموظفين API ] ---
 
-// 1. جلب كل موظفي المنشأة
+// 1. جلب كل موظفي المنشأة (مع دعم فرز الجنسية)
 router.get('/api/get-employees/:scopeId', async (req, res) => {
     try {
         const emps = await Employee.find({ scopeId: req.params.scopeId }).sort({ createdAt: -1 });
@@ -47,12 +47,24 @@ router.get('/api/employee/:id', async (req, res) => {
     } catch (err) { res.status(500).json(null); }
 });
 
-// 3. تحديث بيانات الموظف (PUT)
+// 3. تحديث بيانات الموظف (PUT) - محدث لدعم تعديل الجنسية
 router.put('/api/update-employee/:id', async (req, res) => {
     try {
-        await Employee.findByIdAndUpdate(req.params.id, { $set: req.body });
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ success: false }); }
+        const updateData = req.body;
+        
+        // منطق إضافي لضمان صحة الجنسية عند التعديل
+        if (updateData.idNumber) {
+            if (updateData.idNumber.startsWith('1')) {
+                updateData.nationality = "السعودية";
+            }
+        }
+
+        await Employee.findByIdAndUpdate(req.params.id, { $set: updateData });
+        res.json({ success: true, message: "تم تحديث بيانات الموظف بنجاح" });
+    } catch (err) { 
+        console.error("Update Error:", err);
+        res.status(500).json({ success: false, message: "فشل في تحديث البيانات" }); 
+    }
 });
 
 // 4. حذف موظف نهائياً

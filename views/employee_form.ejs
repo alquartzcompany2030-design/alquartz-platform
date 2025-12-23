@@ -28,6 +28,10 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #success-container { display: none; text-align: center; padding: 20px; }
         .success-icon { font-size: 60px; color: var(--success); }
+        /* ستايل مخصص للتنبيه الذكي */
+        .smart-badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; margin-top: 5px; display: none; }
+        .badge-citizen { background: #e3f2fd; color: #1976d2; }
+        .badge-resident { background: #f1f8e9; color: #388e3c; }
     </style>
 </head>
 <body>
@@ -63,15 +67,22 @@
                 <input type="text" name="address">
 
                 <div class="btn-group">
-                    <button type="button" class="btn-next" onclick="nextStep(1, 'ممتاز، ننتقل لبيانات الهوية | Moving to ID info')">التالي | Next ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(1, 'بيانات الهوية والجنسية | ID & Nationality')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="2">
-                <label>رقم الهوية / الإقامة</label>
-                <span class="en-label">Iqama / ID Number</span>
-                <input type="text" name="idNumber" required maxlength="10">
+                <label id="idLabel">رقم الهوية / الإقامة</label>
+                <span class="en-label" id="idEnLabel">Iqama / ID Number</span>
+                <input type="text" id="idNumberInput" name="idNumber" required maxlength="10" oninput="handleIdLogic(this.value)">
+                <div id="idBadge" class="smart-badge"></div>
                 
+                <div id="nationalityBox" style="display: none;">
+                    <label>الجنسية</label>
+                    <span class="en-label">Nationality</span>
+                    <input type="text" id="nationalityInput" name="nationality" placeholder="مثلاً: مصر، الهند، باكستان...">
+                </div>
+
                 <label>تاريخ انتهاء الهوية</label>
                 <span class="en-label">ID Expiry Date</span>
                 <input type="date" name="idExpiry" required>
@@ -195,11 +206,49 @@
     let current = 1;
     const total = 5;
 
+    // --- وظيفة الذكاء الصناعي لرقم الهوية ---
+    function handleIdLogic(val) {
+        const badge = document.getElementById('idBadge');
+        const natBox = document.getElementById('nationalityBox');
+        const natInput = document.getElementById('nationalityInput');
+        const idLabel = document.getElementById('idLabel');
+        const idEnLabel = document.getElementById('idEnLabel');
+
+        if (val.startsWith('1')) {
+            // مواطن سعودي
+            badge.innerText = "✓ تم التعرف: مواطن سعودي | Citizen";
+            badge.className = "smart-badge badge-citizen";
+            badge.style.display = "inline-block";
+            natBox.style.display = "none";
+            natInput.value = "السعودية"; // تعبئة تلقائية
+            idLabel.innerText = "رقم الهوية الوطنية";
+            idEnLabel.innerText = "National ID Number";
+        } 
+        else if (val.startsWith('2')) {
+            // مقيم
+            badge.innerText = "✓ تم التعرف: مقيم | Resident";
+            badge.className = "smart-badge badge-resident";
+            badge.style.display = "inline-block";
+            natBox.style.display = "block";
+            if(natInput.value === "السعودية") natInput.value = ""; // مسح القيمة إذا كانت سعودي
+            idLabel.innerText = "رقم الإقامة";
+            idEnLabel.innerText = "Iqama Number";
+        } 
+        else {
+            badge.style.display = "none";
+            natBox.style.display = "none";
+        }
+    }
+
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
         const inputs = currentStepEl.querySelectorAll('input[required]');
         for (let input of inputs) {
-            if (!input.value) { input.style.borderColor = 'red'; return; }
+            if (!input.value) { 
+                input.style.borderColor = 'red'; 
+                input.focus();
+                return; 
+            }
             input.style.borderColor = '#eee';
         }
         currentStepEl.classList.remove('active');
@@ -242,16 +291,20 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
+            const result = await res.json();
+            
             if(res.ok) {
                 document.getElementById('form-content').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } else {
-                alert('خطأ في الحفظ | Save Error');
+                alert(result.message || 'خطأ في الحفظ | Save Error');
                 btn.disabled = false;
+                btn.innerText = "اعتماد وحفظ | Save Data 🚀";
             }
         } catch (err) {
             alert('فشل الاتصال | Connection Failed');
             btn.disabled = false;
+            btn.innerText = "اعتماد وحفظ | Save Data 🚀";
         }
     };
 </script>

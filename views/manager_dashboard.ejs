@@ -53,25 +53,21 @@
         tbody tr:hover { background-color: #fffdf2; }
         td { padding: 15px; text-align: center; vertical-align: middle; font-size: 0.9rem; }
 
-        /* تنبيهات الألوان */
         .expired { color: var(--danger); font-weight: bold; background: #fff5f5; padding: 5px 10px; border-radius: 8px; border: 1px solid #ffcccc; display: inline-block;}
         .near-expiry { color: var(--warning); font-weight: bold; background: #fffbe6; padding: 5px 10px; border-radius: 8px; border: 1px solid #ffe58f; display: inline-block;}
         .valid { color: var(--success); font-weight: bold; }
 
-        .badge-nat { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: #f1f2f6; color: var(--navy); border: 1px solid #ddd; }
-        .info-tag { font-size: 0.75rem; color: #666; display: block; margin-top: 4px; }
+        /* ستايل الجنسية المطور */
+        .badge-nat { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: #f1f2f6; color: var(--navy); border: 1px solid #ddd; display: inline-flex; align-items: center; gap: 5px; }
+        .saudi-badge { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
         
-        .car-info-box { font-size: 0.75rem; color: #856404; background: #fff9db; padding: 6px; border-radius: 8px; margin-top: 5px; border: 1px solid #ffeeba; display: flex; align-items: center; justify-content: center; gap: 5px; }
-
+        .info-tag { font-size: 0.75rem; color: #666; display: block; margin-top: 4px; }
         .btn-circle { width: 35px; height: 35px; border-radius: 8px; border: none; cursor: pointer; color: white; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;}
         .whatsapp-btn { background: #25d366; color: white; }
-        
         .main-btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.3s; }
 
-        /* Modal Customization */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content { background:white; width:90%; max-width:600px; margin:50px auto; padding:30px; border-radius:25px; position: relative; max-height: 85vh; overflow-y: auto; }
-        
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
         .detail-label { font-weight: bold; color: var(--navy); }
 
@@ -131,6 +127,7 @@
             <option value="all">جميع الموظفين</option>
             <option value="expired">الإقامات المنتهية فقط</option>
             <option value="valid">الإقامات السارية</option>
+            <option value="saudi">الموظفين السعوديين</option>
         </select>
         <button class="main-btn" style="background:var(--navy); color:white;" onclick="exportToExcel()">
             <i class="fas fa-file-excel"></i> تصدير البيانات
@@ -164,8 +161,7 @@
         <h3 style="margin-top:0; color:var(--navy); border-bottom: 2px solid var(--gold); padding-bottom:10px;">
             <i class="fas fa-address-card"></i> الملف الشخصي الكامل
         </h3>
-        <div id="modalDetails">
-            </div>
+        <div id="modalDetails"></div>
         <div style="margin-top:25px; display:flex; gap:10px;">
             <button class="main-btn" style="background:var(--navy); color:white; flex:1; justify-content:center" onclick="closeModal()">إغلاق النافذة</button>
         </div>
@@ -181,28 +177,17 @@
     async function loadData() {
         const urlParams = new URLSearchParams(window.location.search);
         currentScopeId = urlParams.get('scope') || localStorage.getItem('scopeId');
-
         if (!currentScopeId) { window.location.href = '/manager/login'; return; }
         localStorage.setItem('scopeId', currentScopeId);
 
         try {
-            // جلب اسم المنشأة
-            const scopeRes = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
-            if(scopeRes.ok) {
-                const scopeData = await scopeRes.json();
-                document.getElementById('mgrName').innerText = scopeData.name || "منشأة أبو حمزة";
-            }
-
-            // جلب الموظفين
             const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
             if (res.ok) {
                 allEmployees = await res.json();
                 filterData();
                 updateStats();
             }
-        } catch (e) {
-            showToast("فشل في تحديث البيانات", true);
-        }
+        } catch (e) { showToast("فشل في تحديث البيانات", true); }
     }
 
     function updateStats() {
@@ -227,10 +212,17 @@
 
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
+        if(data.length === 0) {
+            body.innerHTML = '<tr><td colspan="7">لا يوجد موظفين مسجلين حالياً</td></tr>';
+            return;
+        }
+
         body.innerHTML = data.map(emp => {
             const idStatus = getExpiryStatus(emp.idExpiry);
-            const whatsappMsg = `السلام عليكم أ/ ${emp.fullName}، نود إشعاركم بخصوص بياناتكم في المنصة.`;
-            
+            const isSaudi = emp.idNumber && emp.idNumber.startsWith('1');
+            const natClass = isSaudi ? 'badge-nat saudi-badge' : 'badge-nat';
+            const natIcon = isSaudi ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-globe"></i>';
+
             return `
                 <tr>
                     <td style="text-align:right">
@@ -239,11 +231,11 @@
                     </td>
                     <td><code>${emp.idNumber || '---'}</code></td>
                     <td>
-                        <span class="badge-nat">${emp.nationality || 'غير محدد'}</span>
+                        <span class="${natClass}">${natIcon} ${emp.nationality || 'غير محدد'}</span>
                         <span class="info-tag"><i class="fas fa-location-dot"></i> ${emp.branch || 'غير محدد'}</span>
                     </td>
                     <td>
-                        <a href="https://wa.me/${emp.phoneNumber}?text=${encodeURIComponent(whatsappMsg)}" target="_blank" class="btn-circle whatsapp-btn">
+                        <a href="https://wa.me/${emp.phoneNumber}" target="_blank" class="btn-circle whatsapp-btn">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                         <small>${emp.phoneNumber || '---'}</small>
@@ -251,14 +243,14 @@
                     <td><span class="${idStatus.class}">${idStatus.text}</span></td>
                     <td>
                         <div style="font-size:0.8rem">
-                            <i class="fas fa-passport"></i> ${emp.passportNumber ? 'ساري' : 'غير مسجل'}<br>
+                            <i class="fas fa-passport"></i> ${emp.passportNumber ? 'ساري' : '---'}<br>
                             <i class="fas fa-shield-heart"></i> ${emp.hasHealthInsurance ? 'مؤمن' : 'لا يوجد'}
                         </div>
                     </td>
                     <td>
                         <div style="display:flex; gap:5px; justify-content:center">
                             <button class="btn-circle" style="background:var(--navy)" onclick="viewDetails('${emp._id}')"><i class="fas fa-eye"></i></button>
-                            <button class="btn-circle" style="background:var(--danger)" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash"></i></button>
+                            <button class="btn-circle" style="background:var(--danger)" onclick="deleteEmp('${emp._id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
@@ -271,14 +263,13 @@
         
         const content = `
             <div class="detail-row"><span class="detail-label">الاسم بالكامل:</span> <span>${emp.fullName}</span></div>
-            <div class="detail-row"><span class="detail-label">رقم الهوية:</span> <span>${emp.idNumber}</span></div>
+            <div class="detail-row"><span class="detail-label">الجنسية:</span> <span style="color:green; font-weight:bold">${emp.nationality || 'السعودية'}</span></div>
+            <div class="detail-row"><span class="detail-label">رقم الهوية/الإقامة:</span> <span>${emp.idNumber}</span></div>
             <div class="detail-row"><span class="detail-label">تاريخ الانتهاء:</span> <span>${emp.idExpiry}</span></div>
-            <div class="detail-row"><span class="detail-label">الكفيل الحالي:</span> <span>${emp.sponsorName || 'لا يوجد'}</span></div>
+            <div class="detail-row"><span class="detail-label">الجوال:</span> <span>${emp.phoneNumber}</span></div>
             <div class="detail-row"><span class="detail-label">رقم الجواز:</span> <span>${emp.passportNumber || '---'}</span></div>
-            <div class="detail-row"><span class="detail-label">التأمين الصحي:</span> <span>${emp.hasHealthInsurance ? 'نعم' : 'لا'}</span></div>
-            <div class="detail-row"><span class="detail-label">تفويض سيارة:</span> <span>${emp.hasCarAuthorization ? 'نعم (' + emp.carType + ')' : 'لا'}</span></div>
-            <div class="detail-row"><span class="detail-label">العنوان:</span> <span>${emp.address || 'غير محدد'}</span></div>
-            <div class="detail-row"><span class="detail-label">تاريخ نقل الكفالة:</span> <span>${emp.sponsorshipTransferDate || '---'}</span></div>
+            <div class="detail-row"><span class="detail-label">تأمين صحي:</span> <span>${emp.hasHealthInsurance ? 'نعم' : 'لا'}</span></div>
+            <div class="detail-row"><span class="detail-label">تفويض سيارة:</span> <span>${emp.hasCarAuthorization ? 'نعم (' + (emp.carType || 'مسجلة') + ')' : 'لا'}</span></div>
         `;
         document.getElementById('modalDetails').innerHTML = content;
         document.getElementById('viewModal').style.display = 'block';
@@ -291,12 +282,26 @@
         const filtered = allEmployees.filter(emp => {
             const matchSearch = emp.fullName.toLowerCase().includes(term) || emp.idNumber.includes(term);
             const days = calculateDays(emp.idExpiry);
+            const isSaudi = emp.idNumber && emp.idNumber.startsWith('1');
             
             if (filter === 'expired') return matchSearch && days < 0;
             if (filter === 'valid') return matchSearch && days >= 0;
+            if (filter === 'saudi') return matchSearch && isSaudi;
             return matchSearch;
         });
         renderTable(filtered);
+    }
+
+    // الحذف النهائي للموظف
+    async function deleteEmp(id) {
+        if(!confirm("هل أنت متأكد من حذف هذا الموظف نهائياً؟")) return;
+        try {
+            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                showToast("تم حذف الموظف بنجاح");
+                loadData(); // إعادة تحميل
+            }
+        } catch (e) { showToast("خطأ في الحذف", true); }
     }
 
     function copyLink(e) {
@@ -307,10 +312,8 @@
 
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.background = isError ? "var(--danger)" : "var(--navy)";
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 3000);
+        t.innerText = msg; t.style.background = isError ? "var(--danger)" : "var(--navy)";
+        t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
     }
 
     function closeModal() { document.getElementById('viewModal').style.display = 'none'; }

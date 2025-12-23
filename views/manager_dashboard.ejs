@@ -20,7 +20,6 @@
             --gray-dark: #2d3436;
             --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
             --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
-            --glass: rgba(255, 255, 255, 0.95);
         }
 
         * { box-sizing: border-box; transition: all 0.2s ease; }
@@ -54,9 +53,9 @@
             padding: 5px 15px; 
             border-radius: 50px; 
             color: #fff; 
-            font-weight: 400; 
-            font-size: 0.9rem;
-            border: 1px solid rgba(255,204,0,0.3);
+            font-weight: 700; 
+            font-size: 0.95rem;
+            border: 1px solid var(--gold);
         }
 
         /* Stats Section */
@@ -78,8 +77,6 @@
             gap: 20px;
             box-shadow: var(--shadow-sm);
             border-right: 6px solid var(--navy);
-            position: relative;
-            overflow: hidden;
         }
 
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
@@ -100,13 +97,13 @@
             border-radius: 20px;
             margin-bottom: 30px;
             display: flex;
-            gap: 20px;
+            gap: 15px;
             align-items: center;
             box-shadow: var(--shadow-sm);
             flex-wrap: wrap;
         }
 
-        .search-wrapper { flex: 1; position: relative; min-width: 350px; }
+        .search-wrapper { flex: 1; position: relative; min-width: 300px; }
         .search-wrapper input {
             width: 100%;
             padding: 15px 50px 15px 20px;
@@ -117,8 +114,9 @@
         }
         .search-wrapper i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--navy); }
 
+        /* Buttons */
         .btn {
-            padding: 14px 25px;
+            padding: 14px 22px;
             border-radius: 12px;
             border: none;
             font-weight: 700;
@@ -128,13 +126,15 @@
             gap: 10px;
             font-family: inherit;
             text-decoration: none;
+            font-size: 0.9rem;
         }
 
         .btn-excel { background: #1d7a46; color: white; }
-        .btn-excel:hover { background: #145a32; }
         .btn-link { background: var(--gold); color: var(--navy); }
+        .btn-license { background: #4b7bec; color: white; } /* اللون الجديد لزر السجلات */
+        .btn-danger { background: var(--danger); color: white; }
 
-        /* Table Area */
+        /* Table */
         .table-card {
             background: var(--white);
             border-radius: 25px;
@@ -148,94 +148,40 @@
             color: var(--gold);
             padding: 20px;
             text-align: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
         }
 
-        tbody tr:hover { background-color: #f8f9ff; }
-        td { padding: 18px; text-align: center; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-
+        td { padding: 18px; text-align: center; border-bottom: 1px solid #f0f0f0; }
         .emp-name { font-weight: 700; color: var(--navy); display: block; }
-        .emp-sub { font-size: 0.75rem; color: #95a5a6; }
 
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        /* Actions */
-        .action-group { display: flex; gap: 8px; justify-content: center; }
-        .act-btn {
-            width: 40px; height: 40px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            border: none; cursor: pointer; color: white; font-size: 1.1rem;
-        }
-        .view-btn { background: var(--info); }
-        .wa-btn { background: var(--success); }
-        .del-btn { background: var(--danger); }
-
-        /* Modal Matrix Styling */
+        /* Modal */
         .modal { 
             display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-            background:rgba(11, 29, 42, 0.9); z-index:2000; backdrop-filter: blur(10px); 
+            background:rgba(11, 29, 42, 0.9); z-index:2000; backdrop-filter: blur(8px); 
         }
         .modal-content {
-            background: #fff; width: 95%; max-width: 1200px; margin: 2vh auto;
-            border-radius: 30px; position: relative; max-height: 94vh; overflow: hidden;
-            display: flex; flex-direction: column;
+            background: #fff; width: 95%; max-width: 1100px; margin: 3vh auto;
+            border-radius: 25px; position: relative; max-height: 90vh; overflow-y: auto;
         }
-        .modal-header {
-            padding: 25px 40px; background: var(--gray-light);
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-        .modal-body { padding: 30px 40px; overflow-y: auto; flex: 1; }
-
+        .modal-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        
         .data-matrix {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px; padding: 25px;
         }
+        .matrix-box { padding: 20px; border-radius: 15px; border: 1px solid #eee; }
+        .box-blue { border-top: 5px solid var(--info); background: #f0f7ff; }
+        .box-gold { border-top: 5px solid var(--gold); background: #fffdf0; }
+        .box-green { border-top: 5px solid var(--success); background: #f0fff4; }
 
-        .matrix-box {
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid #eee;
-        }
-        .box-blue { background: #f0f7ff; border-top: 5px solid var(--info); }
-        .box-gold { background: #fffdf0; border-top: 5px solid var(--gold); }
-        .box-green { background: #f0fff4; border-top: 5px solid var(--success); }
-
-        .matrix-title {
-            font-weight: 800; color: var(--navy); margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding-bottom: 10px;
-        }
-
-        .matrix-row {
-            display: flex; justify-content: space-between; margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
+        .matrix-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
         .matrix-label { color: #7f8c8d; font-weight: 500; }
-        .matrix-value { color: var(--navy); font-weight: 700; text-align: left; }
+        .matrix-value { color: var(--navy); font-weight: 700; }
 
-        /* Toast */
         #toast {
             position: fixed; bottom: 30px; right: 30px;
-            background: var(--navy); color: var(--gold);
-            padding: 15px 30px; border-radius: 15px;
-            display: none; z-index: 9999; box-shadow: var(--shadow-lg);
-            animation: slideIn 0.3s ease;
+            padding: 15px 30px; border-radius: 12px;
+            display: none; z-index: 9999; color: white;
         }
-
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-        @media (max-width: 1000px) { .data-matrix { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .data-matrix { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -245,14 +191,17 @@
         <i class="fas fa-cloud-meatball"></i>
         <div>
             <h2>Golden Cloud Server</h2>
-            <div id="scopeName" class="scope-badge">جاري الربط بالسيرفر...</div>
+            <div id="scopeNameDisplay" class="scope-badge">جاري التحميل...</div>
         </div>
     </div>
-    <div style="display: flex; gap: 15px;">
+    <div style="display: flex; gap: 12px;">
+        <a id="licenseBtn" class="btn btn-license">
+            <i class="fas fa-file-contract"></i> السجلات والحكومية
+        </a>
         <button class="btn btn-link" onclick="copyRegLink()">
-            <i class="fas fa-user-plus"></i> رابط تسجيل الموظفين
+            <i class="fas fa-user-plus"></i> رابط التسجيل
         </button>
-        <button class="btn" style="background: var(--danger); color: white;" onclick="logout()">
+        <button class="btn btn-danger" onclick="logout()">
             <i class="fas fa-power-off"></i> خروج
         </button>
     </div>
@@ -262,44 +211,32 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon" style="background: #e1f5fe; color: var(--info);"><i class="fas fa-users"></i></div>
-            <div class="stat-info">
-                <h3>إجمالي الكادر</h3>
-                <div class="value" id="count-total">0</div>
-            </div>
+            <div class="stat-info"><h3>إجمالي الكادر</h3><div class="value" id="count-total">0</div></div>
         </div>
         <div class="stat-card">
             <div class="stat-icon" style="background: #fff9db; color: var(--warning);"><i class="fas fa-car"></i></div>
-            <div class="stat-info">
-                <h3>سيارات العهدة</h3>
-                <div class="value" id="count-cars">0</div>
-            </div>
+            <div class="stat-info"><h3>سيارات العهدة</h3><div class="value" id="count-cars">0</div></div>
         </div>
         <div class="stat-card">
             <div class="stat-icon" style="background: #ffe3e6; color: var(--danger);"><i class="fas fa-id-card"></i></div>
-            <div class="stat-info">
-                <h3>هويات منتهية</h3>
-                <div class="value" id="count-expired">0</div>
-            </div>
+            <div class="stat-info"><h3>هويات منتهية</h3><div class="value" id="count-expired">0</div></div>
         </div>
         <div class="stat-card">
             <div class="stat-icon" style="background: #e8f5e9; color: var(--success);"><i class="fas fa-shield-heart"></i></div>
-            <div class="stat-info">
-                <h3>التغطية الطبية</h3>
-                <div class="value" id="count-medical">0</div>
-            </div>
+            <div class="stat-info"><h3>التغطية الطبية</h3><div class="value" id="count-medical">0</div></div>
         </div>
     </div>
 
     <div class="toolbar">
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
-            <input type="text" id="mainSearch" placeholder="ابحث بالاسم، رقم الهوية، الجوال، أو الفرع..." onkeyup="handleSearch()">
+            <input type="text" id="mainSearch" placeholder="ابحث بالاسم، الهوية، أو الجوال..." onkeyup="handleSearch()">
         </div>
         <button class="btn btn-excel" onclick="exportToExcel()">
-            <i class="fas fa-file-export"></i> تصدير المصفوفة الشاملة (Excel)
+            <i class="fas fa-file-excel"></i> تصدير (Excel)
         </button>
         <button class="btn" style="background: var(--navy); color: white;" onclick="loadEmployeeData()">
-            <i class="fas fa-sync-alt"></i> تحديث البيانات
+            <i class="fas fa-sync-alt"></i> تحديث
         </button>
     </div>
 
@@ -307,17 +244,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>بيانات الموظف</th>
-                    <th>رقم الهوية / الإقامة</th>
+                    <th>الموظف</th>
+                    <th>رقم الهوية</th>
                     <th>الجنسية</th>
-                    <th>رقم الجوال</th>
+                    <th>الجوال</th>
                     <th>انتهاء الهوية</th>
-                    <th>حالة التأمين</th>
+                    <th>الحالة</th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="employeeTable">
-                <tr><td colspan="7" style="padding: 100px; color: #95a5a6;">جاري سحب البيانات من السيرفر...</td></tr>
+                <tr><td colspan="7">جاري سحب البيانات...</td></tr>
             </tbody>
         </table>
     </div>
@@ -326,16 +263,10 @@
 <div id="empModal" class="modal" onclick="if(event.target==this) closeModal()">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 style="margin:0; color: var(--navy);"><i class="fas fa-fingerprint"></i> ملف الموظف الرقمي الشامل</h2>
-            <button onclick="closeModal()" style="background:none; border:none; font-size: 2rem; cursor:pointer;">&times;</button>
+            <h2 style="margin:0;"><i class="fas fa-id-badge"></i> الملف الرقمي للموظف</h2>
+            <button onclick="closeModal()" style="border:none; background:none; font-size:2rem; cursor:pointer;">&times;</button>
         </div>
-        <div class="modal-body">
-            <div id="matrixContent" class="data-matrix">
-                </div>
-        </div>
-        <div style="padding: 20px; text-align: center; background: #f8f9fa;">
-            <button class="btn" style="background: var(--navy); color: white; width: 200px;" onclick="closeModal()">إغلاق الملف</button>
-        </div>
+        <div id="matrixContent" class="data-matrix"></div>
     </div>
 </div>
 
@@ -343,118 +274,107 @@
 
 <script>
     let rawData = [];
-    const scopeId = new URLSearchParams(window.location.search).get('scope') || localStorage.getItem('activeScope');
+    const urlParams = new URLSearchParams(window.location.search);
+    const scopeId = urlParams.get('scope') || localStorage.getItem('activeScope');
 
-    // دالة تهيئة وتحميل البيانات
+    // 1. استرجاع وتثبيت اسم النطاق وربط زر السجلات
+    function setupScopeUI(scopeName) {
+        document.getElementById('scopeNameDisplay').innerText = scopeName || "نطاق رئيسي";
+        // تحديث رابط زر السجلات ليتضمن كود النطاق
+        const licenseBtn = document.getElementById('licenseBtn');
+        licenseBtn.href = `/manager/licenses?scope=${scopeId}`;
+    }
+
+    // 2. جلب البيانات من السيرفر
     async function loadEmployeeData() {
-        if(!scopeId) return;
+        if(!scopeId) {
+            showToast("كود النطاق مفقود!", true);
+            return;
+        }
         try {
             const response = await fetch(`/manager/api/get-employees/${scopeId}`);
             const result = await response.json();
             
             if(response.ok) {
                 rawData = result.employees;
-                document.getElementById('scopeName').innerText = result.scopeName || "نطاق رئيسي";
+                setupScopeUI(result.scopeName);
                 renderTable(rawData);
                 calculateStats(rawData);
+            } else {
+                showToast("خطأ في الاتصال بالسيرفر", true);
             }
         } catch (err) {
-            showToast("حدث خطأ في جلب البيانات", true);
+            showToast("حدث خطأ غير متوقع", true);
         }
     }
 
-    // عرض الجدول
+    // 3. عرض الجدول
     function renderTable(data) {
         const container = document.getElementById('employeeTable');
         if(data.length === 0) {
-            container.innerHTML = '<tr><td colspan="7">لا يوجد سجلات مطابقة للبحث</td></tr>';
+            container.innerHTML = '<tr><td colspan="7">لا توجد بيانات متاحة</td></tr>';
             return;
         }
 
         container.innerHTML = data.map(emp => {
             const isExp = new Date(emp.idExpiry) < new Date();
-            const cleanPhone = emp.phoneNumber ? emp.phoneNumber.replace(/\D/g, '') : '';
-
             return `
                 <tr>
                     <td>
                         <span class="emp-name">${emp.fullName}</span>
-                        <span class="emp-sub">${emp.jobTitle || 'بدون مسمى'} | ${emp.branch || 'المركز الرئيسي'}</span>
+                        <small>${emp.jobTitle || 'موظف'}</small>
                     </td>
-                    <td><code style="font-weight:700;">${emp.idNumber}</code></td>
-                    <td>${emp.nationality || 'غير محدد'}</td>
+                    <td><code>${emp.idNumber}</code></td>
+                    <td>${emp.nationality || '---'}</td>
                     <td>${emp.phoneNumber}</td>
                     <td>
-                        <span class="status-badge" style="background: ${isExp ? '#ffe3e6' : '#e8f5e9'}; color: ${isExp ? '#c0392b' : '#27ae60'};">
-                            ${formatDate(emp.idExpiry)}
-                        </span>
+                        <b style="color: ${isExp ? 'red' : 'green'}">${formatDate(emp.idExpiry)}</b>
                     </td>
                     <td>
-                        <i class="fas ${emp.hasHealthInsurance ? 'fa-check-circle' : 'fa-times-circle'}" 
-                           style="color: ${emp.hasHealthInsurance ? 'var(--success)' : 'var(--danger)'};"></i>
-                        ${emp.hasHealthInsurance ? 'مؤمن' : 'غير مؤمن'}
+                        <i class="fas fa-shield-alt" style="color: ${emp.hasHealthInsurance ? '#2ed573' : '#ff4757'}"></i>
                     </td>
                     <td>
-                        <div class="action-group">
-                            <button class="act-btn view-btn" onclick="openProfile('${emp._id}')" title="عرض الملف"><i class="fas fa-eye"></i></button>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="act-btn wa-btn" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-                            <button class="act-btn del-btn" onclick="deleteRecord('${emp._id}')" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                        </div>
+                        <button class="btn" style="background:var(--info); color:white; padding:8px;" onclick="openProfile('${emp._id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </td>
                 </tr>
             `;
         }).join('');
     }
 
-    // فتح ملف الموظف (المصفوفة الشاملة)
+    // 4. عرض مصفوفة البيانات (المودال)
     function openProfile(id) {
         const emp = rawData.find(e => e._id === id);
         if(!emp) return;
 
         const sections = [
-            { title: "البيانات الشخصية", icon: "user-tie", class: "box-blue", items: {
-                "الاسم الكامل": emp.fullName,
+            { title: "البيانات الأساسية", icon: "user", class: "box-blue", items: {
+                "الاسم": emp.fullName,
                 "الجنسية": emp.nationality,
-                "الحالة الاجتماعية": emp.familyStatus,
-                "تاريخ المباشرة": formatDate(emp.joinDate)
-            }},
-            { title: "وثائق الهوية", icon: "id-card", class: "box-gold", items: {
                 "رقم الهوية": emp.idNumber,
-                "تاريخ الانتهاء": formatDate(emp.idExpiry),
-                "مكان الإصدار": emp.idIssuePlace,
-                "المدينة": emp.city
+                "انتهاء الهوية": formatDate(emp.idExpiry)
             }},
-            { title: "بيانات التواصل", icon: "phone-alt", class: "box-green", items: {
-                "رقم الجوال": emp.phoneNumber,
-                "البريد الإلكتروني": emp.email || 'غير متوفر',
-                "جهة الطوارئ": emp.emergencyContact,
-                "السكن": emp.address || 'غير محدد'
+            { title: "وثائق السفر", icon: "passport", class: "box-gold", items: {
+                "رقم الجواز": emp.passportNumber || 'غير متوفر',
+                "انتهاء الجواز": formatDate(emp.passportExpiry),
+                "الفرع": emp.branch || 'الرئيسي'
             }},
-            { title: "جواز السفر", icon: "passport", class: "box-blue", items: {
-                "رقم الجواز": emp.passportNumber || 'لا يوجد',
-                "تاريخ الانتهاء": formatDate(emp.passportExpiry),
-                "بلد الإصدار": emp.passportIssueCountry
-            }},
-            { title: "المركبة والعهدة", icon: "car-side", class: "box-gold", items: {
+            { title: "المركبة والتأمين", icon: "car", class: "box-green", items: {
                 "لوحة السيارة": emp.carPlate || 'بدون عهدة',
-                "نوع السيارة": emp.carType,
-                "الموديل": emp.carYear,
-                "رخصة القيادة": emp.hasDrivingLicense ? 'متوفرة' : 'لا يوجد'
-            }},
-            { title: "التأمين الطبي", icon: "file-medical", class: "box-green", items: {
-                "حالة التأمين": emp.hasHealthInsurance ? 'نشط' : 'غير مغطى',
-                "شركة التأمين": emp.insuranceCompany || '---',
-                "رقم البوليصة": emp.insuranceNo || '---',
-                "العائلة بالمملكة": emp.hasFamilyInKSA ? 'نعم' : 'لا'
+                "رخصة القيادة": emp.hasDrivingLicense ? 'موجودة' : 'لا يوجد',
+                "تأمين طبي": emp.hasHealthInsurance ? 'موجود' : 'غير مغطى'
             }}
         ];
 
         document.getElementById('matrixContent').innerHTML = sections.map(sec => `
             <div class="matrix-box ${sec.class}">
-                <div class="matrix-title"><i class="fas fa-${sec.icon}"></i> ${sec.title}</div>
+                <div style="font-weight:800; border-bottom:1px solid #ddd; margin-bottom:10px; padding-bottom:5px;">
+                    <i class="fas fa-${sec.icon}"></i> ${sec.title}
+                </div>
                 ${Object.entries(sec.items).map(([label, val]) => `
                     <div class="matrix-row">
-                        <span class="matrix-label">${label}:</span>
+                        <span class="matrix-label">${label}</span>
                         <span class="matrix-value">${val || '---'}</span>
                     </div>
                 `).join('')}
@@ -464,22 +384,10 @@
         document.getElementById('empModal').style.display = 'block';
     }
 
-    // وظائف إضافية
+    // وظائف مساعدة
     function formatDate(d) {
         if(!d) return '---';
-        const date = new Date(d);
-        return date.toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    }
-
-    function handleSearch() {
-        const term = document.getElementById('mainSearch').value.toLowerCase();
-        const filtered = rawData.filter(emp => 
-            emp.fullName.toLowerCase().includes(term) ||
-            emp.idNumber.includes(term) ||
-            emp.phoneNumber.includes(term) ||
-            (emp.branch && emp.branch.toLowerCase().includes(term))
-        );
-        renderTable(filtered);
+        return new Date(d).toLocaleDateString('en-GB');
     }
 
     function calculateStats(data) {
@@ -489,22 +397,12 @@
         document.getElementById('count-medical').innerText = data.filter(e => e.hasHealthInsurance).length;
     }
 
-    async function deleteRecord(id) {
-        if(!confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) return;
-        try {
-            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
-            if(res.ok) {
-                showToast("تم حذف السجل بنجاح");
-                loadEmployeeData();
-            }
-        } catch (e) { showToast("فشل في عملية الحذف", true); }
-    }
-
-    function exportToExcel() {
-        const ws = XLSX.utils.json_to_sheet(rawData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Employees");
-        XLSX.writeFile(wb, `GoldenCloud_Report_${new Date().toLocaleDateString()}.xlsx`);
+    function handleSearch() {
+        const term = document.getElementById('mainSearch').value.toLowerCase();
+        const filtered = rawData.filter(e => 
+            e.fullName.toLowerCase().includes(term) || e.idNumber.includes(term)
+        );
+        renderTable(filtered);
     }
 
     function showToast(msg, isError = false) {
@@ -518,13 +416,12 @@
     function copyRegLink() {
         const link = `${window.location.origin}/employee/register?scope=${scopeId}`;
         navigator.clipboard.writeText(link);
-        showToast("تم نسخ رابط التسجيل");
+        showToast("تم نسخ الرابط بنجاح");
     }
 
     function closeModal() { document.getElementById('empModal').style.display = 'none'; }
     function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
 
-    // تشغيل تلقائي
     window.onload = loadEmployeeData;
 </script>
 </body>

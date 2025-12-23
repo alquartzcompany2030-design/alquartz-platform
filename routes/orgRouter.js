@@ -1,48 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const Scope = require('../models/Organization'); 
+const Organization = require('../models/Organization'); // التعديل: استدعاء الموديل الصحيح
 const Employee = require('../models/Employee');
-const License = require('../models/License'); // التأكد من وجود موديل الرخص للحساب
+const License = require('../models/License');
 
-// 1. عرض صفحة المصفوفة
-router.get('/matrix', (req, res) => {
-    res.render('matrix'); 
-});
+// 1. عرض الصفحة
+router.get('/matrix', (req, res) => { res.render('matrix'); });
 
-// 2. نقطة جلب البيانات (API) - المسار المحدث والموحد
-// تم تعديل المسار ليتوافق مع استدعاء الواجهة: /admin/get-all-orgs
+// 2. جلب البيانات (المسؤول الحقيقي)
 router.get('/get-all-orgs', async (req, res) => {
     try {
-        const scopes = await Scope.find(); 
+        // السطر الذهبي: جلب البيانات من الموديل الجديد
+        const orgs = await Organization.find(); 
         const today = new Date();
-        
-        const processedOrgs = await Promise.all(scopes.map(async (s) => {
-            // حساب الإحصائيات الحية من قاعدة البيانات مباشرة لضمان الدقة
-            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredLicsCount] = await Promise.all([
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
-                License.countDocuments({ scopeId: s.uniqueId, expiryDate: { $lt: today } }) // حساب الرخص المنتهية
+
+        const processedOrgs = await Promise.all(orgs.map(async (org) => {
+            // حساب الموظفين من جدول Employee بربطه مع uniqueId الخاص بالمنشأة
+            const [sMale, sFemale, eMale, eFemale, licCount] = await Promise.all([
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
+                License.countDocuments({ scopeId: org.uniqueId, expiryDate: { $lt: today } })
             ]);
 
             return {
-                name: s.name,
-                uniqueId: s.uniqueId,
-                saudiWorkers: saudiMale + saudiFemale,
-                expatWorkers: expatMale + expatFemale,
-                saudiMale,
-                saudiFemale,
-                expatMale,
-                expatFemale,
-                expiredLicenses: expiredLicsCount || 0
+                name: org.name,
+                uniqueId: org.uniqueId,
+                saudiWorkers: sMale + sFemale,
+                expatWorkers: eMale + eFemale,
+                saudiMale: sMale,
+                saudiFemale: sFemale,
+                expatMale: eMale,
+                expatFemale: eFemale,
+                expiredLicenses: licCount || 0,
+                // أضفت لك هذه البيانات من الموديل الجديد لاستخدامها لاحقاً
+                subscriptionExpiry: org.subscriptionExpiry,
+                lastAudit: org.lastAudit
             };
         }));
 
         res.json(processedOrgs);
     } catch (err) {
-        console.error("API Matrix Error:", err);
-        res.status(500).json({ error: "فشل تجميع بيانات المصفوفة" });
+        console.error("خطأ في جلب بيانات المنشآت:", err);
+        res.status(500).json({ error: "فشل الاتصال بقاعدة البيانات" });
     }
 });
 

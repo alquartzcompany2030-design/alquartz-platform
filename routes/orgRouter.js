@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Scope = require('../models/Scope'); 
+const Scope = require('../models/Organization'); 
 const Employee = require('../models/Employee');
 const License = require('../models/License'); // التأكد من وجود موديل الرخص للحساب
 

@@ -131,7 +131,7 @@
 
         .btn-excel { background: #1d7a46; color: white; }
         .btn-link { background: var(--gold); color: var(--navy); }
-        .btn-license { background: #4b7bec; color: white; } /* اللون الجديد لزر السجلات */
+        .btn-license { background: #4b7bec; color: white; }
         .btn-danger { background: var(--danger); color: white; }
 
         /* Table */
@@ -139,10 +139,10 @@
             background: var(--white);
             border-radius: 25px;
             box-shadow: var(--shadow-sm);
-            overflow: hidden;
+            overflow-x: auto;
         }
 
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
         thead th {
             background: var(--navy);
             color: var(--gold);
@@ -181,17 +181,21 @@
             position: fixed; bottom: 30px; right: 30px;
             padding: 15px 30px; border-radius: 12px;
             display: none; z-index: 9999; color: white;
+            box-shadow: var(--shadow-lg);
         }
+
+        /* Error Message Style */
+        .error-msg { text-align: center; padding: 40px; color: var(--danger); }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo-section">
-        <i class="fas fa-cloud-meatball"></i>
+        <i class="fas fa-server"></i>
         <div>
             <h2>Golden Cloud Server</h2>
-            <div id="scopeNameDisplay" class="scope-badge">جاري التحميل...</div>
+            <div id="scopeNameDisplay" class="scope-badge">جاري التحقق من النطاق...</div>
         </div>
     </div>
     <div style="display: flex; gap: 12px;">
@@ -235,8 +239,8 @@
         <button class="btn btn-excel" onclick="exportToExcel()">
             <i class="fas fa-file-excel"></i> تصدير (Excel)
         </button>
-        <button class="btn" style="background: var(--navy); color: white;" onclick="loadEmployeeData()">
-            <i class="fas fa-sync-alt"></i> تحديث
+        <button class="btn" style="background: var(--navy); color: white;" onclick="init()">
+            <i class="fas fa-sync-alt"></i> تحديث البيانات
         </button>
     </div>
 
@@ -249,12 +253,12 @@
                     <th>الجنسية</th>
                     <th>الجوال</th>
                     <th>انتهاء الهوية</th>
-                    <th>الحالة</th>
+                    <th>تأمين</th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="employeeTable">
-                <tr><td colspan="7">جاري سحب البيانات...</td></tr>
+                <tr><td colspan="7">جاري سحب البيانات من السيرفر...</td></tr>
             </tbody>
         </table>
     </div>
@@ -275,67 +279,75 @@
 <script>
     let rawData = [];
     const urlParams = new URLSearchParams(window.location.search);
-    const scopeId = urlParams.get('scope') || localStorage.getItem('activeScope');
+    const scopeId = urlParams.get('scope');
 
-    // 1. استرجاع وتثبيت اسم النطاق وربط زر السجلات
-    function setupScopeUI(scopeName) {
-        document.getElementById('scopeNameDisplay').innerText = scopeName || "نطاق رئيسي";
-        // تحديث رابط زر السجلات ليتضمن كود النطاق
-        const licenseBtn = document.getElementById('licenseBtn');
-        licenseBtn.href = `/manager/licenses?scope=${scopeId}`;
-    }
-
-    // 2. جلب البيانات من السيرفر
-    async function loadEmployeeData() {
+    // دالة التهيئة الرئيسية
+    async function init() {
         if(!scopeId) {
-            showToast("كود النطاق مفقود!", true);
+            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="7" class="error-msg">⚠️ خطأ: كود المنشأة (Scope ID) غير موجود في الرابط</td></tr>';
             return;
         }
+        await fetchScopeName();
+        await loadEmployeeData();
+    }
+
+    // 1. جلب اسم المنشأة من السيرفر (مثل: شركة التخزين المؤقت)
+    async function fetchScopeName() {
         try {
-            const response = await fetch(`/manager/api/get-employees/${scopeId}`);
-            const result = await response.json();
-            
-            if(response.ok) {
-                rawData = result.employees;
-                setupScopeUI(result.scopeName);
-                renderTable(rawData);
-                calculateStats(rawData);
-            } else {
-                showToast("خطأ في الاتصال بالسيرفر", true);
-            }
+            const res = await fetch(`/manager/api/get-scope-info/${scopeId}`);
+            const data = await res.json();
+            document.getElementById('scopeNameDisplay').innerText = data.name || "منشأة غير معروفة";
+            document.getElementById('licenseBtn').href = `/manager/licenses?scope=${scopeId}`;
         } catch (err) {
-            showToast("حدث خطأ غير متوقع", true);
+            document.getElementById('scopeNameDisplay').innerText = "خطأ في جلب الاسم";
         }
     }
 
-    // 3. عرض الجدول
+    // 2. جلب بيانات الموظفين
+    async function loadEmployeeData() {
+        try {
+            const res = await fetch(`/manager/api/get-employees/${scopeId}`);
+            if(!res.ok) throw new Error("Server Error");
+            
+            rawData = await res.json();
+            renderTable(rawData);
+            calculateStats(rawData);
+        } catch (err) {
+            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="7" class="error-msg">❌ خطأ في الاتصال بالسيرفر.. تأكد من اتصالك بالإنترنت</td></tr>';
+            showToast("فشل الاتصال بالسيرفر", true);
+        }
+    }
+
+    // 3. بناء الجدول
     function renderTable(data) {
         const container = document.getElementById('employeeTable');
-        if(data.length === 0) {
-            container.innerHTML = '<tr><td colspan="7">لا توجد بيانات متاحة</td></tr>';
+        if(!data || data.length === 0) {
+            container.innerHTML = '<tr><td colspan="7">لا توجد سجلات موظفين مسجلة لهذا النطاق</td></tr>';
             return;
         }
 
         container.innerHTML = data.map(emp => {
-            const isExp = new Date(emp.idExpiry) < new Date();
+            const isExp = emp.idExpiry && new Date(emp.idExpiry) < new Date();
             return `
                 <tr>
                     <td>
                         <span class="emp-name">${emp.fullName}</span>
-                        <small>${emp.jobTitle || 'موظف'}</small>
+                        <small style="color:#777">${emp.jobTitle || '---'}</small>
                     </td>
-                    <td><code>${emp.idNumber}</code></td>
+                    <td><code style="background:#eee; padding:2px 5px; border-radius:4px;">${emp.idNumber}</code></td>
                     <td>${emp.nationality || '---'}</td>
-                    <td>${emp.phoneNumber}</td>
+                    <td>${emp.phoneNumber || '---'}</td>
                     <td>
-                        <b style="color: ${isExp ? 'red' : 'green'}">${formatDate(emp.idExpiry)}</b>
+                        <b style="color: ${isExp ? 'var(--danger)' : 'var(--success)'}">
+                            ${formatDate(emp.idExpiry)}
+                        </b>
                     </td>
                     <td>
-                        <i class="fas fa-shield-alt" style="color: ${emp.hasHealthInsurance ? '#2ed573' : '#ff4757'}"></i>
+                        <i class="fas fa-shield-heart" style="color: ${emp.hasHealthInsurance === 'موجود' || emp.hasHealthInsurance === true ? 'var(--success)' : '#ccc'}"></i>
                     </td>
                     <td>
-                        <button class="btn" style="background:var(--info); color:white; padding:8px;" onclick="openProfile('${emp._id}')">
-                            <i class="fas fa-eye"></i>
+                        <button class="btn" style="background:var(--navy); color:white; padding:8px 12px;" onclick="openProfile('${emp._id}')">
+                            <i class="fas fa-file-alt"></i> التفاصيل
                         </button>
                     </td>
                 </tr>
@@ -343,33 +355,33 @@
         }).join('');
     }
 
-    // 4. عرض مصفوفة البيانات (المودال)
+    // 4. عرض تفاصيل الموظف (Modal)
     function openProfile(id) {
         const emp = rawData.find(e => e._id === id);
         if(!emp) return;
 
         const sections = [
             { title: "البيانات الأساسية", icon: "user", class: "box-blue", items: {
-                "الاسم": emp.fullName,
+                "الاسم الكامل": emp.fullName,
                 "الجنسية": emp.nationality,
                 "رقم الهوية": emp.idNumber,
-                "انتهاء الهوية": formatDate(emp.idExpiry)
+                "تاريخ الانتهاء": formatDate(emp.idExpiry)
             }},
-            { title: "وثائق السفر", icon: "passport", class: "box-gold", items: {
-                "رقم الجواز": emp.passportNumber || 'غير متوفر',
+            { title: "وثائق السفر والعمل", icon: "passport", class: "box-gold", items: {
+                "رقم الجواز": emp.passportNumber || '---',
                 "انتهاء الجواز": formatDate(emp.passportExpiry),
                 "الفرع": emp.branch || 'الرئيسي'
             }},
             { title: "المركبة والتأمين", icon: "car", class: "box-green", items: {
-                "لوحة السيارة": emp.carPlate || 'بدون عهدة',
-                "رخصة القيادة": emp.hasDrivingLicense ? 'موجودة' : 'لا يوجد',
-                "تأمين طبي": emp.hasHealthInsurance ? 'موجود' : 'غير مغطى'
+                "رقم اللوحة": emp.carPlate || 'بدون عهدة',
+                "تأمين طبي": emp.hasHealthInsurance ? 'نشط' : 'غير متوفر',
+                "الحالة العائلية": emp.familyStatus || '---'
             }}
         ];
 
         document.getElementById('matrixContent').innerHTML = sections.map(sec => `
             <div class="matrix-box ${sec.class}">
-                <div style="font-weight:800; border-bottom:1px solid #ddd; margin-bottom:10px; padding-bottom:5px;">
+                <div style="font-weight:800; border-bottom:1px solid #ddd; margin-bottom:10px; padding-bottom:5px; color:var(--navy)">
                     <i class="fas fa-${sec.icon}"></i> ${sec.title}
                 </div>
                 ${Object.entries(sec.items).map(([label, val]) => `
@@ -384,25 +396,43 @@
         document.getElementById('empModal').style.display = 'block';
     }
 
-    // وظائف مساعدة
-    function formatDate(d) {
-        if(!d) return '---';
-        return new Date(d).toLocaleDateString('en-GB');
+    // دوال مساعدة
+    function formatDate(dateStr) {
+        if(!dateStr) return "---";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('ar-SA');
     }
 
     function calculateStats(data) {
         document.getElementById('count-total').innerText = data.length;
-        document.getElementById('count-cars').innerText = data.filter(e => e.carPlate).length;
-        document.getElementById('count-expired').innerText = data.filter(e => new Date(e.idExpiry) < new Date()).length;
-        document.getElementById('count-medical').innerText = data.filter(e => e.hasHealthInsurance).length;
+        document.getElementById('count-cars').innerText = data.filter(e => e.carPlate && e.carPlate !== 'بدون').length;
+        document.getElementById('count-expired').innerText = data.filter(e => e.idExpiry && new Date(e.idExpiry) < new Date()).length;
+        document.getElementById('count-medical').innerText = data.filter(e => e.hasHealthInsurance === true || e.hasHealthInsurance === 'موجود').length;
     }
 
     function handleSearch() {
         const term = document.getElementById('mainSearch').value.toLowerCase();
         const filtered = rawData.filter(e => 
-            e.fullName.toLowerCase().includes(term) || e.idNumber.includes(term)
+            e.fullName.toLowerCase().includes(term) || 
+            e.idNumber.includes(term) || 
+            (e.phoneNumber && e.phoneNumber.includes(term))
         );
         renderTable(filtered);
+    }
+
+    function exportToExcel() {
+        if(rawData.length === 0) return showToast("لا توجد بيانات للتصدير", true);
+        const ws = XLSX.utils.json_to_sheet(rawData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "الموظفين");
+        XLSX.writeFile(wb, `تقرير_موظفين_${scopeId}.xlsx`);
+    }
+
+    function copyRegLink() {
+        const link = `${window.location.origin}/employee/register?scope=${scopeId}`;
+        navigator.clipboard.writeText(link).then(() => {
+            showToast("تم نسخ رابط تسجيل الموظفين بنجاح ✅");
+        });
     }
 
     function showToast(msg, isError = false) {
@@ -413,16 +443,11 @@
         setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    function copyRegLink() {
-        const link = `${window.location.origin}/employee/register?scope=${scopeId}`;
-        navigator.clipboard.writeText(link);
-        showToast("تم نسخ الرابط بنجاح");
-    }
-
     function closeModal() { document.getElementById('empModal').style.display = 'none'; }
-    function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
+    function logout() { localStorage.clear(); window.location.href = '/'; }
 
-    window.onload = loadEmployeeData;
+    // بدء التشغيل
+    window.onload = init;
 </script>
 </body>
 </html>

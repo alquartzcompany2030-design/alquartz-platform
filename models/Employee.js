@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 /**
- * موديل الموظفين - مشروع أبو حمزة (2025)
- * تم تحديثه ليشمل كافة بيانات السيارة، التأمين، والوضع الاجتماعي
+ * موديل الموظفين - مشروع أبو حمزة المطور (2025)
+ * تم إضافة حقل الجنسية وإصلاح توافق البيانات
  */
 const EmployeeSchema = new mongoose.Schema({
     // ربط الموظف بالنطاق (المؤسسة/الشركة)
     scopeId: { 
         type: String, 
         required: true, 
-        index: true // تحسين سرعة البحث بنظام النطاقات
+        index: true 
     }, 
     
     // البيانات الشخصية الأساسية
@@ -22,22 +22,28 @@ const EmployeeSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // --- [ الحقل المفقود الذي تسبب في المشكلة ] ---
+    nationality: { 
+        type: String, 
+        default: "غير محدد",
+        trim: true 
+    },
     idNumber: { 
         type: String, 
-        unique: true, // منع تكرار نفس رقم الهوية في النظام
-        sparse: true  // للسماح بحقول فارغة مؤقتاً مع بقاء خاصية التميز
+        unique: true, 
+        sparse: true  
     },
-    idExpiry: { type: Date },
+    idExpiry: { type: String }, // تم التغيير لـ String ليتناسب مع مدخلات HTML Date بسهولة
     sponsorName: { type: String },
     
     // بيانات الجواز والتأمين الصحي
     passportNumber: { type: String },
-    passportExpiry: { type: Date },
+    passportExpiry: { type: String },
     hasHealthInsurance: { 
         type: Boolean, 
         default: false 
     },
-    insuranceExpiry: { type: Date },
+    insuranceExpiry: { type: String },
     healthStatus: { type: String },
     
     // البيانات المالية والوظيفية
@@ -45,8 +51,8 @@ const EmployeeSchema = new mongoose.Schema({
         type: Number, 
         default: 0 
     },
-    branch: { type: String }, // الفرع أو المدينة
-    address: { type: String }, // عنوان السكن
+    branch: { type: String }, 
+    address: { type: String }, 
     
     // بيانات المركبة والرخصة
     hasDrivingLicense: { 
@@ -57,17 +63,17 @@ const EmployeeSchema = new mongoose.Schema({
         type: Boolean, 
         default: false 
     },
-    carPlate: { type: String }, // رقم اللوحة
-    carType: { type: String },  // نوع السيارة (تويوتا، هيونداي...)
-    carRegistrationNumber: { type: String }, // رقم الاستمارة
+    carPlate: { type: String }, 
+    carType: { type: String },  
+    carRegistrationNumber: { type: String }, 
     
     // الوضع الاجتماعي والعائلي
     hasFamilyInKSA: { 
         type: Boolean, 
         default: false 
     },
-    familyStatus: { type: String }, // (أعزب، متزوج، عائل)
-    sponsorshipTransferDate: { type: Date }, // تاريخ نقل الكفالة
+    familyStatus: { type: String }, 
+    sponsorshipTransferDate: { type: String }, 
 
     // حالة الحساب في النظام
     status: { 
@@ -76,14 +82,12 @@ const EmployeeSchema = new mongoose.Schema({
         default: 'active' 
     },
 
-    // تاريخ إنشاء السجل
     createdAt: { 
         type: Date, 
         default: Date.now 
     }
 });
 
-// إضافة فهرس مركب إذا كنت ستبحث كثيراً بالاسم داخل نطاق محدد
 EmployeeSchema.index({ scopeId: 1, fullName: 1 });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);

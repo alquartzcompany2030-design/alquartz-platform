@@ -55,13 +55,15 @@
         .btn-whatsapp { background: #25D366; color: white; }
         .btn-info { background: var(--info); color: white; }
         .btn-edit { background: var(--warning); color: var(--navy); }
+        /* زر السجلات الجديد */
+        .btn-licenses { background: var(--white); color: var(--navy); border: 2px solid var(--gold); }
+        .btn-licenses:hover { background: var(--gold); }
 
         .table-card { background: var(--white); border-radius: 20px; box-shadow: var(--shadow-sm); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 0.9rem; }
         td { padding: 15px; text-align: center; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
 
-        /* نافذة التفاصيل - بطاقات ملونة */
         .details-grid, .edit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 10px; }
         .info-mini-card {
             background: #f8f9fa; padding: 12px; border-radius: 12px;
@@ -73,7 +75,6 @@
         .info-mini-card label { font-size: 0.75rem; color: #777; font-weight: bold; }
         .info-mini-card span { font-size: 0.95rem; color: var(--navy); font-weight: 800; }
 
-        /* تنسيق حقول الإدخال في التعديل */
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 0.8rem; font-weight: bold; color: var(--navy); }
         .form-group input, .form-group select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
@@ -97,6 +98,7 @@
         </div>
     </div>
     <div style="display: flex; gap: 10px;">
+        <button class="btn btn-licenses" onclick="goToLicenses()"><i class="fas fa-file-contract"></i> السجلات والرخص</button>
         <button class="btn btn-link" onclick="copyRegLink()"><i class="fas fa-user-plus"></i> رابط التسجيل</button>
         <button class="btn btn-danger" onclick="logout()"><i class="fas fa-power-off"></i> خروج</button>
     </div>
@@ -156,41 +158,19 @@
         <form id="editForm" class="modal-body">
             <input type="hidden" id="edit_id">
             <div class="edit-grid">
-                <div class="form-group">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="edit_fullName" required>
-                </div>
-                <div class="form-group">
-                    <label>رقم الجوال</label>
-                    <input type="text" id="edit_phoneNumber" required>
-                </div>
-                <div class="form-group">
-                    <label>تاريخ انتهاء الهوية</label>
-                    <input type="date" id="edit_idExpiry" required>
-                </div>
-                <div class="form-group">
-                    <label>تاريخ انتهاء الجواز</label>
-                    <input type="date" id="edit_passportExpiry">
-                </div>
-                <div class="form-group">
-                    <label>رقم اللوحة (العهدة)</label>
-                    <input type="text" id="edit_carPlate">
-                </div>
-                <div class="form-group">
-                    <label>التأمين الطبي</label>
+                <div class="form-group"><label>الاسم الكامل</label><input type="text" id="edit_fullName" required></div>
+                <div class="form-group"><label>رقم الجوال</label><input type="text" id="edit_phoneNumber" required></div>
+                <div class="form-group"><label>تاريخ انتهاء الهوية</label><input type="date" id="edit_idExpiry" required></div>
+                <div class="form-group"><label>تاريخ انتهاء الجواز</label><input type="date" id="edit_passportExpiry"></div>
+                <div class="form-group"><label>رقم اللوحة (العهدة)</label><input type="text" id="edit_carPlate"></div>
+                <div class="form-group"><label>التأمين الطبي</label>
                     <select id="edit_hasHealthInsurance">
                         <option value="true">✅ موجود</option>
                         <option value="false">❌ غير موجود</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>الجنسية</label>
-                    <input type="text" id="edit_nationality">
-                </div>
-                <div class="form-group">
-                    <label>المسمى الوظيفي</label>
-                    <input type="text" id="edit_jobTitle">
-                </div>
+                <div class="form-group"><label>الجنسية</label><input type="text" id="edit_nationality"></div>
+                <div class="form-group"><label>المسمى الوظيفي</label><input type="text" id="edit_jobTitle"></div>
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button type="submit" class="btn btn-info" style="flex:2; justify-content: center;"><i class="fas fa-save"></i> حفظ التغييرات</button>
@@ -206,6 +186,14 @@
     let rawData = [];
     const urlParams = new URLSearchParams(window.location.search);
     const scopeId = urlParams.get('scope');
+
+    function goToLicenses() {
+        if(scopeId) {
+            window.location.href = `/manager/licenses?scope=${scopeId}`;
+        } else {
+            alert("كود النطاق مفقود");
+        }
+    }
 
     async function init() {
         if(!scopeId) return alert("كود النطاق مفقود");
@@ -235,7 +223,6 @@
         tbody.innerHTML = data.map(emp => {
             const isExp = emp.idExpiry && new Date(emp.idExpiry) < new Date();
             const waLink = `https://wa.me/${emp.phoneNumber?.replace(/\D/g,'')}?text=تحية طيبة، نود تذكيرك بتحديث بياناتك لدى غولدن كلاود`;
-            
             return `
                 <tr>
                     <td><b>${emp.fullName}</b><br><small style="color:#888">${emp.jobTitle || 'موظف'}</small></td>
@@ -258,10 +245,8 @@
     function viewDetails(id) {
         const emp = rawData.find(e => e._id === id);
         if(!emp) return;
-
         document.getElementById('det_title').innerText = emp.fullName;
         document.getElementById('btn_edit_trigger').onclick = () => openEditModal(emp._id);
-        
         const body = document.getElementById('detailsBody');
         body.innerHTML = `
             <div class="details-grid">
@@ -281,7 +266,6 @@
     function openEditModal(id) {
         const emp = rawData.find(e => e._id === id);
         if(!emp) return;
-
         closeModal('detailsModal');
         document.getElementById('edit_id').value = emp._id;
         document.getElementById('edit_fullName').value = emp.fullName;
@@ -292,7 +276,6 @@
         document.getElementById('edit_hasHealthInsurance').value = emp.hasHealthInsurance.toString();
         document.getElementById('edit_nationality').value = emp.nationality || '';
         document.getElementById('edit_jobTitle').value = emp.jobTitle || '';
-
         document.getElementById('editModal').style.display = 'block';
     }
 
@@ -309,7 +292,6 @@
             nationality: document.getElementById('edit_nationality').value,
             jobTitle: document.getElementById('edit_jobTitle').value
         };
-
         try {
             const res = await fetch(`/manager/api/update-employee/${id}`, {
                 method: 'PUT',
@@ -349,6 +331,23 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function copyRegLink() { navigator.clipboard.writeText(`${window.location.origin}/employee/register?scope=${scopeId}`); showToast("تم نسخ رابط التسجيل"); }
     async function deleteEmployee(id) { if(!confirm("هل أنت متأكد؟")) return; const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' }); if(res.ok) loadEmployees(); }
+    
+    // إضافة دالة تصدير الإكسل المفقودة
+    function exportToExcel() {
+        const dataToExport = rawData.map(e => ({
+            "الاسم الكامل": e.fullName,
+            "رقم الهوية": e.idNumber,
+            "الجنسية": e.nationality,
+            "الجوال": e.phoneNumber,
+            "انتهاء الهوية": e.idExpiry ? new Date(e.idExpiry).toLocaleDateString() : 'غير مسجل',
+            "المسمى الوظيفي": e.jobTitle
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Employees");
+        XLSX.writeFile(wb, "GoldenCloud_Staff.xlsx");
+    }
+
     function logout() { window.location.href = '/'; }
     window.onload = init;
 </script>

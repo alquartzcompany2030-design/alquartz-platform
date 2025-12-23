@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Scope = require('../models/Scop'); // استدعاء موديل النطاقات (Scopes) كما هو مسجل عندك
+const Scop = require('../models/Scope'); // استدعاء موديل النطاقات (Scopes) كما هو مسجل عندك
 const Employee = require('../models/Employee');
 const License = require('../models/License');
 

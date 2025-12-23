@@ -20,9 +20,10 @@ router.get('/get-all-scopes', async (req, res) => {
 router.post('/add-scope', async (req, res) => {
     try {
         const { name, months } = req.body;
+        // توليد معرف فريد وتحديد تاريخ الانتهاء
         const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
         const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + parseInt(months));
+        expiryDate.setMonth(expiryDate.getMonth() + parseInt(months || 12)); // افتراضي سنة إذا لم يحدد
 
         const newScope = new Scope({ name, uniqueId, expiry: expiryDate, status: 'active' });
         await newScope.save();
@@ -32,33 +33,32 @@ router.post('/add-scope', async (req, res) => {
     }
 });
 
-// ✅ المسار الجديد: تفعيل النطاق فوراً (مخصص لزر "تفعيل النطاق فوراً" في اللوحة العليا)
+// ✅ المسار الجديد المخصص لزر "تفعيل النطاق فوراً" الظاهر في الصور
 router.post('/activate-scope-now', async (req, res) => {
     try {
         const { name, months } = req.body;
         
-        // التحقق من وجود البيانات
-        if (!name || !months) {
-            return res.status(400).json({ message: "البيانات غير مكتملة" });
-        }
+        // التحقق لضمان عدم حدوث خطأ 400 مجدداً
+        if (!name) return res.status(400).json({ message: "اسم الشركة مطلوب" });
 
         const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
         const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + parseInt(months));
+        // معالجة القيمة النصية من القائمة المنسدلة (اشتراك سنة كاملة = 12)
+        const monthsToAdd = (months === 'اشتراك سنة كاملة' || !months) ? 12 : parseInt(months);
+        expiryDate.setMonth(expiryDate.getMonth() + monthsToAdd);
 
         const newScope = new Scope({ 
             name, 
             uniqueId, 
             expiry: expiryDate, 
-            status: 'active',
-            createdAt: new Date() 
+            status: 'active' 
         });
 
         await newScope.save();
-        res.status(200).json({ message: "تم تفعيل النطاق فوراً", uniqueId: uniqueId });
+        res.status(200).json({ message: "تم التفعيل بنجاح", uniqueId });
     } catch (err) {
         console.error("خطأ التفعيل الفوري:", err);
-        res.status(500).json({ message: "فشل التفعيل الفوري" });
+        res.status(500).json({ message: "فشل تفعيل النطاق" });
     }
 });
 
@@ -93,7 +93,6 @@ router.post('/toggle-scope', async (req, res) => {
 
 // --- [ 2. مسارات المدراء Managers ] ---
 
-// ✅ حل مشكلة الـ 404: جلب كافة المدراء
 router.get('/get-all-managers', async (req, res) => {
     try {
         const managers = await Manager.find().sort({ createdAt: -1 });
@@ -103,7 +102,6 @@ router.get('/get-all-managers', async (req, res) => {
     }
 });
 
-// إضافة مدير جديد
 router.post('/add-manager', async (req, res) => {
     try {
         const { name, email, password, scopeId } = req.body;
@@ -115,12 +113,11 @@ router.post('/add-manager', async (req, res) => {
     }
 });
 
-// ✅ إضافة: تحديث بيانات المدير (الاسم، الإيميل، الباسورد)
 router.put('/update-manager/:id', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         const updateData = { name, email };
-        if (password) updateData.password = password; // تحديث الباسورد فقط إذا أُرسل
+        if (password) updateData.password = password;
 
         await Manager.findByIdAndUpdate(req.params.id, updateData);
         res.sendStatus(200);
@@ -131,11 +128,9 @@ router.put('/update-manager/:id', async (req, res) => {
 
 // --- [ 3. نظام الحماية والحذف ] ---
 
-// الحذف الآمن بكلمة مرور السوبر أدمن
 router.delete('/verify-and-delete', async (req, res) => {
     const { id, type, password } = req.body;
     
-    // كلمة مرورك يا أبو حمزة
     if (password !== 'hDB3xqff@') {
         return res.status(403).json({ message: "كلمة مرور السوبر أدمن خاطئة!" });
     }

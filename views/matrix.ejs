@@ -23,7 +23,7 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
@@ -43,20 +43,19 @@
         .org-title { margin: 0; color: var(--navy); font-size: 1.1rem; font-weight: 700; text-align: center; }
         .org-id { color: #999; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; }
 
-        /* صندوق العمالة المطور */
         .worker-section {
             background: #fcfcfc; border: 1px solid #eee; border-radius: 12px;
-            padding: 10px; margin-bottom: 15px;
+            padding: 12px; margin-bottom: 15px;
         }
-        .worker-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+        .worker-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
         .worker-row:first-child { border-bottom: 1px dashed #ddd; margin-bottom: 5px; }
         
         .main-stat { flex: 1; text-align: center; }
         .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid #eee; }
         
-        .w-label { font-size: 0.7rem; color: var(--gray); display: block; }
-        .w-count { font-weight: bold; font-size: 1.1rem; }
-        .sub-count { font-size: 0.85rem; color: #555; }
+        .w-label { font-size: 0.75rem; color: var(--gray); display: block; }
+        .w-count { font-weight: bold; font-size: 1.2rem; }
+        .sub-count { font-size: 0.9rem; color: #555; }
 
         .count-saudi { color: var(--saudi); }
         .count-expat { color: var(--expat); }
@@ -85,59 +84,103 @@
         </a>
     </div>
 
-    <div class="grid-container">
-        <% if (typeof orgs !== 'undefined' && orgs.length > 0) { %>
-            <% orgs.forEach(org => { %>
-                <div class="org-card" onclick="goToDashboard('<%= org.uniqueId %>')">
-                    
-                    <% if(org.expiredLicenses > 0) { %> 
-                        <div class="alert-pulse" title="يوجد رخص منتهية"></div> 
-                    <% } %>
+    <div class="grid-container" id="matrixGrid">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--navy);"></i>
+            <p>جاري تحميل المصفوفة...</p>
+        </div>
+    </div>
 
-                    <h3 class="org-title"><%= org.name %></h3>
-                    <span class="org-id">ID: <%= org.uniqueId %></span>
+    <script>
+        // 1. تعريف وظيفة الانتقال مع حفظ النطاق في الذاكرة
+        function goToDashboard(scopeId) {
+            if (!scopeId) return;
+            // حفظ النطاق لضمان العودة إليه في حال تعطل الرابط
+            localStorage.setItem('last_active_scope', scopeId);
+            window.location.href = `/manager/dashboard?scope=${scopeId}`;
+        }
+
+        // 2. دالة جلب البيانات مع معالجة الانقطاع
+        async function loadMatrix() {
+            const grid = document.getElementById('matrixGrid');
+            try {
+                // استدعاء البيانات من السيرفر (تأكد من المسار الصحيح في مشروعك)
+                const response = await fetch('/api/admin/get-all-orgs'); 
+                if (!response.ok) throw new Error("Server Down");
+                
+                const orgs = await response.json();
+                renderOrgs(orgs);
+
+            } catch (error) {
+                console.error("Matrix Load Error:", error);
+                // إظهار تنبيه في حال فشل الاتصال بقاعدة البيانات
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff; border-radius: 15px; border: 2px dashed var(--red);">
+                        <i class="fas fa-plug-circle-xmark fa-3x" style="color: var(--red); margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--navy);">عذراً، تعذر الاتصال بالسيرفر حالياً</h3>
+                        <p>يرجى التحقق من اتصال الإنترنت أو محاولة تحديث الصفحة.</p>
+                        <button onclick="location.reload()" style="padding: 10px 25px; background: var(--navy); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-sync"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // 3. دالة رسم البطاقات
+        function renderOrgs(orgs) {
+            const grid = document.getElementById('matrixGrid');
+            if (!orgs || orgs.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 80px;"><h3>لا توجد منشآت نشطة</h3></div>`;
+                return;
+            }
+
+            grid.innerHTML = orgs.map(org => `
+                <div class="org-card" onclick="goToDashboard('${org.uniqueId}')">
+                    ${org.expiredLicenses > 0 ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
+                    
+                    <h3 class="org-title">${org.name}</h3>
+                    <span class="org-id">ID: ${org.uniqueId}</span>
 
                     <div class="worker-section">
                         <div class="worker-row">
                             <div class="main-stat">
                                 <span class="w-label">سعودي</span>
-                                <span class="w-count count-saudi"><%= org.saudiWorkers || 0 %></span>
+                                <span class="w-count count-saudi">${org.saudiWorkers || 0}</span>
                             </div>
                             <div class="sub-stats">
-                                <div><span class="w-label">♂</span><span class="sub-count"><%= org.saudiMale || 0 %></span></div>
-                                <div><span class="w-label">♀</span><span class="sub-count"><%= org.saudiFemale || 0 %></span></div>
+                                <div><span class="w-label">♂</span><span class="sub-count">${org.saudiMale || 0}</span></div>
+                                <div><span class="w-label">♀</span><span class="sub-count">${org.saudiFemale || 0}</span></div>
                             </div>
                         </div>
                         <div class="worker-row">
                             <div class="main-stat">
                                 <span class="w-label">مقيم</span>
-                                <span class="w-count count-expat"><%= org.expatWorkers || 0 %></span>
+                                <span class="w-count count-expat">${org.expatWorkers || 0}</span>
                             </div>
                             <div class="sub-stats">
-                                <div><span class="w-label">♂</span><span class="sub-count"><%= org.expatMale || 0 %></span></div>
-                                <div><span class="w-label">♀</span><span class="sub-count"><%= org.expatFemale || 0 %></span></div>
+                                <div><span class="w-label">♂</span><span class="sub-count">${org.expatMale || 0}</span></div>
+                                <div><span class="w-label">♀</span><span class="sub-count">${org.expatFemale || 0}</span></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="footer-info <%= (org.expiredLicenses > 0) ? 'text-danger' : '' %>">
+                    <div class="footer-info ${org.expiredLicenses > 0 ? 'text-danger' : ''}">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <span>رخص منتهية: <%= org.expiredLicenses || 0 %></span>
+                        <span>رخص منتهية: ${org.expiredLicenses || 0}</span>
                     </div>
                 </div>
-            <% }) %>
-        <% } else { %>
-            <div style="grid-column: 1 / -1; text-align: center; padding: 80px; background: white; border-radius: 20px;">
-                <i class="fas fa-building" style="font-size: 4rem; color: #eee; margin-bottom: 20px;"></i>
-                <h3 style="color: var(--navy);">لا توجد منشآت نشطة</h3>
-            </div>
-        <% } %>
-    </div>
-
-    <script>
-        function goToDashboard(scopeId) {
-            window.location.href = `/manager/dashboard?scope=${scopeId}`;
+            `).join('');
         }
+
+        // 4. معالجة حدث العودة للخلف (Back Button)
+        window.onpageshow = function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                loadMatrix();
+            }
+        };
+
+        window.onload = loadMatrix;
     </script>
 </body>
 </html>

@@ -4,24 +4,26 @@ const Scope = require('../models/Scope');
 const Employee = require('../models/Employee');
 
 // 1. عرض صفحة المصفوفة
-// سيصبح الرابط: /admin/matrix
+// سيفتح عند الرابط: your-site.com/admin/matrix
 router.get('/matrix', async (req, res) => {
     try {
         res.render('matrix'); 
     } catch (err) {
+        console.error("Matrix Render Error:", err);
         res.status(500).send("خطأ في تحميل الصفحة");
     }
 });
 
-// 2. نقطة الاتصال جلب البيانات (API)
-// تم تعديل المسار ليتوافق مع طلب المتصفح في الصورة (404)
-// بما أن app.js يستخدم /admin، فهذا المسار سيصبح: /admin/get-all-orgs
+// 2. نقطة جلب البيانات (API)
+// تم تعديل هذا السطر ليطابق الـ fetch في الواجهة تماماً
+// سيفتح عند الرابط: your-site.com/admin/get-all-orgs
 router.get('/get-all-orgs', async (req, res) => {
     try {
         const scopes = await Scope.find(); 
         const today = new Date();
         
         const processedOrgs = await Promise.all(scopes.map(async (s) => {
+            // استعلامات متوازية لضمان السرعة
             const [saudiMale, saudiFemale, expatMale, expatFemale, expiredImmigrations] = await Promise.all([
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
@@ -35,13 +37,19 @@ router.get('/get-all-orgs', async (req, res) => {
                 uniqueId: s.uniqueId,
                 saudiWorkers: saudiMale + saudiFemale,
                 expatWorkers: expatMale + expatFemale,
-                saudiMale, saudiFemale, expatMale, expatFemale,
+                saudiMale,
+                saudiFemale,
+                expatMale,
+                expatFemale,
                 expiredLicenses: expiredImmigrations || 0
             };
         }));
+
         res.json(processedOrgs);
+
     } catch (err) {
-        res.status(500).json({ error: "خطأ في جلب البيانات" });
+        console.error("Database Fetch Error:", err);
+        res.status(500).json({ error: "فشل جلب البيانات من القاعدة" });
     }
 });
 

@@ -81,7 +81,7 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <i class="fas fa-chart-line fa-2x"></i>
-        <h2 style="margin:0">لوحة تحكم: <span id="mgrName" style="color:white">...</span></h2>
+        <h2 style="margin:0">لوحة تحكم: <span id="mgrName" style="color:white; font-weight: bold;">جاري التحميل...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
         <button class="main-btn" style="background:#6c5ce7; color:white;" onclick="goToLicenses()">
@@ -163,8 +163,7 @@
         <h3 style="margin:0; color:var(--navy); display:flex; align-items:center; gap:10px;">
             <i class="fas fa-user-tie color-gold"></i> الملف الرقمي الكامل للموظف
         </h3>
-        <div id="modalDetails" class="detail-grid">
-            </div>
+        <div id="modalDetails" class="detail-grid"></div>
         <div style="margin-top:25px; display:flex; gap:10px;">
             <button class="main-btn" style="background:var(--navy); color:white; flex:1; justify-content:center" onclick="closeModal()">إغلاق</button>
         </div>
@@ -177,23 +176,30 @@
     let allEmployees = [];
     let currentScopeId = "";
 
-    // تحميل البيانات من السيرفر
     async function loadData() {
         const urlParams = new URLSearchParams(window.location.search);
         currentScopeId = urlParams.get('scope') || localStorage.getItem('scopeId');
         if (!currentScopeId) { window.location.href = '/manager/login'; return; }
+        localStorage.setItem('scopeId', currentScopeId);
         
         try {
-            const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
-            if (res.ok) {
-                allEmployees = await res.json();
+            // 1. جلب اسم النطاق (الشركة) وتحديثه في الهيدر
+            const resScope = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
+            if (resScope.ok) {
+                const scopeData = await resScope.json();
+                document.getElementById('mgrName').innerText = scopeData.name || "نطاق غير معروف";
+            }
+
+            // 2. جلب بيانات الموظفين
+            const resEmp = await fetch(`/manager/api/get-employees/${currentScopeId}`);
+            if (resEmp.ok) {
+                allEmployees = await resEmp.json();
                 filterData();
                 updateStats();
             }
         } catch (e) { showToast("خطأ في الاتصال بالسيرفر", true); }
     }
 
-    // تحديث الإحصائيات في البطاقات العلوية
     function updateStats() {
         document.getElementById('totalCount').innerText = allEmployees.length;
         document.getElementById('expiredCount').innerText = allEmployees.filter(e => calculateDays(e.idExpiry) < 0).length;
@@ -214,18 +220,16 @@
         return { class: 'valid', text: new Date(date).toLocaleDateString('ar-SA') };
     }
 
-    // عرض الجدول
     function renderTable(data) {
         const body = document.getElementById('empTableBody');
         if(data.length === 0) {
-            body.innerHTML = '<tr><td colspan="7">لا توجد سجلات مطابقة للبحث</td></tr>';
+            body.innerHTML = '<tr><td colspan="7">لا توجد سجلات مطابقة</td></tr>';
             return;
         }
 
         body.innerHTML = data.map(emp => {
             const idStatus = getExpiryStatus(emp.idExpiry);
             const isSaudi = emp.idNumber && emp.idNumber.startsWith('1');
-            
             return `
                 <tr>
                     <td style="text-align:right">
@@ -252,86 +256,43 @@
                     </td>
                     <td>
                         <div style="display:flex; gap:5px; justify-content:center">
-                            <button class="btn-circle" style="background:var(--navy)" title="عرض التفاصيل" onclick="viewDetails('${emp._id}')"><i class="fas fa-eye"></i></button>
-                            <button class="btn-circle" style="background:var(--danger)" title="حذف" onclick="deleteEmp('${emp._id}')"><i class="fas fa-trash"></i></button>
+                            <button class="btn-circle" style="background:var(--navy)" onclick="viewDetails('${emp._id}')"><i class="fas fa-eye"></i></button>
+                            <button class="btn-circle" style="background:var(--danger)" onclick="deleteEmp('${emp._id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
         }).join('');
     }
 
-    // تفاصيل النافذة المنبثقة (Modal) - الآن تجلب كل شيء
     function viewDetails(id) {
         const emp = allEmployees.find(e => e._id === id);
         if(!emp) return;
-        
         const details = [
             { label: "الاسم الكامل", val: emp.fullName },
-            { label: "الجنسية", val: emp.nationality },
             { label: "رقم الهوية", val: emp.idNumber },
+            { label: "الجنسية", val: emp.nationality },
+            { label: "الفرع", val: emp.branch },
+            { label: "الجوال", val: emp.phoneNumber },
             { label: "انتهاء الهوية", val: emp.idExpiry },
-            { label: "رقم الجوال", val: emp.phoneNumber },
-            { label: "الفرع / المدينة", val: emp.branch },
-            { label: "العنوان الحالي", val: emp.address },
             { label: "رقم الجواز", val: emp.passportNumber },
             { label: "انتهاء الجواز", val: emp.passportExpiry },
-            { label: "التأمين الصحي", val: emp.hasHealthInsurance ? "موجود" : "غير موجود" },
-            { label: "رخصة قيادة", val: emp.hasDrivingLicense ? "نعم" : "لا" },
-            { label: "نوع السيارة", val: emp.carType },
-            { label: "لوحة السيارة", val: emp.carPlate },
-            { label: "تفويض قيادة", val: emp.hasCarAuthorization ? "نعم" : "لا" },
-            { label: "الوضع الاجتماعي", val: emp.familyStatus },
-            { label: "العائلة بالمملكة", val: emp.hasFamilyInKSA ? "نعم" : "لا" },
-            { label: "نقل الكفالة", val: emp.sponsorshipTransferDate || "---" }
+            { label: "السيارة", val: emp.carPlate },
+            { label: "التأمين", val: emp.hasHealthInsurance ? "موجود" : "غير موجود" },
+            { label: "الوضع العائلي", val: emp.familyStatus }
         ];
-
         document.getElementById('modalDetails').innerHTML = details.map(d => `
             <div class="detail-item">
                 <span class="detail-label">${d.label}</span>
                 <span class="detail-value">${d.val || '---'}</span>
-            </div>
-        `).join('');
-        
+            </div>`).join('');
         document.getElementById('viewModal').style.display = 'block';
-    }
-
-    // وظيفة التصدير لإكسيل (Excel)
-    function exportToExcel() {
-        if (allEmployees.length === 0) return showToast("لا توجد بيانات لتصديرها", true);
-
-        const preparedData = allEmployees.map(emp => ({
-            "الاسم الكامل": emp.fullName,
-            "الجنسية": emp.nationality,
-            "رقم الهوية/الإقامة": emp.idNumber,
-            "انتهاء الهوية": emp.idExpiry,
-            "الجوال": emp.phoneNumber,
-            "الفرع": emp.branch,
-            "العنوان": emp.address,
-            "رقم الجواز": emp.passportNumber,
-            "تأمين صحي": emp.hasHealthInsurance ? "نعم" : "لا",
-            "نوع السيارة": emp.carType,
-            "لوحة السيارة": emp.carPlate,
-            "تفويض سيارة": emp.hasCarAuthorization ? "نعم" : "لا",
-            "الوضع الاجتماعي": emp.familyStatus,
-            "نقل الكفالة": emp.sponsorshipTransferDate
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(preparedData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "الموظفين");
-        XLSX.writeFile(wb, `تقرير_موظفين_${new Date().toLocaleDateString()}.xlsx`);
-        showToast("تم إنشاء ملف الإكسيل بنجاح");
     }
 
     function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const filter = document.getElementById('statusFilter').value;
-        
         const filtered = allEmployees.filter(emp => {
-            const matchSearch = emp.fullName.toLowerCase().includes(term) || 
-                                emp.idNumber.includes(term) || 
-                                (emp.branch && emp.branch.toLowerCase().includes(term));
-            
+            const matchSearch = emp.fullName.toLowerCase().includes(term) || emp.idNumber.includes(term);
             if (filter === 'expired') return matchSearch && calculateDays(emp.idExpiry) < 0;
             if (filter === 'saudi') return matchSearch && emp.idNumber.startsWith('1');
             if (filter === 'hasCar') return matchSearch && emp.carPlate;
@@ -341,14 +302,17 @@
     }
 
     async function deleteEmp(id) {
-        if(!confirm("سيتم حذف كافة بيانات الموظف، هل أنت متأكد؟")) return;
-        try {
-            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
-            if(res.ok) {
-                showToast("تم الحذف بنجاح");
-                loadData();
-            }
-        } catch (e) { showToast("فشل الحذف", true); }
+        if(!confirm("هل أنت متأكد من الحذف؟")) return;
+        const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
+        if(res.ok) { showToast("تم الحذف بنجاح"); loadData(); }
+    }
+
+    function exportToExcel() {
+        const data = allEmployees.map(e => ({ "الاسم": e.fullName, "الهوية": e.idNumber, "الجوال": e.phoneNumber, "الفرع": e.branch }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "الموظفين");
+        XLSX.writeFile(wb, `تقرير_${new Date().toLocaleDateString()}.xlsx`);
     }
 
     function showToast(msg, isError = false) {

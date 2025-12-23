@@ -15,7 +15,6 @@
         
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; color: #2d3436; overflow-x: hidden; }
         
-        /* الهيدر المطور */
         header {
             background: var(--navy); color: var(--gold); padding: 15px 25px;
             display: flex; justify-content: space-between; align-items: center;
@@ -24,7 +23,6 @@
         
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* البطاقات الإحصائية */
         .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card {
             background: white; padding: 20px; border-radius: 15px; text-align: center;
@@ -34,7 +32,6 @@
         .stat-val { font-size: 2.2rem; font-weight: 700; display: block; color: var(--navy); margin-bottom: 5px; }
         .stat-label { font-size: 1rem; color: #636e72; font-weight: 500; }
 
-        /* شريط الأدوات */
         .toolbar {
             background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;
             display: flex; gap: 15px; align-items: center; box-shadow: var(--shadow); flex-wrap: wrap;
@@ -47,7 +44,6 @@
         .search-box input:focus { border-color: var(--navy); }
         .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #b2bec3; }
 
-        /* الجدول */
         .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
         .scroll-area { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1100px; }
@@ -56,7 +52,6 @@
         tbody tr:hover { background-color: #fcfcfc; }
         td { padding: 15px; text-align: center; vertical-align: middle; font-size: 0.9rem; }
 
-        /* حالات التاريخ */
         .expired { color: var(--danger); font-weight: bold; background: #fff5f5; padding: 2px 5px; border-radius: 4px; }
         .near-expiry { color: var(--warning); font-weight: bold; background: #fffbe6; padding: 2px 5px; border-radius: 4px; }
         .valid { color: var(--success); }
@@ -68,19 +63,16 @@
         
         .car-info-box { font-size: 0.75rem; color: #856404; background: #fff9db; padding: 6px; border-radius: 8px; margin-top: 5px; border: 1px solid #ffeeba; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
-        /* الأزرار */
         .btn-circle { width: 35px; height: 35px; border-radius: 8px; border: none; cursor: pointer; color: white; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
         .main-btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .main-btn:active { transform: scale(0.95); }
 
-        /* المودال */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
         .modal-content { background:white; width:95%; max-width:550px; margin:50px auto; padding:30px; border-radius:25px; position: relative; animation: slideDown 0.3s ease-out; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* إشعار النجاح الصغير */
         #toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: var(--gold); padding: 15px 25px; border-radius: 10px; display: none; z-index: 4000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: slideDown 0.3s; }
     </style>
 </head>
@@ -178,6 +170,7 @@
 
     async function loadData() {
         const urlParams = new URLSearchParams(window.location.search);
+        // التعديل هنا: نأخذ الـ uniqueId من الرابط
         currentScopeId = urlParams.get('scope') || localStorage.getItem('scopeId');
 
         if (!currentScopeId || currentScopeId === "null") { 
@@ -191,24 +184,56 @@
         if (cachedName) document.getElementById('mgrName').innerText = cachedName;
 
         try {
-            // جلب بيانات النطاق
+            // جلب بيانات النطاق باستخدام الـ uniqueId
             const scopeRes = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
             if(scopeRes.ok) {
                 const scopeData = await scopeRes.json();
                 document.getElementById('mgrName').innerText = scopeData.name || "نطاق غير معروف";
                 localStorage.setItem('name_' + currentScopeId, scopeData.name);
+            } else {
+                document.getElementById('mgrName').innerText = "اسم النطاق غير موجود";
             }
 
             // جلب بيانات الموظفين
             const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
-            allEmployees = await res.json();
-            filterData();
-            updateStats();
+            if (res.ok) {
+                allEmployees = await res.json();
+                filterData();
+                updateStats();
+            } else {
+                document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">لا توجد بيانات موظفين حالياً</td></tr>';
+            }
         } catch (e) { 
-            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">تعذر الاتصال بالسيرفر، تأكد من تسجيل الدخول</td></tr>';
+            document.getElementById('mgrName').innerText = "خطأ في الاتصال";
+            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">تأكد من حالة السيرفر في Render</td></tr>';
         }
     }
 
+    // إصلاح رابط النسخ ليستخدم الـ uniqueId
+    function copyLink(e) {
+        // نستخدم currentScopeId مباشرة (مثل SC-F4DEAA)
+        const link = `${window.location.origin}/employee/register?scope=${currentScopeId}`;
+        
+        navigator.clipboard.writeText(link).then(() => {
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ!';
+            btn.style.background = "#2ed573";
+            showToast("تم نسخ رابط التسجيل");
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = "var(--gold)";
+            }, 2000);
+        }).catch(() => {
+            alert("الرابط هو: " + link);
+        });
+    }
+
+    function goToLicenses() { 
+        window.location.href = `/manager/licenses?scope=${currentScopeId}`; 
+    }
+
+    // دوال المساعدة
     function calculateDays(date) { 
         if(!date) return 0; 
         const diff = new Date(date) - new Date();
@@ -230,7 +255,7 @@
         document.getElementById('resultCount').innerText = `عدد النتائج: ${data.length}`;
 
         if(!data.length) { 
-            body.innerHTML = '<tr><td colspan="7" style="padding:50px; color:var(--gray)">لا توجد سجلات مطابقة لهذا البحث</td></tr>'; 
+            body.innerHTML = '<tr><td colspan="7" style="padding:50px; color:var(--gray)">لا توجد سجلات مطابقة</td></tr>'; 
             return; 
         }
         
@@ -275,7 +300,7 @@
         const term = document.getElementById('searchInput').value.toLowerCase();
         const filter = document.getElementById('statusFilter').value;
         const filtered = allEmployees.filter(emp => {
-            const matchSearch = emp.fullName?.toLowerCase().includes(term) || emp.idNumber?.includes(term) || emp.nationality?.toLowerCase().includes(term);
+            const matchSearch = (emp.fullName || "").toLowerCase().includes(term) || (emp.idNumber || "").includes(term);
             const matchType = filter === 'all' || (filter === 'السعودية' ? emp.nationality === 'السعودية' : emp.nationality !== 'السعودية');
             return matchSearch && matchType;
         });
@@ -313,19 +338,19 @@
                 body: JSON.stringify(data)
             });
             if(res.ok) { 
-                showToast("تم تحديث البيانات بنجاح");
+                showToast("تم تحديث البيانات");
                 closeModal(); 
                 loadData(); 
             }
-        } catch (e) { showToast("خطأ في الاتصال بالخادم", true); }
+        } catch (e) { showToast("خطأ في التعديل", true); }
     }
 
     async function deleteEmp(id, name) {
-        if(!confirm(`هل أنت متأكد نهائياً من حذف الموظف: ${name}؟`)) return;
+        if(!confirm(`حذف الموظف: ${name}؟`)) return;
         try {
             const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
             if(res.ok) { 
-                showToast("تم حذف السجل");
+                showToast("تم الحذف");
                 loadData(); 
             }
         } catch (e) { showToast("فشل الحذف", true); }
@@ -337,25 +362,6 @@
         localStorage.clear(); 
         window.location.href = '/manager/login'; 
     }
-    
-    function goToLicenses() { 
-        window.location.href = '/manager/licenses?scope=' + currentScopeId; 
-    }
-    
-    function copyLink(e) {
-        const link = window.location.origin + '/employee/register/' + currentScopeId;
-        navigator.clipboard.writeText(link).then(() => {
-            const btn = e.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ!';
-            btn.style.background = "#2ed573";
-            showToast("تم نسخ رابط التسجيل");
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = "var(--gold)";
-            }, 2000);
-        });
-    }
 
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');
@@ -365,7 +371,6 @@
         setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // التشغيل عند اكتمال تحميل الصفحة لضمان استقرار العناصر
     window.onload = loadData;
 </script>
 </body>

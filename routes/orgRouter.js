@@ -2,34 +2,27 @@ const express = require('express');
 const router = express.Router();
 const Scope = require('../models/Scope'); 
 const Employee = require('../models/Employee');
+const License = require('../models/License'); // أضفت موديل الرخص لحسابها بدقة
 
 // 1. عرض صفحة المصفوفة
-// سيفتح عند الرابط: your-site.com/admin/matrix
-router.get('/matrix', async (req, res) => {
-    try {
-        res.render('matrix'); 
-    } catch (err) {
-        console.error("Matrix Render Error:", err);
-        res.status(500).send("خطأ في تحميل الصفحة");
-    }
+router.get('/matrix', (req, res) => {
+    res.render('matrix'); 
 });
 
-// 2. نقطة جلب البيانات (API)
-// تم تعديل هذا السطر ليطابق الـ fetch في الواجهة تماماً
-// سيفتح عند الرابط: your-site.com/admin/get-all-orgs
+// 2. نقطة جلب البيانات (API) - لاحظ المسار المختصر هنا
 router.get('/get-all-orgs', async (req, res) => {
     try {
         const scopes = await Scope.find(); 
         const today = new Date();
         
         const processedOrgs = await Promise.all(scopes.map(async (s) => {
-            // استعلامات متوازية لضمان السرعة
-            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredImmigrations] = await Promise.all([
+            // حساب الإحصائيات من قاعدة البيانات مباشرة
+            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredLics] = await Promise.all([
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
                 Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, idExpiry: { $lt: today } })
+                License.countDocuments({ scopeId: s.uniqueId, expiryDate: { $lt: today } }) // حساب الرخص المنتهية
             ]);
 
             return {
@@ -37,19 +30,16 @@ router.get('/get-all-orgs', async (req, res) => {
                 uniqueId: s.uniqueId,
                 saudiWorkers: saudiMale + saudiFemale,
                 expatWorkers: expatMale + expatFemale,
-                saudiMale,
-                saudiFemale,
-                expatMale,
-                expatFemale,
-                expiredLicenses: expiredImmigrations || 0
+                saudiMale, saudiFemale,
+                expatMale, expatFemale,
+                expiredLicenses: expiredLics || 0
             };
         }));
 
         res.json(processedOrgs);
-
     } catch (err) {
-        console.error("Database Fetch Error:", err);
-        res.status(500).json({ error: "فشل جلب البيانات من القاعدة" });
+        console.error("Database Error:", err);
+        res.status(500).json({ error: "فشل جلب البيانات" });
     }
 });
 

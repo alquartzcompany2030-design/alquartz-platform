@@ -27,7 +27,6 @@
             gap: 20px;
         }
 
-        /* تحسين البطاقة مع الألوان الهادئة */
         .org-card {
             background: white; border-radius: 15px; padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
@@ -36,9 +35,8 @@
             overflow: hidden;
         }
 
-        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.98); }
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.97); }
         
-        /* وميض التنبيه */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
@@ -46,10 +44,10 @@
         }
 
         .org-title { margin: 0; color: var(--navy); font-size: 1.15rem; font-weight: 700; text-align: center; position: relative; }
-        .org-id { color: #666; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; font-family: monospace; }
+        .org-id { color: #555; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; font-family: monospace; font-weight: bold; }
 
         .worker-section {
-            background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;
             padding: 12px; margin-bottom: 15px; backdrop-filter: blur(5px);
         }
         .worker-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
@@ -58,18 +56,20 @@
         .main-stat { flex: 1; text-align: center; }
         .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid rgba(0,0,0,0.1); }
         
-        .w-label { font-size: 0.75rem; color: #444; display: block; }
-        .w-count { font-weight: bold; font-size: 1.25rem; }
-        .sub-count { font-size: 0.9rem; color: #333; font-weight: 600; }
+        .w-label { font-size: 0.75rem; color: #444; display: block; font-weight: bold; }
+        .w-count { font-weight: 800; font-size: 1.4rem; }
+        .sub-count { font-size: 0.95rem; color: #222; font-weight: 700; }
 
         .count-saudi { color: var(--saudi); }
         .count-expat { color: var(--expat); }
 
         .footer-info { 
             font-size: 0.85rem; display: flex; align-items: center; justify-content: center; 
-            gap: 8px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: auto;
+            gap: 8px; padding: 8px; border-radius: 10px; margin-top: auto;
+            transition: 0.3s;
         }
-        .text-danger { color: var(--red) !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 4px; }
+        .text-danger { color: #fff !important; background: var(--red) !important; font-weight: bold; }
+        .text-safe { color: var(--navy); background: rgba(26, 188, 156, 0.1); }
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
@@ -106,9 +106,9 @@
     </div>
 
     <script>
-        // مصفوفة الألوان الهادئة (Pastel Colors)
+        // مصفوفة الألوان الهادئة (Pastel Colors) المختارة بعناية
         const pastelColors = [
-            '#e8f4f8', '#f9f1f1', '#f0f4ef', '#f4eef7', '#fdf7e2', '#eafaf1', '#fdf2f0'
+            '#E3F2FD', '#F1F8E9', '#FFFDE7', '#F3E5F5', '#EFEBE9', '#E0F2F1', '#FFF3E0', '#FCE4EC'
         ];
 
         function goToDashboard(scopeId) {
@@ -119,31 +119,37 @@
         async function loadMatrix() {
             const grid = document.getElementById('matrixGrid');
             try {
-                // تعديل المسار ليتوافق مع السيرفر الرئيسي
+                // التعديل الهام: المسار الصحيح للسيرفر
                 const response = await fetch('/admin/get-all-orgs'); 
                 if (!response.ok) throw new Error("Connection Error");
                 const orgs = await response.json();
                 renderCards(orgs);
             } catch (error) {
                 console.error("Matrix Error:", error);
-                grid.innerHTML = `<div class="error-container">... (كود الخطأ السابق) ...</div>`;
+                grid.innerHTML = `
+                    <div class="error-container">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="color:var(--red)"></i>
+                        <h3 style="margin-top:15px">فشل الاتصال بقاعدة البيانات</h3>
+                        <p>يرجى التأكد من تشغيل السيرفر وتحديث الصفحة</p>
+                        <button onclick="loadMatrix()" style="padding:10px 20px; cursor:pointer">إعادة المحاولة</button>
+                    </div>`;
             }
         }
 
         function renderCards(orgs) {
             const grid = document.getElementById('matrixGrid');
             if (!orgs || orgs.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;">لا توجد منشآت</div>`;
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding:50px; background:#white; border-radius:15px;">لا توجد منشآت مسجلة حالياً</div>`;
                 return;
             }
 
             grid.innerHTML = orgs.map((org, index) => {
-                // اختيار لون هادئ بناءً على الترتيب
                 const bgColor = pastelColors[index % pastelColors.length];
+                const hasExpired = org.expiredLicenses > 0;
                 
                 return `
                 <div class="org-card" style="background-color: ${bgColor};" onclick="goToDashboard('${org.uniqueId}')">
-                    ${org.expiredLicenses > 0 ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
+                    ${hasExpired ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
                     
                     <h3 class="org-title">${org.name}</h3>
                     <span class="org-id">ID: ${org.uniqueId}</span>
@@ -171,8 +177,8 @@
                         </div>
                     </div>
 
-                    <div class="footer-info ${org.expiredLicenses > 0 ? 'text-danger' : ''}">
-                        <i class="fas ${org.expiredLicenses > 0 ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
+                    <div class="footer-info ${hasExpired ? 'text-danger' : 'text-safe'}">
+                        <i class="fas ${hasExpired ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
                         <span>رخص منتهية: ${org.expiredLicenses || 0}</span>
                     </div>
                 </div>

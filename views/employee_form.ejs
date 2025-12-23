@@ -28,7 +28,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #success-container { display: none; text-align: center; padding: 20px; }
         .success-icon { font-size: 60px; color: var(--success); }
-        /* ستايل مخصص للتنبيه الذكي */
         .smart-badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; margin-top: 5px; display: none; }
         .badge-citizen { background: #e3f2fd; color: #1976d2; }
         .badge-resident { background: #f1f8e9; color: #388e3c; }
@@ -77,13 +76,13 @@
                 <input type="text" id="idNumberInput" name="idNumber" required maxlength="10" oninput="handleIdLogic(this.value)">
                 <div id="idBadge" class="smart-badge"></div>
                 
-                <div id="nationalityBox" style="display: none;">
+                <div id="nationalityBox" style="margin-top: 15px;">
                     <label>الجنسية</label>
                     <span class="en-label">Nationality</span>
                     <input type="text" id="nationalityInput" name="nationality" placeholder="مثلاً: مصر، الهند، باكستان...">
                 </div>
 
-                <label>تاريخ انتهاء الهوية</label>
+                <label style="margin-top:15px;">تاريخ انتهاء الهوية</label>
                 <span class="en-label">ID Expiry Date</span>
                 <input type="date" name="idExpiry" required>
 
@@ -110,20 +109,15 @@
                         <input type="date" name="passportExpiry">
                     </div>
                 </div>
-
                 <label>هل لديك تأمين صحي؟</label>
-                <span class="en-label">Do you have health insurance?</span>
                 <select name="hasHealthInsurance" onchange="toggleBox(this, 'insuranceBox')">
                     <option value="false">لا يوجد | No</option>
                     <option value="true">نعم | Yes</option>
                 </select>
-
                 <div id="insuranceBox" class="hidden-fields">
                     <label>تاريخ انتهاء التأمين</label>
-                    <span class="en-label">Insurance Expiry Date</span>
                     <input type="date" name="insuranceExpiry">
                 </div>
-
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(3)">السابق | Back</button>
                     <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات القيادة والسيارة | Driving & Car info')">التالي | Next ⮕</button>
@@ -132,37 +126,13 @@
 
             <div class="step" data-step="4">
                 <div class="grid-2">
-                    <div>
-                        <label>رخصة قيادة؟</label>
-                        <span class="en-label">Driving License?</span>
-                        <select name="hasDrivingLicense">
-                            <option value="false">لا | No</option>
-                            <option value="true">نعم | Yes</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>تفويض سيارة؟</label>
-                        <span class="en-label">Car Authorization?</span>
-                        <select name="hasCarAuthorization">
-                            <option value="false">لا | No</option>
-                            <option value="true">نعم | Yes</option>
-                        </select>
-                    </div>
+                    <div><label>رخصة قيادة؟</label><select name="hasDrivingLicense"><option value="false">لا</option><option value="true">نعم</option></select></div>
+                    <div><label>تفويض سيارة؟</label><select name="hasCarAuthorization"><option value="false">لا</option><option value="true">نعم</option></select></div>
                 </div>
-
                 <div class="grid-2">
-                    <div>
-                        <label>نوع السيارة</label>
-                        <span class="en-label">Car Type</span>
-                        <input type="text" name="carType">
-                    </div>
-                    <div>
-                        <label>رقم اللوحة</label>
-                        <span class="en-label">Car Plate Number</span>
-                        <input type="text" name="carPlate">
-                    </div>
+                    <div><label>نوع السيارة</label><input type="text" name="carType"></div>
+                    <div><label>رقم اللوحة</label><input type="text" name="carPlate"></div>
                 </div>
-
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(4)">السابق | Back</button>
                     <button type="button" class="btn-next" onclick="nextStep(4, 'الوضع الاجتماعي | Social Status')">التالي | Next ⮕</button>
@@ -171,20 +141,11 @@
 
             <div class="step" data-step="5">
                 <label>هل العائلة في السعودية؟</label>
-                <span class="en-label">Is the family in KSA?</span>
-                <select name="hasFamilyInKSA">
-                    <option value="false">لا | No</option>
-                    <option value="true">نعم | Yes</option>
-                </select>
-
+                <select name="hasFamilyInKSA"><option value="false">لا</option><option value="true">نعم</option></select>
                 <label>الوضع الاجتماعي (أعزب/متأهل)</label>
-                <span class="en-label">Social Status (Single/Married)</span>
                 <input type="text" name="familyStatus">
-
                 <label>تاريخ نقل الكفالة (إن وجد)</label>
-                <span class="en-label">Sponsorship Transfer Date</span>
                 <input type="date" name="sponsorshipTransferDate">
-
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(5)">السابق | Back</button>
                     <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ | Save Data 🚀</button>
@@ -197,7 +158,6 @@
         <div class="success-icon">✓</div>
         <h2>شكراً لك! | Thank You!</h2>
         <p>تم تحديث بياناتك بنجاح في منصة أبو حمزة</p>
-        <p>Your data has been updated successfully</p>
         <button class="btn-next" onclick="window.location.reload()">تسجيل جديد | New Entry</button>
     </div>
 </div>
@@ -206,46 +166,42 @@
     let current = 1;
     const total = 5;
 
-    // --- وظيفة الذكاء الصناعي لرقم الهوية ---
+    // --- وظيفة ذكية للجنسية ورقم الهوية ---
     function handleIdLogic(val) {
         const badge = document.getElementById('idBadge');
         const natBox = document.getElementById('nationalityBox');
         const natInput = document.getElementById('nationalityInput');
         const idLabel = document.getElementById('idLabel');
-        const idEnLabel = document.getElementById('idEnLabel');
 
         if (val.startsWith('1')) {
-            // مواطن سعودي
-            badge.innerText = "✓ تم التعرف: مواطن سعودي | Citizen";
+            badge.innerText = "✓ مواطن سعودي | Saudi Citizen";
             badge.className = "smart-badge badge-citizen";
             badge.style.display = "inline-block";
-            natBox.style.display = "none";
-            natInput.value = "السعودية"; // تعبئة تلقائية
+            natBox.style.display = "none"; // إخفاء الحقل للسعوديين
+            natInput.value = "السعودية"; 
             idLabel.innerText = "رقم الهوية الوطنية";
-            idEnLabel.innerText = "National ID Number";
         } 
         else if (val.startsWith('2')) {
-            // مقيم
-            badge.innerText = "✓ تم التعرف: مقيم | Resident";
+            badge.innerText = "✓ مقيم | Resident";
             badge.className = "smart-badge badge-resident";
             badge.style.display = "inline-block";
-            natBox.style.display = "block";
-            if(natInput.value === "السعودية") natInput.value = ""; // مسح القيمة إذا كانت سعودي
+            natBox.style.display = "block"; // إظهار الحقل للمقيمين
+            if(natInput.value === "السعودية") natInput.value = ""; 
             idLabel.innerText = "رقم الإقامة";
-            idEnLabel.innerText = "Iqama Number";
         } 
         else {
             badge.style.display = "none";
-            natBox.style.display = "none";
+            natBox.style.display = "block";
         }
     }
 
+    // التنقل بين الخطوات
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
         const inputs = currentStepEl.querySelectorAll('input[required]');
         for (let input of inputs) {
             if (!input.value) { 
-                input.style.borderColor = 'red'; 
+                input.style.borderColor = 'var(--red)'; 
                 input.focus();
                 return; 
             }
@@ -273,17 +229,19 @@
         document.getElementById(boxId).style.display = select.value === 'true' ? 'block' : 'none';
     }
 
+    // إرسال البيانات
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.innerText = "جاري الحفظ... | Saving...";
+        btn.disabled = true; btn.innerText = "جاري الحفظ...";
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        // معالجة الـ Booleans
-        const booleans = ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'];
-        booleans.forEach(key => { data[key] = (data[key] === 'true'); });
+        // تحويل القيم المنطقية
+        ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'].forEach(key => {
+            data[key] = (data[key] === 'true');
+        });
 
         try {
             const res = await fetch('/employee/api/register', {
@@ -291,20 +249,17 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
-            const result = await res.json();
-            
             if(res.ok) {
                 document.getElementById('form-content').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } else {
-                alert(result.message || 'خطأ في الحفظ | Save Error');
+                const err = await res.json();
+                alert(err.message || 'خطأ في الحفظ');
                 btn.disabled = false;
-                btn.innerText = "اعتماد وحفظ | Save Data 🚀";
             }
         } catch (err) {
-            alert('فشل الاتصال | Connection Failed');
+            alert('فشل الاتصال بالسيرفر');
             btn.disabled = false;
-            btn.innerText = "اعتماد وحفظ | Save Data 🚀";
         }
     };
 </script>

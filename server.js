@@ -23,31 +23,23 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- [ مسار تسجيل الدخول الموحد المطور ] ---
+// --- [ مسار تسجيل الدخول الموحد ] ---
 app.post('/api/unified-login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const cleanEmail = email ? email.toLowerCase().trim() : "";
 
-        console.log(`🚀 محاولة دخول: ${cleanEmail}`);
-
         // أ. فحص السوبر أدمن (أبو حمزة)
         if (cleanEmail === "admin@golden.com" && password === "Golden2025@") {
-            console.log("👑 تم دخول السوبر أدمن بنجاح");
-            return res.json({ 
-                success: true, 
-                role: 'super-admin', 
-                name: 'أبو حمزة' 
-            });
+            return res.json({ success: true, role: 'super-admin', name: 'أبو حمزة' });
         }
 
-        // ب. فحص المدراء (المتزن، مدار سهيل، التخزين الذهبي)
+        // ب. فحص المدراء
         const manager = await Manager.findOne({ 
             email: { $regex: new RegExp("^" + cleanEmail + "$", "i") } 
         });
 
         if (manager && manager.password === password) {
-            console.log(`✅ تم دخول المدير: ${manager.name}`);
             return res.json({ 
                 success: true, 
                 role: 'manager', 
@@ -56,35 +48,27 @@ app.post('/api/unified-login', async (req, res) => {
             });
         }
 
-        // ج. في حال فشل البيانات
-        return res.status(401).json({ 
-            success: false, 
-            message: "بيانات الدخول غير صحيحة" 
-        });
-
+        return res.status(401).json({ success: false, message: "بيانات الدخول غير صحيحة" });
     } catch (err) {
-        console.error("❌ Login Error:", err);
-        return res.status(500).json({ 
-            success: false, 
-            message: "خطأ فني في السيرفر" 
-        });
+        return res.status(500).json({ success: false, message: "خطأ فني في السيرفر" });
     }
 });
 
 // --- [ تفعيل المسارات - Routing Management ] ---
 
-// مسارات الإدارة العليا (أبو حمزة)
+// ملاحظة هامة يا أبو حمزة: الترتيب هنا يمنع الـ 404
+// 1. مسارات الموظفين (يجب أن تكون واضحة ومباشرة)
+app.use('/employee', employeeRoutes); 
+
+// 2. مسارات الإدارة العليا (أدمن)
 app.use('/admin', adminRoutes);
 app.use('/admin', orgRouter); 
 
-// مسارات لوحة تحكم المنشآت (الموظفين)
-app.use('/manager', managerRoutes);
-
-// مسارات السجلات والرخص (المسار الموحد)
+// 3. مسارات السجلات والرخص (قبل مسار المانجر العام لتجنب التضارب)
 app.use('/manager/licenses', licenseRouter);
 
-// مسارات الموظفين ورابط التسجيل الخارجي
-app.use('/employee', employeeRoutes);
+// 4. مسارات لوحة تحكم المنشآت
+app.use('/manager', managerRoutes);
 
 // الصفحة الرئيسية
 app.get('/', (req, res) => res.render('index'));
@@ -100,6 +84,5 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log('-------------------------------------------');
     console.log(`✅ Golden Cloud Server Live on port ${PORT}`);
-    console.log(`📅 Date: ${new Date().toLocaleString('ar-SA')}`);
     console.log('-------------------------------------------');
 });

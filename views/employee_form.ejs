@@ -3,38 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحديث بيانات الموظفين | منصة أبو حمزة</title>
+    <title>تحديث بيانات الموظفين | Employee Data Update</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --navy: #0b1d2a; --gold: #ffcc00; --bg: #f4f7f6; --success: #27ae60; --gray: #666; --red: #e74c3c; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        
-        .form-card { 
-            background: white; width: 100%; max-width: 650px; padding: 35px; 
-            border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            border-top: 10px solid var(--navy); 
-        }
-
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; direction: rtl; }
+        .form-card { background: white; width: 100%; max-width: 650px; padding: 35px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 10px solid var(--navy); }
         .progress-container { width: 100%; background: #eee; height: 8px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         .progress-bar { width: 20%; height: 100%; background: var(--gold); transition: 0.5s ease; }
-        
         .motivation { color: var(--success); font-weight: bold; margin-bottom: 20px; text-align: center; min-height: 24px; font-size: 18px; }
-        
         .step { display: none; }
         .step.active { display: block; animation: fadeIn 0.5s forwards; }
-        
-        label { display: block; margin-bottom: 8px; font-size: 0.95rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
+        label { display: block; margin-bottom: 2px; font-size: 0.95rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
+        .en-label { display: block; font-size: 0.75rem; color: var(--gray); margin-bottom: 8px; font-weight: normal; }
         input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; box-sizing: border-box; transition: 0.3s; }
         input:focus, select:focus { border-color: var(--gold); outline: none; background: #fffcf0; }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .btn-group { display: flex; gap: 10px; margin-top: 30px; }
         button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; }
         .btn-next { background: var(--navy); color: var(--gold); }
         .btn-prev { background: #eee; color: #333; }
-        
         .hidden-fields { display: none; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ddd; margin-top: 10px; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #success-container { display: none; text-align: center; padding: 20px; }
         .success-icon { font-size: 60px; color: var(--success); }
@@ -45,47 +35,54 @@
 <div class="form-card">
     <div id="form-content">
         <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
-        <div id="motivationMsg" class="motivation">مرحباً بك! لنحدث بياناتك..</div>
+        <div id="motivationMsg" class="motivation">مرحباً بك! لنحدث بياناتك.. | Welcome!</div>
 
         <form id="smartForm">
-            <input type="hidden" name="scopeId" value="<%= scopeId %>">
+            <input type="hidden" name="scopeId" value="<%= scope.uniqueId %>">
 
             <div class="step active" data-step="1">
                 <label>الاسم الكامل</label>
+                <span class="en-label">Full Name (As in Passport)</span>
                 <input type="text" name="fullName" required>
                 
                 <div class="grid-2">
                     <div>
                         <label>رقم الجوال</label>
+                        <span class="en-label">Mobile Number</span>
                         <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" required>
                     </div>
                     <div>
                         <label>مدينة العمل / الفرع</label>
-                        <input type="text" name="branch" placeholder="مثال: الرياض">
+                        <span class="en-label">Work City / Branch</span>
+                        <input type="text" name="branch">
                     </div>
                 </div>
 
                 <label>عنوان السكن بالتفصيل</label>
+                <span class="en-label">Detailed Home Address</span>
                 <input type="text" name="address">
 
                 <div class="btn-group">
-                    <button type="button" class="btn-next" onclick="nextStep(1, 'ممتاز، ننتقل لبيانات الهوية')">التالي ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(1, 'ممتاز، ننتقل لبيانات الهوية | Moving to ID info')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="2">
                 <label>رقم الهوية / الإقامة</label>
+                <span class="en-label">Iqama / ID Number</span>
                 <input type="text" name="idNumber" required maxlength="10">
                 
                 <label>تاريخ انتهاء الهوية</label>
+                <span class="en-label">ID Expiry Date</span>
                 <input type="date" name="idExpiry" required>
 
                 <label>اسم المنشأة الكفيلة الحالية</label>
-                <input type="text" name="sponsorName" placeholder="كما تظهر في أبشر/مقيم">
+                <span class="en-label">Current Sponsor Name</span>
+                <input type="text" name="sponsorName">
 
                 <div class="btn-group">
-                    <button type="button" class="btn-prev" onclick="prevStep(2)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(2, 'رائع، الآن بيانات الجواز والتأمين')">التالي ⮕</button>
+                    <button type="button" class="btn-prev" onclick="prevStep(2)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(2, 'بيانات الجواز والتأمين | Passport & Insurance')">التالي | Next ⮕</button>
                 </div>
             </div>
 
@@ -93,47 +90,51 @@
                 <div class="grid-2">
                     <div>
                         <label>رقم الجواز</label>
+                        <span class="en-label">Passport Number</span>
                         <input type="text" name="passportNumber">
                     </div>
                     <div>
                         <label>انتهاء الجواز</label>
+                        <span class="en-label">Passport Expiry</span>
                         <input type="date" name="passportExpiry">
                     </div>
                 </div>
 
                 <label>هل لديك تأمين صحي؟</label>
+                <span class="en-label">Do you have health insurance?</span>
                 <select name="hasHealthInsurance" onchange="toggleBox(this, 'insuranceBox')">
-                    <option value="false">لا يوجد</option>
-                    <option value="true">نعم، يوجد</option>
+                    <option value="false">لا يوجد | No</option>
+                    <option value="true">نعم | Yes</option>
                 </select>
 
                 <div id="insuranceBox" class="hidden-fields">
                     <label>تاريخ انتهاء التأمين</label>
+                    <span class="en-label">Insurance Expiry Date</span>
                     <input type="date" name="insuranceExpiry">
-                    <label>الحالة الصحية (إن وجد ملاحظات)</label>
-                    <input type="text" name="healthStatus" placeholder="مثال: سليم">
                 </div>
 
                 <div class="btn-group">
-                    <button type="button" class="btn-prev" onclick="prevStep(3)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3, 'ماذا عن قيادة السيارة؟')">التالي ⮕</button>
+                    <button type="button" class="btn-prev" onclick="prevStep(3)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات القيادة والسيارة | Driving & Car info')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="4">
                 <div class="grid-2">
                     <div>
-                        <label>هل لديك رخصة قيادة؟</label>
+                        <label>رخصة قيادة؟</label>
+                        <span class="en-label">Driving License?</span>
                         <select name="hasDrivingLicense">
-                            <option value="false">لا</option>
-                            <option value="true">نعم</option>
+                            <option value="false">لا | No</option>
+                            <option value="true">نعم | Yes</option>
                         </select>
                     </div>
                     <div>
-                        <label>هل لديك تفويض سيارة؟</label>
+                        <label>تفويض سيارة؟</label>
+                        <span class="en-label">Car Authorization?</span>
                         <select name="hasCarAuthorization">
-                            <option value="false">لا</option>
-                            <option value="true">نعم</option>
+                            <option value="false">لا | No</option>
+                            <option value="true">نعم | Yes</option>
                         </select>
                     </div>
                 </div>
@@ -141,36 +142,41 @@
                 <div class="grid-2">
                     <div>
                         <label>نوع السيارة</label>
+                        <span class="en-label">Car Type</span>
                         <input type="text" name="carType">
                     </div>
                     <div>
                         <label>رقم اللوحة</label>
+                        <span class="en-label">Car Plate Number</span>
                         <input type="text" name="carPlate">
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button type="button" class="btn-prev" onclick="prevStep(4)">السابق</button>
-                    <button type="button" class="btn-next" onclick="nextStep(4, 'الخطوة الأخيرة: الوضع الاجتماعي')">التالي ⮕</button>
+                    <button type="button" class="btn-prev" onclick="prevStep(4)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(4, 'الوضع الاجتماعي | Social Status')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="5">
-                <label>هل العائلة موجودة في السعودية؟</label>
+                <label>هل العائلة في السعودية؟</label>
+                <span class="en-label">Is the family in KSA?</span>
                 <select name="hasFamilyInKSA">
-                    <option value="false">لا</option>
-                    <option value="true">نعم</option>
+                    <option value="false">لا | No</option>
+                    <option value="true">نعم | Yes</option>
                 </select>
 
                 <label>الوضع الاجتماعي (أعزب/متأهل)</label>
-                <input type="text" name="familyStatus" placeholder="مثال: متزوج وعائل">
+                <span class="en-label">Social Status (Single/Married)</span>
+                <input type="text" name="familyStatus">
 
                 <label>تاريخ نقل الكفالة (إن وجد)</label>
+                <span class="en-label">Sponsorship Transfer Date</span>
                 <input type="date" name="sponsorshipTransferDate">
 
                 <div class="btn-group">
-                    <button type="button" class="btn-prev" onclick="prevStep(5)">السابق</button>
-                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ البيانات 🚀</button>
+                    <button type="button" class="btn-prev" onclick="prevStep(5)">السابق | Back</button>
+                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ | Save Data 🚀</button>
                 </div>
             </div>
         </form>
@@ -178,9 +184,10 @@
 
     <div id="success-container">
         <div class="success-icon">✓</div>
-        <h2>شكراً لك يا بطل!</h2>
-        <p>تم استلام وتحديث بياناتك في نظام أبو حمزة بنجاح.</p>
-        <button class="btn-next" onclick="window.location.reload()">تسجيل جديد</button>
+        <h2>شكراً لك! | Thank You!</h2>
+        <p>تم تحديث بياناتك بنجاح في منصة أبو حمزة</p>
+        <p>Your data has been updated successfully</p>
+        <button class="btn-next" onclick="window.location.reload()">تسجيل جديد | New Entry</button>
     </div>
 </div>
 
@@ -191,15 +198,10 @@
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
         const inputs = currentStepEl.querySelectorAll('input[required]');
-        
         for (let input of inputs) {
-            if (!input.value) {
-                input.style.borderColor = 'red';
-                return;
-            }
+            if (!input.value) { input.style.borderColor = 'red'; return; }
             input.style.borderColor = '#eee';
         }
-
         currentStepEl.classList.remove('active');
         document.querySelector(`[data-step="${step+1}"]`).classList.add('active');
         document.getElementById('motivationMsg').innerText = msg;
@@ -215,8 +217,7 @@
     }
 
     function updateProgress() {
-        const progress = (current / total) * 100;
-        document.getElementById('pBar').style.width = progress + '%';
+        document.getElementById('pBar').style.width = (current / total) * 100 + '%';
     }
 
     function toggleBox(select, boxId) {
@@ -226,13 +227,12 @@
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerText = "جاري الحفظ...";
+        btn.disabled = true; btn.innerText = "جاري الحفظ... | Saving...";
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        // تحويل القيم المنطقية لتناسب الـ Schema
+        // معالجة الـ Booleans
         const booleans = ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'];
         booleans.forEach(key => { data[key] = (data[key] === 'true'); });
 
@@ -246,11 +246,11 @@
                 document.getElementById('form-content').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } else {
-                alert('حدث خطأ في الحفظ، يرجى المحاولة لاحقاً');
+                alert('خطأ في الحفظ | Save Error');
                 btn.disabled = false;
             }
         } catch (err) {
-            alert('فشل الاتصال بالسيرفر');
+            alert('فشل الاتصال | Connection Failed');
             btn.disabled = false;
         }
     };

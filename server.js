@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const Manager = require('./models/Manager');
 
 // 1. استيراد الروترات
-const orgRouter = require('./routes/orgRouter');
+const orgRouter = require('./routes/orgRouter'); // راوتر المصفوفات والمنشآت
 const managerRoutes = require('./routes/managerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
@@ -56,18 +56,18 @@ app.post('/api/unified-login', async (req, res) => {
 
 // --- [ تفعيل المسارات - Routing Management ] ---
 
-// ملاحظة هامة يا أبو حمزة: الترتيب هنا يمنع الـ 404
-// 1. مسارات الموظفين (يجب أن تكون واضحة ومباشرة)
+// 1. مسارات الموظفين
 app.use('/employee', employeeRoutes); 
 
-// 2. مسارات الإدارة العليا (أدمن)
-app.use('/admin', adminRoutes);
+// 2. مسارات الإدارة العليا (تضمين orgRouter و adminRoutes)
+// ملاحظة: الترتيب هنا يسمح لـ orgRouter بمعالجة مسار /admin/matrix و /admin/get-all-orgs
 app.use('/admin', orgRouter); 
+app.use('/admin', adminRoutes);
 
-// 3. مسارات السجلات والرخص (قبل مسار المانجر العام لتجنب التضارب)
+// 3. مسارات السجلات والرخص
 app.use('/manager/licenses', licenseRouter);
 
-// 4. مسارات لوحة تحكم المنشآت
+// 4. مسارات لوحة تحكم المنشآت للمدراء
 app.use('/manager', managerRoutes);
 
 // الصفحة الرئيسية

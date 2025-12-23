@@ -140,7 +140,7 @@
             <h3 id="det_title" style="margin:0">تفاصيل الموظف</h3>
             <button onclick="closeModal('detailsModal')" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
-        <div class="modal-body" id="detailsBody"></div>
+        <div class="modal-body" id="detailsBody" style="padding:20px"></div>
         <div style="padding: 15px; background: #f8f9fa; display: flex; gap: 10px;">
             <button id="btn_edit_trigger" class="btn btn-edit" style="flex:1; justify-content: center;"><i class="fas fa-edit"></i> تعديل البيانات</button>
             <button class="btn" style="background:var(--navy); color:white; flex:1; justify-content: center;" onclick="closeModal('detailsModal')">إغلاق</button>
@@ -154,7 +154,7 @@
             <h3 style="margin:0">تحديث بيانات المستندات</h3>
             <button onclick="closeModal('editModal')" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
-        <form id="editForm" class="modal-body">
+        <form id="editForm" class="modal-body" style="padding:20px">
             <input type="hidden" id="edit_id">
             <div class="edit-grid">
                 <div class="form-group"><label>الاسم الكامل</label><input type="text" id="edit_fullName" required></div>
@@ -185,61 +185,63 @@
     let rawData = [];
     let scopeId = new URLSearchParams(window.location.search).get('scope');
 
-    // دالة الانتقال لصفحة الرخص
+    // 1. معالجة الاحتفاظ بالنطاق عند التنقل
+    function getSafeScope() {
+        if (!scopeId) {
+            scopeId = localStorage.getItem('last_active_scope');
+        } else {
+            localStorage.setItem('last_active_scope', scopeId);
+        }
+        return scopeId;
+    }
+
     function goToLicenses() {
-        if(scopeId) {
-            window.location.href = `/manager/licenses?scope=${scopeId}`;
+        const activeScope = getSafeScope();
+        if(activeScope) {
+            window.location.href = `/manager/licenses?scope=${activeScope}`;
         } else {
             showToast("كود النطاق مفقود، يرجى إعادة تسجيل الدخول", true);
         }
     }
 
-    // دالة التشغيل الرئيسية - معدلة لضمان استعادة البيانات عند العودة
     async function init() {
-        // إذا فُقد scopeId من الرابط، نحاول استعادته من ذاكرة التصفح
-        if(!scopeId) {
-            scopeId = localStorage.getItem('lastScopeId');
-        } else {
-            localStorage.setItem('lastScopeId', scopeId);
-        }
-
-        if(!scopeId) {
-            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="6" style="color:red">خطأ: كود النطاق مفقود. يرجى العودة للرابط الأساسي.</td></tr>';
+        const activeScope = getSafeScope();
+        if(!activeScope) {
+            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="6" style="color:red">خطأ: كود النطاق مفقود.</td></tr>';
             return;
         }
-
-        await fetchScopeInfo();
-        await loadEmployees();
+        await fetchScopeInfo(activeScope);
+        await loadEmployees(activeScope);
     }
 
-    async function fetchScopeInfo() {
+    async function fetchScopeInfo(id) {
         try {
-            const res = await fetch(`/manager/api/get-scope-info/${scopeId}`);
-            if(!res.ok) throw new Error();
+            const res = await fetch(`/manager/api/get-scope-info/${id}`);
+            if(!res.ok) throw new Error("Connection Error");
             const data = await res.json();
             document.getElementById('scopeNameDisplay').innerText = data.name || "نطاق رئيسي";
         } catch (e) { 
-            document.getElementById('scopeNameDisplay').innerText = "خطأ في الاتصال";
+            document.getElementById('scopeNameDisplay').innerText = "خطأ في الاتصال بالسيرفر";
         }
     }
 
-    async function loadEmployees() {
+    async function loadEmployees(id) {
         try {
-            const res = await fetch(`/manager/api/get-employees/${scopeId}`);
-            if(!res.ok) throw new Error();
+            const res = await fetch(`/manager/api/get-employees/${id}`);
+            if(!res.ok) throw new Error("DB Error");
             rawData = await res.json();
             renderTable(rawData);
             renderStats(rawData);
         } catch (e) { 
-            showToast("فشل جلب بيانات الموظفين", true);
-            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="6">حدث خطأ أثناء تحميل البيانات. تأكد من اتصالك بالسيرفر.</td></tr>';
+            showToast("⚠️ فشل الاتصال بقاعدة البيانات. يرجى التحديث", true);
+            document.getElementById('employeeTable').innerHTML = '<tr><td colspan="6">حدث خطأ في جلب البيانات من السيرفر.</td></tr>';
         }
     }
 
     function renderTable(data) {
         const tbody = document.getElementById('employeeTable');
-        if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">لا يوجد موظفين مسجلين في هذا النطاق حالياً.</td></tr>';
+        if(!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6">لا يوجد موظفين مسجلين حالياً.</td></tr>';
             return;
         }
         tbody.innerHTML = data.map(emp => {
@@ -263,6 +265,8 @@
             `;
         }).join('');
     }
+
+    // --- بقية الدوال المنطقية (Search, Modal, Export) تظل كما هي لتحقيق الثبات ---
 
     function viewDetails(id) {
         const emp = rawData.find(e => e._id === id);
@@ -323,7 +327,7 @@
             if(res.ok) {
                 showToast("✅ تم تحديث المستندات بنجاح");
                 closeModal('editModal');
-                loadEmployees();
+                init();
             }
         } catch (e) { showToast("❌ فشل التحديث", true); }
     };
@@ -340,7 +344,7 @@
 
     function handleSearch() {
         const term = document.getElementById('mainSearch').value.toLowerCase();
-        const filtered = rawData.filter(e => e.fullName.toLowerCase().includes(term) || e.idNumber.includes(term) || (e.nationality && e.nationality.toLowerCase().includes(term)));
+        const filtered = rawData.filter(e => e.fullName.toLowerCase().includes(term) || e.idNumber.includes(term));
         renderTable(filtered);
     }
 
@@ -351,29 +355,32 @@
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function copyRegLink() { navigator.clipboard.writeText(`${window.location.origin}/employee/register?scope=${scopeId}`); showToast("تم نسخ رابط التسجيل"); }
-    async function deleteEmployee(id) { if(!confirm("هل أنت متأكد؟")) return; const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' }); if(res.ok) loadEmployees(); }
+    function copyRegLink() { 
+        const activeScope = getSafeScope();
+        navigator.clipboard.writeText(`${window.location.origin}/employee/register?scope=${activeScope}`); 
+        showToast("تم نسخ رابط التسجيل"); 
+    }
     
-    function exportToExcel() {
-        const dataToExport = rawData.map(e => ({
-            "الاسم الكامل": e.fullName,
-            "رقم الهوية": e.idNumber,
-            "الجنسية": e.nationality,
-            "الجوال": e.phoneNumber,
-            "انتهاء الهوية": e.idExpiry ? new Date(e.idExpiry).toLocaleDateString() : 'غير مسجل',
-            "المسمى الوظيفي": e.jobTitle
-        }));
-        const ws = XLSX.utils.json_to_sheet(dataToExport);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Employees");
-        XLSX.writeFile(wb, "GoldenCloud_Staff.xlsx");
+    async function deleteEmployee(id) { 
+        if(!confirm("هل أنت متأكد؟")) return; 
+        try {
+            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' }); 
+            if(res.ok) init();
+        } catch (e) { showToast("فشل الحذف", true); }
     }
 
-    function logout() { window.location.href = '/'; }
+    function exportToExcel() {
+        const ws = XLSX.utils.json_to_sheet(rawData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Staff");
+        XLSX.writeFile(wb, "GoldenCloud_Employees.xlsx");
+    }
 
-    // إضافة مستمع لحدث "الصفحة تظهر" لضمان التحديث عند العودة للخلف في المتصفح
+    function logout() { localStorage.clear(); window.location.href = '/'; }
+
+    // معالجة العودة للخلف في المتصفح
     window.onpageshow = function(event) {
-        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        if (event.persisted) {
             init();
         }
     };

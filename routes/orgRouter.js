@@ -3,48 +3,51 @@ const router = express.Router();
 const Scope = require('../models/Scope'); 
 const Employee = require('../models/Employee');
 
+// 1. المسار الأساسي لعرض صفحة المصفوفة (Render)
 router.get('/matrix', async (req, res) => {
     try {
+        // نحن هنا نقوم فقط بعرض الصفحة، والبيانات سيتم جلبها عبر الـ JavaScript في الواجهة
+        res.render('matrix'); 
+    } catch (err) {
+        res.status(500).send("خطأ في تحميل الصفحة");
+    }
+});
+
+// 2. نقطة الاتصال الذكية (API) التي تغذي المصفوفة بالبيانات
+router.get('/api/admin/get-all-orgs', async (req, res) => {
+    try {
         const scopes = await Scope.find(); 
+        const today = new Date();
         
         const processedOrgs = await Promise.all(scopes.map(async (s) => {
-            // حساب العدادات بتفصيل الجنس والجنسية
-            // ملاحظة: نستخدم 'السعودية' كما تم ضبطها في نموذج التسجيل
-            
-            const saudiMale = await Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' });
-            const saudiFemale = await Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' });
-            
-            const expatMale = await Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' });
-            const expatFemale = await Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' });
-
-            // حساب التراخيص المنتهية (اختياري إذا كان لديك حقل expiry في السجلات)
-            // لنفترض أننا سنحسب الموظفين الذين انتهت إقامتهم
-            const today = new Date();
-            const expiredImmigrations = await Employee.countDocuments({ 
-                scopeId: s.uniqueId, 
-                idExpiry: { $lt: today } 
-            });
+            // تنفيذ الاستعلامات بشكل متوازي لزيادة السرعة
+            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredImmigrations] = await Promise.all([
+                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
+                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
+                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
+                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
+                Employee.countDocuments({ scopeId: s.uniqueId, idExpiry: { $lt: today } })
+            ]);
 
             return {
                 name: s.name,
                 uniqueId: s.uniqueId,
-                // الإجماليات للمصفوفة
                 saudiWorkers: saudiMale + saudiFemale,
                 expatWorkers: expatMale + expatFemale,
-                // التفاصيل التي طلبناها في واجهة المصفوفة المحدثة
-                saudiMale: saudiMale,
-                saudiFemale: saudiFemale,
-                expatMale: expatMale,
-                expatFemale: expatFemale,
-                expiredLicenses: expiredImmigrations || 0,
-                expiry: s.expiry 
+                saudiMale,
+                saudiFemale,
+                expatMale,
+                expatFemale,
+                expiredLicenses: expiredImmigrations || 0
             };
         }));
 
-        res.render('matrix', { orgs: processedOrgs });
+        // إرسال البيانات كـ JSON للواجهة الأمامية
+        res.json(processedOrgs);
+
     } catch (err) {
-        console.error("Matrix Error:", err);
-        res.status(500).send("خطأ في جلب بيانات المصفوفة المحدثة");
+        console.error("API Matrix Error:", err);
+        res.status(500).json({ error: "خطأ في جلب البيانات" });
     }
 });
 

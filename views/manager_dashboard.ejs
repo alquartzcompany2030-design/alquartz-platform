@@ -12,6 +12,7 @@
             --navy: #0b1d2a; --gold: #ffcc00; --white: #ffffff;
             --danger: #ff4757; --warning: #ffa502; --success: #2ed573;
             --gray: #7f8c8d; --bg: #f8f9fa; --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --soft-blue: #ebf2f7;
         }
         
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; color: #2d3436; overflow-x: hidden; }
@@ -66,12 +67,19 @@
         .whatsapp-btn { background: #25d366; color: white; }
         .main-btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.3s; }
 
+        /* تعديلات النافذة المنبثقة (البطاقات) */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; backdrop-filter: blur(5px); }
-        .modal-content { background:white; width:95%; max-width:700px; margin:30px auto; padding:30px; border-radius:25px; position: relative; max-height: 90vh; overflow-y: auto; border-top: 10px solid var(--gold); }
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .detail-item { background: #f9f9f9; padding: 12px; border-radius: 10px; border-right: 4px solid var(--navy); }
-        .detail-label { font-size: 0.8rem; color: var(--gray); display: block; margin-bottom: 3px; }
-        .detail-value { font-weight: bold; color: var(--navy); font-size: 1rem; }
+        .modal-content { background:#f4f7f9; width:95%; max-width:850px; margin:20px auto; padding:20px; border-radius:20px; position: relative; max-height: 95vh; overflow-y: auto; border-top: 8px solid var(--navy); }
+        
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 15px; }
+        
+        .emp-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e1e8ed; display: flex; flex-direction: column; gap: 8px; }
+        .card-header { display: flex; align-items: center; gap: 8px; color: var(--navy); font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 0.9rem; }
+        .card-header i { color: var(--gray); font-size: 1rem; }
+        
+        .field { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .field-label { color: var(--gray); }
+        .field-value { font-weight: 600; color: #2d3436; }
 
         #toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: var(--gold); padding: 15px 25px; border-radius: 10px; display: none; z-index: 4000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     </style>
@@ -111,7 +119,7 @@
         <div class="stat-card" style="border-top-color:var(--warning)">
             <i class="fas fa-car stat-icon"></i>
             <span class="stat-val" id="carAlertCount" style="color:var(--warning)">0</span>
-            <span class="stat-label">سيارات مسجلة</span>
+            <span class="stat-label">مفوضي السيارات</span>
         </div>
         <div class="stat-card" style="border-top-color:var(--success)">
             <i class="fas fa-heart-pulse stat-icon"></i>
@@ -146,7 +154,7 @@
                         <th>الجنسية والفرع</th>
                         <th>التواصل</th>
                         <th>انتهاء الهوية</th>
-                        <th>السيارة والتأمين</th>
+                        <th>التأمين والجواز</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
@@ -160,12 +168,18 @@
 
 <div id="viewModal" class="modal" onclick="if(event.target==this) closeModal()">
     <div class="modal-content">
-        <h3 style="margin:0; color:var(--navy); display:flex; align-items:center; gap:10px;">
-            <i class="fas fa-user-tie color-gold"></i> الملف الرقمي الكامل للموظف
-        </h3>
-        <div id="modalDetails" class="detail-grid"></div>
-        <div style="margin-top:25px; display:flex; gap:10px;">
-            <button class="main-btn" style="background:var(--navy); color:white; flex:1; justify-content:center" onclick="closeModal()">إغلاق</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+            <h3 style="margin:0; color:var(--navy); font-size: 1.2rem;">
+                <i class="fas fa-address-card"></i> الملف الرقمي الشامل للموظف
+            </h3>
+            <button onclick="closeModal()" style="border:none; background:none; cursor:pointer; font-size:1.5rem; color:var(--gray)">&times;</button>
+        </div>
+        
+        <div id="modalDetails" class="detail-grid">
+            </div>
+
+        <div style="margin-top:20px; text-align: left;">
+            <button class="main-btn" style="background:var(--navy); color:white; display:inline-flex; width:120px; justify-content:center" onclick="closeModal()">إغلاق</button>
         </div>
     </div>
 </div>
@@ -183,14 +197,12 @@
         localStorage.setItem('scopeId', currentScopeId);
         
         try {
-            // 1. جلب اسم النطاق (الشركة) وتحديثه في الهيدر
             const resScope = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
             if (resScope.ok) {
                 const scopeData = await resScope.json();
                 document.getElementById('mgrName').innerText = scopeData.name || "نطاق غير معروف";
             }
 
-            // 2. جلب بيانات الموظفين
             const resEmp = await fetch(`/manager/api/get-employees/${currentScopeId}`);
             if (resEmp.ok) {
                 allEmployees = await resEmp.json();
@@ -216,7 +228,7 @@
     function getExpiryStatus(date) {
         const days = calculateDays(date);
         if (days < 0) return { class: 'expired', text: 'منتهية' };
-        if (days <= 30) return { class: 'near-expiry', text: `باقي ${days} يوم` };
+        if (days <= 30) return { class: 'near-expiry', text: `ينتهي خلال ${days} يوم` };
         return { class: 'valid', text: new Date(date).toLocaleDateString('ar-SA') };
     }
 
@@ -250,8 +262,8 @@
                     <td><span class="${idStatus.class}">${idStatus.text}</span></td>
                     <td>
                         <div style="font-size:0.8rem">
-                            <i class="fas fa-car"></i> ${emp.carPlate || 'بدون'}<br>
-                            <i class="fas fa-heartbeat"></i> ${emp.hasHealthInsurance ? 'مؤمن' : 'لا يوجد'}
+                            <i class="fas fa-passport"></i> ${emp.passportNumber ? 'ساري' : '---'}<br>
+                            <i class="fas fa-shield-alt"></i> ${emp.hasHealthInsurance ? 'مؤمن' : 'بدون'}
                         </div>
                     </td>
                     <td>
@@ -264,27 +276,45 @@
         }).join('');
     }
 
+    // عرض التفاصيل في مصفوفة بطاقات جميلة
     function viewDetails(id) {
         const emp = allEmployees.find(e => e._id === id);
         if(!emp) return;
-        const details = [
-            { label: "الاسم الكامل", val: emp.fullName },
-            { label: "رقم الهوية", val: emp.idNumber },
-            { label: "الجنسية", val: emp.nationality },
-            { label: "الفرع", val: emp.branch },
-            { label: "الجوال", val: emp.phoneNumber },
-            { label: "انتهاء الهوية", val: emp.idExpiry },
-            { label: "رقم الجواز", val: emp.passportNumber },
-            { label: "انتهاء الجواز", val: emp.passportExpiry },
-            { label: "السيارة", val: emp.carPlate },
-            { label: "التأمين", val: emp.hasHealthInsurance ? "موجود" : "غير موجود" },
-            { label: "الوضع العائلي", val: emp.familyStatus }
-        ];
-        document.getElementById('modalDetails').innerHTML = details.map(d => `
-            <div class="detail-item">
-                <span class="detail-label">${d.label}</span>
-                <span class="detail-value">${d.val || '---'}</span>
-            </div>`).join('');
+
+        const html = `
+            <div class="emp-card">
+                <div class="card-header"><i class="fas fa-user"></i> البيانات الأساسية</div>
+                <div class="field"><span class="field-label">الاسم:</span><span class="field-value">${emp.fullName}</span></div>
+                <div class="field"><span class="field-label">الجنسية:</span><span class="field-value">${emp.nationality || 'غير محدد'}</span></div>
+                <div class="field"><span class="field-label">رقم الهوية:</span><span class="field-value">${emp.idNumber}</span></div>
+                <div class="field"><span class="field-label">انتهاء الهوية:</span><span class="field-value">${emp.idExpiry || '---'}</span></div>
+            </div>
+
+            <div class="emp-card">
+                <div class="card-header"><i class="fas fa-passport"></i> وثائق السفر</div>
+                <div class="field"><span class="field-label">رقم الجواز:</span><span class="field-value">${emp.passportNumber || '---'}</span></div>
+                <div class="field"><span class="field-label">انتهاء الجواز:</span><span class="field-value">${emp.passportExpiry || '---'}</span></div>
+                <div class="field"><span class="field-label">الفرع الحالي:</span><span class="field-value">${emp.branch || '---'}</span></div>
+            </div>
+
+            <div class="emp-card">
+                <div class="card-header"><i class="fas fa-car"></i> بيانات المركبة</div>
+                <div class="field"><span class="field-label">لوحة السيارة:</span><span class="field-value">${emp.carPlate || 'بدون'}</span></div>
+                <div class="field"><span class="field-label">نوع السيارة:</span><span class="field-value">${emp.carType || '---'}</span></div>
+                <div class="field"><span class="field-label">رخصة القيادة:</span><span class="field-value">${emp.hasDrivingLicense ? 'متوفرة' : 'لا يوجد'}</span></div>
+                <div class="field"><span class="field-label">تفويض قيادة:</span><span class="field-value">${emp.hasCarAuthorization ? 'نعم' : 'لا'}</span></div>
+            </div>
+
+            <div class="emp-card">
+                <div class="card-header"><i class="fas fa-heartbeat"></i> التأمين والعائلة</div>
+                <div class="field"><span class="field-label">تأمين طبي:</span><span class="field-value">${emp.hasHealthInsurance ? 'موجود' : 'غير موجود'}</span></div>
+                <div class="field"><span class="field-label">الوضع الاجتماعي:</span><span class="field-value">${emp.familyStatus || '---'}</span></div>
+                <div class="field"><span class="field-label">العائلة بالمملكة:</span><span class="field-value">${emp.hasFamilyInKSA ? 'نعم' : 'لا'}</span></div>
+                <div class="field"><span class="field-label">رقم الجوال:</span><span class="field-value">${emp.phoneNumber}</span></div>
+            </div>
+        `;
+
+        document.getElementById('modalDetails').innerHTML = html;
         document.getElementById('viewModal').style.display = 'block';
     }
 
@@ -292,7 +322,10 @@
         const term = document.getElementById('searchInput').value.toLowerCase();
         const filter = document.getElementById('statusFilter').value;
         const filtered = allEmployees.filter(emp => {
-            const matchSearch = emp.fullName.toLowerCase().includes(term) || emp.idNumber.includes(term);
+            const nameMatch = emp.fullName.toLowerCase().includes(term);
+            const idMatch = emp.idNumber.includes(term);
+            const matchSearch = nameMatch || idMatch;
+
             if (filter === 'expired') return matchSearch && calculateDays(emp.idExpiry) < 0;
             if (filter === 'saudi') return matchSearch && emp.idNumber.startsWith('1');
             if (filter === 'hasCar') return matchSearch && emp.carPlate;
@@ -302,7 +335,7 @@
     }
 
     async function deleteEmp(id) {
-        if(!confirm("هل أنت متأكد من الحذف؟")) return;
+        if(!confirm("هل أنت متأكد من حذف بيانات هذا الموظف نهائياً؟")) return;
         const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' });
         if(res.ok) { showToast("تم الحذف بنجاح"); loadData(); }
     }
@@ -312,7 +345,7 @@
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "الموظفين");
-        XLSX.writeFile(wb, `تقرير_${new Date().toLocaleDateString()}.xlsx`);
+        XLSX.writeFile(wb, `تقرير_الموظفين_${new Date().toLocaleDateString()}.xlsx`);
     }
 
     function showToast(msg, isError = false) {

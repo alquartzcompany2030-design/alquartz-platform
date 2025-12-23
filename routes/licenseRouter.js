@@ -1,53 +1,73 @@
 const express = require('express');
 const router = express.Router();
-const License = require('../models/License'); // تأكد من إنشاء الموديل كما في الرد السابق
+const mongoose = require('mongoose');
 
-// 1. عرض الصفحة الخاصة بالسجلات
-router.get('/page', (req, res) => {
-    res.render('manager_licenses');
+// تعريف الموديل
+const LicenseSchema = new mongoose.Schema({
+    scopeId: String,
+    orgName: String,
+    licenseType: String,
+    unifiedNumber: String,
+    licenseNumber: String,
+    expiryDate: Date,
+    status: { type: String, default: 'active' },
+    createdAt: { type: Date, default: Date.now }
 });
 
-// 2. جلب كافة سجلات النطاق (API)
+const License = mongoose.models.License || mongoose.model('License', LicenseSchema);
+
+// --- [ 1. واجهة العرض UI ] ---
+// هذا المسار لفتح صفحة الرخص عند طلب /manager/licenses
+router.get('/', (req, res) => {
+    res.render('manager_licenses'); 
+});
+
+// --- [ 2. مسارات الـ API ] ---
+
+// جلب جميع السجلات لنطاق معين
 router.get('/api/all/:scopeId', async (req, res) => {
     try {
         const licenses = await License.find({ scopeId: req.params.scopeId }).sort({ expiryDate: 1 });
         res.json(licenses);
     } catch (err) {
-        res.status(500).json({ message: "خطأ في جلب البيانات" });
+        res.status(500).json({ message: "خطأ في جلب السجلات" });
     }
 });
 
-// 3. إضافة أو تحديث سجل
+// حفظ سجل جديد أو تحديث سجل موجود
 router.post('/api/save', async (req, res) => {
     try {
         const { id, ...data } = req.body;
-        if (id) {
+        // تنظيف الـ ID إذا كان فارغاً (لتجنب أخطاء CastError)
+        if (id && id !== "" && id !== "undefined") {
             await License.findByIdAndUpdate(id, data);
+            res.json({ success: true, message: "تم التحديث بنجاح" });
         } else {
-            const newLic = new License(data);
-            await newLic.save();
+            const newLicense = new License(data);
+            await newLicense.save();
+            res.status(201).json({ success: true, message: "تمت الإضافة بنجاح" });
         }
-        res.json({ success: true, message: "تم الحفظ بنجاح" });
     } catch (err) {
-        res.status(500).json({ success: false, message: "فشل الحفظ" });
+        console.error("License Save Error:", err);
+        res.status(400).json({ success: false, message: "خطأ في حفظ البيانات" });
     }
 });
 
-// 4. تغيير الحالة (تنشيط/تعليق)
-router.post('/api/status', async (req, res) => {
+// حذف سجل
+router.delete('/api/delete/:id', async (req, res) => {
     try {
-        const { id, status } = req.body;
-        await License.findByIdAndUpdate(id, { status });
-        res.json({ success: true });
+        await License.findByIdAndDelete(req.params.id);
+        res.json({ success: true, message: "تم الحذف بنجاح" });
     } catch (err) {
         res.status(500).json({ success: false });
     }
 });
 
-// 5. حذف سجل نهائياً
-router.delete('/api/delete/:id', async (req, res) => {
+// تغيير حالة السجل (نشط / موقوف)
+router.post('/api/status', async (req, res) => {
     try {
-        await License.findByIdAndDelete(req.params.id);
+        const { id, status } = req.body;
+        await License.findByIdAndUpdate(id, { status: status });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false });

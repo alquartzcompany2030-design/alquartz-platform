@@ -81,7 +81,7 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <i class="fas fa-user-shield fa-2x"></i>
-        <h2 style="margin:0">إدارة نطاق: <span id="mgrName" style="color:white">جاري التحميل...</span></h2>
+        <h2 style="margin:0">منشأة: <span id="mgrName" style="color:white">تحميل البيانات...</span></h2>
     </div>
     <div style="display:flex; gap:10px;">
         <button class="main-btn" style="background:#6c5ce7; color:white;" onclick="goToLicenses()">
@@ -170,7 +170,6 @@
 
     async function loadData() {
         const urlParams = new URLSearchParams(window.location.search);
-        // التعديل هنا: نأخذ الـ uniqueId من الرابط
         currentScopeId = urlParams.get('scope') || localStorage.getItem('scopeId');
 
         if (!currentScopeId || currentScopeId === "null") { 
@@ -179,41 +178,37 @@
         }
         localStorage.setItem('scopeId', currentScopeId);
 
-        // تحميل اسم المدير من الكاش فوراً
-        const cachedName = localStorage.getItem('name_' + currentScopeId);
+        // محاولة جلب الاسم من الكاش أولاً للسرعة
+        const cachedName = localStorage.getItem('scope_name_' + currentScopeId);
         if (cachedName) document.getElementById('mgrName').innerText = cachedName;
 
         try {
-            // جلب بيانات النطاق باستخدام الـ uniqueId
+            // جلب بيانات النطاق
             const scopeRes = await fetch(`/manager/api/get-scope-info/${currentScopeId}`);
             if(scopeRes.ok) {
                 const scopeData = await scopeRes.json();
-                document.getElementById('mgrName').innerText = scopeData.name || "نطاق غير معروف";
-                localStorage.setItem('name_' + currentScopeId, scopeData.name);
-            } else {
-                document.getElementById('mgrName').innerText = "اسم النطاق غير موجود";
+                const displayName = scopeData.name || scopeData.managerName || "منشأة غير معروفة";
+                document.getElementById('mgrName').innerText = displayName;
+                localStorage.setItem('scope_name_' + currentScopeId, displayName);
             }
 
-            // جلب بيانات الموظفين
+            // جلب الموظفين
             const res = await fetch(`/manager/api/get-employees/${currentScopeId}`);
             if (res.ok) {
                 allEmployees = await res.json();
                 filterData();
                 updateStats();
             } else {
-                document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">لا توجد بيانات موظفين حالياً</td></tr>';
+                document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">لا توجد سجلات حالياً</td></tr>';
             }
         } catch (e) { 
-            document.getElementById('mgrName').innerText = "خطأ في الاتصال";
-            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">تأكد من حالة السيرفر في Render</td></tr>';
+            console.error(e);
+            document.getElementById('empTableBody').innerHTML = '<tr><td colspan="7">خطأ في جلب البيانات من السيرفر</td></tr>';
         }
     }
 
-    // إصلاح رابط النسخ ليستخدم الـ uniqueId
     function copyLink(e) {
-        // نستخدم currentScopeId مباشرة (مثل SC-F4DEAA)
         const link = `${window.location.origin}/employee/register?scope=${currentScopeId}`;
-        
         navigator.clipboard.writeText(link).then(() => {
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;
@@ -224,16 +219,11 @@
                 btn.innerHTML = originalText;
                 btn.style.background = "var(--gold)";
             }, 2000);
-        }).catch(() => {
-            alert("الرابط هو: " + link);
         });
     }
 
-    function goToLicenses() { 
-        window.location.href = `/manager/licenses?scope=${currentScopeId}`; 
-    }
+    function goToLicenses() { window.location.href = `/manager/licenses?scope=${currentScopeId}`; }
 
-    // دوال المساعدة
     function calculateDays(date) { 
         if(!date) return 0; 
         const diff = new Date(date) - new Date();
@@ -255,7 +245,7 @@
         document.getElementById('resultCount').innerText = `عدد النتائج: ${data.length}`;
 
         if(!data.length) { 
-            body.innerHTML = '<tr><td colspan="7" style="padding:50px; color:var(--gray)">لا توجد سجلات مطابقة</td></tr>'; 
+            body.innerHTML = '<tr><td colspan="7" style="padding:50px; color:var(--gray)">لا توجد نتائج مطابقة</td></tr>'; 
             return; 
         }
         
@@ -263,14 +253,8 @@
             const genderClass = emp.gender === 'أنثى' ? 'female' : 'male';
             const idDays = calculateDays(emp.idExpiry);
             const hasIns = (emp.hasHealthInsurance === 'true' || emp.hasHealthInsurance === true);
-            
-            const insHtml = hasIns 
-                ? `<span class="${getExpiryClass(emp.insuranceExpiry)}">تأمين: ${formatDate(emp.insuranceExpiry)}</span>` 
-                : '<span style="color:#bbb">بدون تأمين</span>';
-
-            const carHtml = emp.hasCarAuthorization 
-                ? `<div class="car-info-box"><i class="fas fa-car"></i> ${emp.carType || 'سيارة'} | ${emp.carPlate || ''}</div>`
-                : '';
+            const insHtml = hasIns ? `<span class="${getExpiryClass(emp.insuranceExpiry)}">تأمين: ${formatDate(emp.insuranceExpiry)}</span>` : '<span style="color:#bbb">بدون تأمين</span>';
+            const carHtml = emp.hasCarAuthorization ? `<div class="car-info-box"><i class="fas fa-car"></i> ${emp.carType || 'سيارة'}</div>` : '';
 
             return `
                 <tr>
@@ -288,8 +272,8 @@
                     <td>${insHtml}${carHtml}</td>
                     <td>
                         <div style="display:flex; gap:8px; justify-content:center;">
-                            <button class="btn-circle" style="background:#3498db" title="تعديل" onclick="editEmp('${emp._id}')"><i class="fas fa-edit"></i></button>
-                            <button class="btn-circle" style="background:var(--danger)" title="حذف" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash"></i></button>
+                            <button class="btn-circle" style="background:#3498db" onclick="editEmp('${emp._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-circle" style="background:var(--danger)" onclick="deleteEmp('${emp._id}', '${emp.fullName}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>`;
@@ -357,11 +341,7 @@
     }
 
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-    
-    function logout() { 
-        localStorage.clear(); 
-        window.location.href = '/manager/login'; 
-    }
+    function logout() { localStorage.clear(); window.location.href = '/manager/login'; }
 
     function showToast(msg, isError = false) {
         const t = document.getElementById('toast');

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 /**
- * موديل الموظفين - مشروع أبو حمزة المطور (2025)
- * تم إضافة حقل الجنسية وإصلاح توافق البيانات
+ * موديل الموظفين المطور - نسخة أبو حمزة النهائية
+ * تم إضافة: حقل الجنس، وتحسين أنواع البيانات لضمان دقة إحصائيات اللوحة
  */
 const EmployeeSchema = new mongoose.Schema({
     // ربط الموظف بالنطاق (المؤسسة/الشركة)
@@ -22,7 +22,14 @@ const EmployeeSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    // --- [ الحقل المفقود الذي تسبب في المشكلة ] ---
+    
+    // --- [ التعديل 1: إضافة حقل الجنس لدعم إحصائيات اللوحة ] ---
+    gender: { 
+        type: String, 
+        enum: ['male', 'female', 'غير محدد'], 
+        default: 'غير محدد' 
+    },
+
     nationality: { 
         type: String, 
         default: "غير محدد",
@@ -33,7 +40,8 @@ const EmployeeSchema = new mongoose.Schema({
         unique: true, 
         sparse: true  
     },
-    idExpiry: { type: String }, // تم التغيير لـ String ليتناسب مع مدخلات HTML Date بسهولة
+    // تم التغيير لـ String ليتوافق مع input type="date"
+    idExpiry: { type: String }, 
     sponsorName: { type: String },
     
     // بيانات الجواز والتأمين الصحي
@@ -88,6 +96,8 @@ const EmployeeSchema = new mongoose.Schema({
     }
 });
 
+// تحسين الأداء للبحث السريع
 EmployeeSchema.index({ scopeId: 1, fullName: 1 });
+EmployeeSchema.index({ idNumber: 1 });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);

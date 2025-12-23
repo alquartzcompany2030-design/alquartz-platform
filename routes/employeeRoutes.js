@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');
-const Scope = require('../models/Scope');
+// التعديل الضروري: استخدام الموديل الموحد لضمان عمل الرابط SC-XXXX
+const Organization = require('../models/Organization'); 
 
 // --- [ أولاً: واجهة الموظف - عرض نموذج التسجيل ] ---
 router.get('/register', async (req, res) => {
     try {
-        const uniqueId = req.query.scope; // التقطنا الـ ID من الرابط ?scope=SC-XXXX
-        const scope = await Scope.findOne({ uniqueId: uniqueId });
+        const uniqueId = req.query.scope; 
+        // البحث في المنشآت النشطة لفتح الرابط
+        const scope = await Organization.findOne({ uniqueId: uniqueId });
         
         if (!scope) {
             return res.status(404).render('404', { message: "عذراً، هذا الرابط غير صالح أو انتهت صلاحيته" });
@@ -24,7 +26,7 @@ router.post('/api/register', async (req, res) => {
     try {
         let data = req.body;
         
-        // 1. تحويل الحقول المنطقية لضمان تخزينها كـ Boolean
+        // 1. تحويل الحقول المنطقية لضمان تخزينها كـ Boolean (مهم جداً للإحصائيات)
         const booleanFields = ['hasHealthInsurance', 'hasFamilyInKSA', 'hasCarAuthorization', 'hasDrivingLicense'];
         booleanFields.forEach(field => {
             if (data[field] !== undefined) {
@@ -32,10 +34,13 @@ router.post('/api/register', async (req, res) => {
             }
         });
 
-        // 2. ذكاء اصطناعي بسيط: تحديد الجنسية تلقائياً إذا بدأت الهوية بـ 1
+        // 2. ذكاء اصطناعي: تحديد الجنسية تلقائياً + حماية حقل الجنس
         if (data.idNumber && data.idNumber.startsWith('1')) {
             data.nationality = "السعودية";
         }
+        
+        // التأكد من وجود قيمة للجنس (افتراضياً male إذا لم يرسل)
+        if (!data.gender) data.gender = 'male';
 
         // 3. منع تكرار التسجيل برقم الهوية
         const existingEmp = await Employee.findOne({ idNumber: data.idNumber });
@@ -61,7 +66,7 @@ router.post('/api/register', async (req, res) => {
 
 // --- [ ثالثاً: عمليات الـ API للمدير - التحكم والتعليق ] ---
 
-// 1. جلب بيانات موظف واحد (لعرضها في الـ Modal)
+// 1. جلب بيانات موظف واحد
 router.get('/manager/api/get-employee/:id', async (req, res) => {
     try {
         const emp = await Employee.findById(req.params.id);
@@ -83,15 +88,13 @@ router.put('/manager/api/update-employee/:id', async (req, res) => {
     try {
         let updateData = req.body;
 
-        // معالجة البيانات المنطقية في التحديث
-        const booleanFields = ['hasHealthInsurance', 'hasCarAuthorization'];
+        const booleanFields = ['hasHealthInsurance', 'hasCarAuthorization', 'hasDrivingLicense', 'hasFamilyInKSA'];
         booleanFields.forEach(field => {
             if (updateData[field] !== undefined) {
                 updateData[field] = (updateData[field] === 'true' || updateData[field] === true);
             }
         });
 
-        // تصحيح الجنسية تلقائياً إذا تم تعديل رقم الهوية ليبدأ بـ 1
         if (updateData.idNumber && updateData.idNumber.startsWith('1')) {
             updateData.nationality = "السعودية";
         }
@@ -111,19 +114,17 @@ router.delete('/manager/api/delete-employee/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: "فشل عملية الحذف" }); }
 });
 
-// 5. جلب إحصائيات سريعة للمنشأة (محدث لخدمة الـ Stat Cards)
+// 5. جلب إحصائيات سريعة
 router.get('/manager/api/scope-stats/:scopeId', async (req, res) => {
     try {
         const scopeId = req.params.scopeId;
         const total = await Employee.countDocuments({ scopeId });
         
-        // الموظفين ذوي الإقامات المنتهية (أقل من تاريخ اليوم)
         const expired = await Employee.countDocuments({ 
             scopeId, 
             idExpiry: { $lt: new Date().toISOString().split('T')[0] } 
         });
         
-        // الموظفين السعوديين (تلقائياً من الجنسية أو رقم الهوية)
         const saudi = await Employee.countDocuments({ 
             scopeId, 
             $or: [
@@ -131,8 +132,11 @@ router.get('/manager/api/scope-stats/:scopeId', async (req, res) => {
                 { idNumber: { $regex: '^1' } }
             ]
         });
+
+        const males = await Employee.countDocuments({ scopeId, gender: 'male' });
+        const females = await Employee.countDocuments({ scopeId, gender: 'female' });
         
-        res.json({ total, expired, saudi });
+        res.json({ total, expired, saudi, males, females });
     } catch (err) { res.status(500).json({ message: "خطأ في الإحصائيات" }); }
 });
 

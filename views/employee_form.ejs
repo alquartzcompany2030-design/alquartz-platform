@@ -50,20 +50,32 @@
                 
                 <div class="grid-2">
                     <div>
+                        <label>الجنس</label>
+                        <span class="en-label">Gender</span>
+                        <select name="gender" required>
+                            <option value="male">ذكر | Male</option>
+                            <option value="female">أنثى | Female</option>
+                        </select>
+                    </div>
+                    <div>
                         <label>رقم الجوال</label>
                         <span class="en-label">Mobile Number</span>
                         <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" required>
                     </div>
+                </div>
+
+                <div class="grid-2">
                     <div>
                         <label>مدينة العمل / الفرع</label>
                         <span class="en-label">Work City / Branch</span>
                         <input type="text" name="branch">
                     </div>
+                    <div>
+                        <label>عنوان السكن</label>
+                        <span class="en-label">Home Address</span>
+                        <input type="text" name="address">
+                    </div>
                 </div>
-
-                <label>عنوان السكن بالتفصيل</label>
-                <span class="en-label">Detailed Home Address</span>
-                <input type="text" name="address">
 
                 <div class="btn-group">
                     <button type="button" class="btn-next" onclick="nextStep(1, 'بيانات الهوية والجنسية | ID & Nationality')">التالي | Next ⮕</button>
@@ -166,7 +178,7 @@
     let current = 1;
     const total = 5;
 
-    // --- وظيفة ذكية للجنسية ورقم الهوية ---
+    // --- منطق الهوية والجنسية الذكي ---
     function handleIdLogic(val) {
         const badge = document.getElementById('idBadge');
         const natBox = document.getElementById('nationalityBox');
@@ -177,7 +189,7 @@
             badge.innerText = "✓ مواطن سعودي | Saudi Citizen";
             badge.className = "smart-badge badge-citizen";
             badge.style.display = "inline-block";
-            natBox.style.display = "none"; // إخفاء الحقل للسعوديين
+            natBox.style.display = "none"; 
             natInput.value = "السعودية"; 
             idLabel.innerText = "رقم الهوية الوطنية";
         } 
@@ -185,7 +197,7 @@
             badge.innerText = "✓ مقيم | Resident";
             badge.className = "smart-badge badge-resident";
             badge.style.display = "inline-block";
-            natBox.style.display = "block"; // إظهار الحقل للمقيمين
+            natBox.style.display = "block"; 
             if(natInput.value === "السعودية") natInput.value = ""; 
             idLabel.innerText = "رقم الإقامة";
         } 
@@ -195,10 +207,10 @@
         }
     }
 
-    // التنقل بين الخطوات
+    // التنقل بين الخطوات مع التحقق
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
-        const inputs = currentStepEl.querySelectorAll('input[required]');
+        const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
         for (let input of inputs) {
             if (!input.value) { 
                 input.style.borderColor = 'var(--red)'; 
@@ -229,7 +241,7 @@
         document.getElementById(boxId).style.display = select.value === 'true' ? 'block' : 'none';
     }
 
-    // إرسال البيانات
+    // إرسال البيانات للسيرفر
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -238,7 +250,7 @@
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        // تحويل القيم المنطقية
+        // تحويل القيم النصية إلى Boolean كما يتوقع المودل
         ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'].forEach(key => {
             data[key] = (data[key] === 'true');
         });
@@ -256,10 +268,12 @@
                 const err = await res.json();
                 alert(err.message || 'خطأ في الحفظ');
                 btn.disabled = false;
+                btn.innerText = "اعتماد وحفظ | Save Data 🚀";
             }
         } catch (err) {
             alert('فشل الاتصال بالسيرفر');
             btn.disabled = false;
+            btn.innerText = "اعتماد وحفظ | Save Data 🚀";
         }
     };
 </script>

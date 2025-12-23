@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Scope = require('../models/Organization'); // استدعاء موديل النطاقات (Scopes) كما هو مسجل عندك
+const Organization = require('../models/Organization'); 
 const Employee = require('../models/Employee');
 const License = require('../models/License');
 
@@ -9,43 +9,60 @@ router.get('/matrix', (req, res) => {
     res.render('matrix'); 
 });
 
-// 2. نقطة جلب البيانات (API) - المسار الذي تطلبه الواجهة
+// 2. نقطة جلب البيانات المحدثة (API) مع مراقب الـ 60 يوماً
 router.get('/get-all-orgs', async (req, res) => {
     try {
-        // البحث في جدول الـ Scopes فعلياً
-        const scopes = await Scope.find(); 
-        console.log(`تم العثور على ${scopes.length} نطاق (Scope) في قاعدة البيانات`);
-
+        const organizations = await Organization.find().sort({ createdAt: -1 });
+        
         const today = new Date();
+        // ✅ تعديل أبو حمزة: التنبيه يبدأ قبل شهرين (60 يوماً) من تاريخ اليوم
+        const notificationThreshold = new Date();
+        notificationThreshold.setDate(notificationThreshold.getDate() + 60);
 
-        const processedOrgs = await Promise.all(scopes.map(async (s) => {
-            // حساب الموظفين الحقيقيين بربط الـ uniqueId الخاص بالـ Scope مع الموظفين
-            const [saudiMale, saudiFemale, expatMale, expatFemale, expiredLicsCount] = await Promise.all([
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: 'السعودية', gender: 'أنثى' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'ذكر' }),
-                Employee.countDocuments({ scopeId: s.uniqueId, nationality: { $ne: 'السعودية' }, gender: 'أنثى' }),
-                License.countDocuments({ scopeId: s.uniqueId, expiryDate: { $lt: today } })
+        const processedOrgs = await Promise.all(organizations.map(async (org) => {
+            // ✅ 1. مراقب الموظفين (دعم كافة المسميات لضمان دقة الأرقام)
+            const [saudiMale, saudiFemale, expatMale, expatFemale] = await Promise.all([
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: { $in: ['ذكر', 'male'] } }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: 'السعودية', gender: { $in: ['أنثى', 'female'] } }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: { $in: ['ذكر', 'male'] } }),
+                Employee.countDocuments({ scopeId: org.uniqueId, nationality: { $ne: 'السعودية' }, gender: { $in: ['أنثى', 'female'] } })
+            ]);
+
+            // ✅ 2. مراقب الرخص الذكي المحدث
+            const [expiredCount, nearExpiryCount] = await Promise.all([
+                // رخص منتهية (تاريخها أصغر من اليوم)
+                License.countDocuments({ 
+                    scopeId: org.uniqueId, 
+                    expiryDate: { $lt: today } 
+                }),
+                // رخص "تنبيه": تنتهي بين اليوم وبعد 60 يوماً
+                License.countDocuments({ 
+                    scopeId: org.uniqueId, 
+                    expiryDate: { $gte: today, $lte: notificationThreshold } 
+                })
             ]);
 
             return {
-                name: s.name,
-                uniqueId: s.uniqueId,
+                name: org.name,
+                uniqueId: org.uniqueId,
+                // إحصائيات الموظفين
                 saudiWorkers: saudiMale + saudiFemale,
                 expatWorkers: expatMale + expatFemale,
                 saudiMale,
                 saudiFemale,
                 expatMale,
                 expatFemale,
-                expiredLicenses: expiredLicsCount || 0
+                // إحصائيات الرقابة
+                expiredLicenses: expiredCount,
+                nearExpiryLicenses: nearExpiryCount // ستفعل اللون البرتقالي في الواجهة
             };
         }));
 
         res.json(processedOrgs);
 
     } catch (err) {
-        console.error("API Matrix Error:", err);
-        res.status(500).json({ error: "فشل تجميع بيانات المصفوفة" });
+        console.error("Matrix API Error:", err);
+        res.status(500).json({ error: "فشل في تحديث بيانات الرقابة" });
     }
 });
 

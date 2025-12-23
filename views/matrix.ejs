@@ -9,7 +9,7 @@
     <style>
         :root { 
             --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; 
-            --red: #e74c3c; --gray: #777; --bg: #f4f7f6;
+            --red: #e74c3c; --orange: #f39c12; --gray: #777; --bg: #f4f7f6;
             --saudi: #27ae60; --expat: #2980b9;
         }
         
@@ -37,9 +37,17 @@
 
         .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.97); }
         
+        /* تنبيه الرخص المنتهية (أحمر) */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
+            z-index: 2;
+        }
+
+        /* تنبيه الرخص قريبة الانتهاء (برتقالي) */
+        .warning-pulse {
+            position: absolute; top: 12px; left: 30px; width: 12px; height: 12px;
+            background: var(--orange); border-radius: 50%; animation: blink 1.5s infinite;
             z-index: 2;
         }
 
@@ -68,7 +76,10 @@
             gap: 8px; padding: 8px; border-radius: 10px; margin-top: auto;
             transition: 0.3s;
         }
+
+        /* تنسيقات حالات المراقب */
         .text-danger { color: #fff !important; background: var(--red) !important; font-weight: bold; }
+        .text-warning { color: #fff !important; background: var(--orange) !important; font-weight: bold; }
         .text-safe { color: var(--navy); background: rgba(26, 188, 156, 0.1); }
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -90,7 +101,7 @@
 
     <div class="header">
         <div>
-            <h2 style="margin:0;"><i class="fas fa-layer-group"></i>لوحة إدارة المنشآت</h2>
+            <h2 style="margin:0;"><i class="fas fa-layer-group"></i> لوحة إدارة المنشآت</h2>
             <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">نظام الرصد الذكي | أبو حمزة</p>
         </div>
         <a href="/admin/dashboard" class="btn-matrix-back">
@@ -101,15 +112,12 @@
     <div class="grid-container" id="matrixGrid">
         <div style="grid-column: 1 / -1; text-align: center; padding: 100px;">
             <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--navy);"></i>
-            <p style="margin-top: 15px; color: var(--navy); font-weight: bold;">جاري مزامنة بيانات المنشآت...</p>
+            <p style="margin-top: 15px; color: var(--navy); font-weight: bold;">جاري مزامنة بيانات المنشآت والرقابة...</p>
         </div>
     </div>
 
     <script>
-        // مصفوفة الألوان الهادئة (Pastel Colors) المختارة بعناية
-        const pastelColors = [
-            '#E3F2FD', '#F1F8E9', '#FFFDE7', '#F3E5F5', '#EFEBE9', '#E0F2F1', '#FFF3E0', '#FCE4EC'
-        ];
+        const pastelColors = ['#E3F2FD', '#F1F8E9', '#FFFDE7', '#F3E5F5', '#EFEBE9', '#E0F2F1', '#FFF3E0', '#FCE4EC'];
 
         function goToDashboard(scopeId) {
             if (!scopeId || scopeId === 'undefined') return;
@@ -119,37 +127,47 @@
         async function loadMatrix() {
             const grid = document.getElementById('matrixGrid');
             try {
-                // التعديل الهام: المسار الصحيح للسيرفر
                 const response = await fetch('/admin/get-all-orgs'); 
                 if (!response.ok) throw new Error("Connection Error");
                 const orgs = await response.json();
                 renderCards(orgs);
             } catch (error) {
                 console.error("Matrix Error:", error);
-                grid.innerHTML = `
-                    <div class="error-container">
-                        <i class="fas fa-exclamation-triangle fa-3x" style="color:var(--red)"></i>
-                        <h3 style="margin-top:15px">فشل الاتصال بقاعدة البيانات</h3>
-                        <p>يرجى التأكد من تشغيل السيرفر وتحديث الصفحة</p>
-                        <button onclick="loadMatrix()" style="padding:10px 20px; cursor:pointer">إعادة المحاولة</button>
-                    </div>`;
+                grid.innerHTML = `<div class="error-container">...</div>`;
             }
         }
 
         function renderCards(orgs) {
             const grid = document.getElementById('matrixGrid');
             if (!orgs || orgs.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding:50px; background:#white; border-radius:15px;">لا توجد منشآت مسجلة حالياً</div>`;
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding:50px;">لا توجد منشآت مسجلة</div>`;
                 return;
             }
 
             grid.innerHTML = orgs.map((org, index) => {
                 const bgColor = pastelColors[index % pastelColors.length];
                 const hasExpired = org.expiredLicenses > 0;
+                const hasWarning = org.nearExpiryLicenses > 0;
                 
+                // تحديد لون وشكل شريط الحالة السفلي
+                let statusClass = 'text-safe';
+                let statusIcon = 'fa-circle-check';
+                let statusText = 'جميع الرخص سارية';
+
+                if (hasExpired) {
+                    statusClass = 'text-danger';
+                    statusIcon = 'fa-triangle-exclamation';
+                    statusText = `رخص منتهية: ${org.expiredLicenses}`;
+                } else if (hasWarning) {
+                    statusClass = 'text-warning';
+                    statusIcon = 'fa-clock';
+                    statusText = `رخص شارفت على الانتهاء  ${org.nearExpiryLicenses}`;
+                }
+
                 return `
                 <div class="org-card" style="background-color: ${bgColor};" onclick="goToDashboard('${org.uniqueId}')">
                     ${hasExpired ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
+                    ${hasWarning && !hasExpired ? '<div class="warning-pulse" title="رخص تنتهي قريباً"></div>' : ''}
                     
                     <h3 class="org-title">${org.name}</h3>
                     <span class="org-id">ID: ${org.uniqueId}</span>
@@ -177,9 +195,9 @@
                         </div>
                     </div>
 
-                    <div class="footer-info ${hasExpired ? 'text-danger' : 'text-safe'}">
-                        <i class="fas ${hasExpired ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
-                        <span>رخص منتهية: ${org.expiredLicenses || 0}</span>
+                    <div class="footer-info ${statusClass}">
+                        <i class="fas ${statusIcon}"></i>
+                        <span>${statusText}</span>
                     </div>
                 </div>
                 `;

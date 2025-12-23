@@ -33,7 +33,7 @@
 
         .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { 
             background: var(--white); padding: 20px; border-radius: 15px; 
             display: flex; justify-content: space-between; align-items: center; 
@@ -71,6 +71,8 @@
         .info-mini-card.blue { border-right-color: var(--info); }
         .info-mini-card.green { border-right-color: var(--success); }
         .info-mini-card.orange { border-right-color: var(--warning); }
+        .info-mini-card.pink { border-right-color: #e84393; } /* لون مخصص للإناث */
+        
         .info-mini-card label { font-size: 0.75rem; color: #777; font-weight: bold; }
         .info-mini-card span { font-size: 0.95rem; color: var(--navy); font-weight: 800; }
 
@@ -159,6 +161,13 @@
             <div class="edit-grid">
                 <div class="form-group"><label>الاسم الكامل</label><input type="text" id="edit_fullName" required></div>
                 <div class="form-group"><label>رقم الجوال</label><input type="text" id="edit_phoneNumber" required></div>
+                <div class="form-group"><label>الجنس</label>
+                    <select id="edit_gender">
+                        <option value="male">ذكر | Male</option>
+                        <option value="female">أنثى | Female</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>الجنسية</label><input type="text" id="edit_nationality"></div>
                 <div class="form-group"><label>تاريخ انتهاء الهوية</label><input type="date" id="edit_idExpiry" required></div>
                 <div class="form-group"><label>تاريخ انتهاء الجواز</label><input type="date" id="edit_passportExpiry"></div>
                 <div class="form-group"><label>رقم اللوحة (العهدة)</label><input type="text" id="edit_carPlate"></div>
@@ -168,7 +177,6 @@
                         <option value="false">❌ غير موجود</option>
                     </select>
                 </div>
-                <div class="form-group"><label>الجنسية</label><input type="text" id="edit_nationality"></div>
                 <div class="form-group"><label>المسمى الوظيفي</label><input type="text" id="edit_jobTitle"></div>
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -185,7 +193,6 @@
     let rawData = [];
     let scopeId = new URLSearchParams(window.location.search).get('scope');
 
-    // 1. معالجة الاحتفاظ بالنطاق عند التنقل
     function getSafeScope() {
         if (!scopeId) {
             scopeId = localStorage.getItem('last_active_scope');
@@ -249,7 +256,13 @@
             const waLink = `https://wa.me/${emp.phoneNumber?.replace(/\D/g,'')}?text=تحية طيبة، نود تذكيرك بتحديث بياناتك لدى غولدن كلاود`;
             return `
                 <tr>
-                    <td><b>${emp.fullName}</b><br><small style="color:#888">${emp.jobTitle || 'موظف'}</small></td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px; justify-content:center">
+                            <i class="fas ${emp.gender === 'female' ? 'fa-female' : 'fa-male'}" style="color:${emp.gender === 'female' ? '#e84393' : '#3498db'}"></i>
+                            <b>${emp.fullName}</b>
+                        </div>
+                        <small style="color:#888">${emp.jobTitle || 'موظف'}</small>
+                    </td>
                     <td><span style="background:#eee; padding:3px 10px; border-radius:5px; font-size:0.8rem">${emp.nationality || 'غير محدد'}</span></td>
                     <td><code>${emp.idNumber}</code></td>
                     <td>${emp.phoneNumber}</td>
@@ -266,8 +279,6 @@
         }).join('');
     }
 
-    // --- بقية الدوال المنطقية (Search, Modal, Export) تظل كما هي لتحقيق الثبات ---
-
     function viewDetails(id) {
         const emp = rawData.find(e => e._id === id);
         if(!emp) return;
@@ -278,6 +289,7 @@
             <div class="details-grid">
                 <div class="info-mini-card"><label>رقم الهوية</label><span>${emp.idNumber}</span></div>
                 <div class="info-mini-card blue"><label>الجنسية</label><span>${emp.nationality || '-'}</span></div>
+                <div class="info-mini-card ${emp.gender === 'female' ? 'pink' : 'blue'}"><label>الجنس</label><span>${emp.gender === 'female' ? 'أنثى' : 'ذكر'}</span></div>
                 <div class="info-mini-card orange"><label>انتهاء الهوية</label><span>${emp.idExpiry ? new Date(emp.idExpiry).toLocaleDateString('en-GB') : '-'}</span></div>
                 <div class="info-mini-card"><label>رقم الجوال</label><span>${emp.phoneNumber}</span></div>
                 <div class="info-mini-card green"><label>التأمين الطبي</label><span>${emp.hasHealthInsurance ? '✅ موجود' : '❌ غير موجود'}</span></div>
@@ -296,6 +308,7 @@
         document.getElementById('edit_id').value = emp._id;
         document.getElementById('edit_fullName').value = emp.fullName;
         document.getElementById('edit_phoneNumber').value = emp.phoneNumber;
+        document.getElementById('edit_gender').value = emp.gender || 'male';
         document.getElementById('edit_idExpiry').value = emp.idExpiry ? emp.idExpiry.split('T')[0] : '';
         document.getElementById('edit_passportExpiry').value = emp.passportExpiry ? emp.passportExpiry.split('T')[0] : '';
         document.getElementById('edit_carPlate').value = emp.carPlate || '';
@@ -311,6 +324,7 @@
         const updatedData = {
             fullName: document.getElementById('edit_fullName').value,
             phoneNumber: document.getElementById('edit_phoneNumber').value,
+            gender: document.getElementById('edit_gender').value,
             idExpiry: document.getElementById('edit_idExpiry').value,
             passportExpiry: document.getElementById('edit_passportExpiry').value,
             carPlate: document.getElementById('edit_carPlate').value,
@@ -334,11 +348,15 @@
 
     function renderStats(data) {
         const expiredCount = data.filter(e => e.idExpiry && new Date(e.idExpiry) < new Date()).length;
+        const males = data.filter(e => e.gender === 'male').length;
+        const females = data.filter(e => e.gender === 'female').length;
+
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card"><div class="info"><h3>إجمالي الكادر</h3><div class="value">${data.length}</div></div><i class="fas fa-users"></i></div>
+            <div class="stat-card" style="border-right-color:#3498db"><div class="info"><h3>الذكور</h3><div class="value" style="color:#3498db">${males}</div></div><i class="fas fa-male"></i></div>
+            <div class="stat-card" style="border-right-color:#e84393"><div class="info"><h3>الإناث</h3><div class="value" style="color:#e84393">${females}</div></div><i class="fas fa-female"></i></div>
             <div class="stat-card" style="border-right-color:var(--danger)"><div class="info"><h3>هويات منتهية</h3><div class="value" style="color:var(--danger)">${expiredCount}</div></div><i class="fas fa-id-card"></i></div>
             <div class="stat-card" style="border-right-color:var(--success)"><div class="info"><h3>التغطية الصحية</h3><div class="value" style="color:var(--success)">${data.filter(e => e.hasHealthInsurance).length}</div></div><i class="fas fa-heartbeat"></i></div>
-            <div class="stat-card" style="border-right-color:var(--warning)"><div class="info"><h3>سيارات العهدة</h3><div class="value" style="color:var(--warning)">${data.filter(e => e.carPlate).length}</div></div><i class="fas fa-car"></i></div>
         `;
     }
 
@@ -370,19 +388,26 @@
     }
 
     function exportToExcel() {
-        const ws = XLSX.utils.json_to_sheet(rawData);
+        // تحضير البيانات للتصدير لتشمل الجنس
+        const exportData = rawData.map(e => ({
+            "الاسم الكامل": e.fullName,
+            "الجنس": e.gender === 'female' ? 'أنثى' : 'ذكر',
+            "رقم الهوية/الإقامة": e.idNumber,
+            "الجنسية": e.nationality || 'غير محدد',
+            "رقم الجوال": e.phoneNumber,
+            "انتهاء الهوية": e.idExpiry ? new Date(e.idExpiry).toLocaleDateString('en-GB') : '-',
+            "المسمى الوظيفي": e.jobTitle || 'موظف'
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Staff");
-        XLSX.writeFile(wb, "GoldenCloud_Employees.xlsx");
+        XLSX.writeFile(wb, "GoldenCloud_Staff_Report.xlsx");
     }
 
     function logout() { localStorage.clear(); window.location.href = '/'; }
 
-    // معالجة العودة للخلف في المتصفح
     window.onpageshow = function(event) {
-        if (event.persisted) {
-            init();
-        }
+        if (event.persisted) { init(); }
     };
 
     window.onload = init;

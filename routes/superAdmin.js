@@ -16,14 +16,16 @@ router.get('/get-all-scopes', async (req, res) => {
     }
 });
 
-// إضافة نطاق جديد
+// إضافة نطاق جديد (المسار الأصلي)
 router.post('/add-scope', async (req, res) => {
     try {
         const { name, months } = req.body;
-        // توليد معرف فريد وتحديد تاريخ الانتهاء
         const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
         const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + parseInt(months || 12)); // افتراضي سنة إذا لم يحدد
+        
+        // تحويل النص إلى رقم لضمان قبول التاريخ في الموديل
+        const m = parseInt(months) || 12;
+        expiryDate.setMonth(expiryDate.getMonth() + m);
 
         const newScope = new Scope({ name, uniqueId, expiry: expiryDate, status: 'active' });
         await newScope.save();
@@ -33,31 +35,35 @@ router.post('/add-scope', async (req, res) => {
     }
 });
 
-// ✅ المسار الجديد المخصص لزر "تفعيل النطاق فوراً" الظاهر في الصور
+// ✅ المسار المضاف لتفعيل النطاق فوراً من واجهة "تأسيس شركة"
 router.post('/activate-scope-now', async (req, res) => {
     try {
         const { name, months } = req.body;
         
-        // التحقق لضمان عدم حدوث خطأ 400 مجدداً
-        if (!name) return res.status(400).json({ message: "اسم الشركة مطلوب" });
+        if (!name) return res.status(400).json({ message: "اسم النطاق مطلوب" });
 
         const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
         const expiryDate = new Date();
-        // معالجة القيمة النصية من القائمة المنسدلة (اشتراك سنة كاملة = 12)
-        const monthsToAdd = (months === 'اشتراك سنة كاملة' || !months) ? 12 : parseInt(months);
-        expiryDate.setMonth(expiryDate.getMonth() + monthsToAdd);
+        
+        // معالجة اختيار "سنة كاملة" من القائمة المنسدلة
+        let m = 12; 
+        if (months && !isNaN(parseInt(months))) {
+            m = parseInt(months);
+        }
+
+        expiryDate.setMonth(expiryDate.getMonth() + m);
 
         const newScope = new Scope({ 
             name, 
             uniqueId, 
-            expiry: expiryDate, 
+            expiry: expiryDate, // يتوافق مع Date في الموديل
             status: 'active' 
         });
 
         await newScope.save();
         res.status(200).json({ message: "تم التفعيل بنجاح", uniqueId });
     } catch (err) {
-        console.error("خطأ التفعيل الفوري:", err);
+        console.error("خطأ التفعيل:", err);
         res.status(500).json({ message: "فشل تفعيل النطاق" });
     }
 });

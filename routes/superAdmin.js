@@ -32,6 +32,36 @@ router.post('/add-scope', async (req, res) => {
     }
 });
 
+// ✅ المسار الجديد: تفعيل النطاق فوراً (مخصص لزر "تفعيل النطاق فوراً" في اللوحة العليا)
+router.post('/activate-scope-now', async (req, res) => {
+    try {
+        const { name, months } = req.body;
+        
+        // التحقق من وجود البيانات
+        if (!name || !months) {
+            return res.status(400).json({ message: "البيانات غير مكتملة" });
+        }
+
+        const uniqueId = "SC-" + crypto.randomBytes(3).toString('hex').toUpperCase();
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + parseInt(months));
+
+        const newScope = new Scope({ 
+            name, 
+            uniqueId, 
+            expiry: expiryDate, 
+            status: 'active',
+            createdAt: new Date() 
+        });
+
+        await newScope.save();
+        res.status(200).json({ message: "تم تفعيل النطاق فوراً", uniqueId: uniqueId });
+    } catch (err) {
+        console.error("خطأ التفعيل الفوري:", err);
+        res.status(500).json({ message: "فشل التفعيل الفوري" });
+    }
+});
+
 // تحديث وتمديد النطاق
 router.put('/update-scope/:id', async (req, res) => {
     try {

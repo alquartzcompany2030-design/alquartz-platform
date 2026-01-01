@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحديث بيانات الموظفين | Employee Data Update</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --navy: #0b1d2a; --gold: #ffcc00; --bg: #f4f7f6; --success: #27ae60; --gray: #666; --red: #e74c3c; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; direction: rtl; }
+        .form-card { background: white; width: 100%; max-width: 650px; padding: 35px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 10px solid var(--navy); }
+        .progress-container { width: 100%; background: #eee; height: 8px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .progress-bar { width: 20%; height: 100%; background: var(--gold); transition: 0.5s ease; }
+        .motivation { color: var(--success); font-weight: bold; margin-bottom: 20px; text-align: center; min-height: 24px; font-size: 18px; }
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.5s forwards; }
+        label { display: block; margin-bottom: 2px; font-size: 0.95rem; color: var(--navy); font-weight: 700; margin-top: 15px; }
+        .en-label { display: block; font-size: 0.75rem; color: var(--gray); margin-bottom: 8px; font-weight: normal; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--gold); outline: none; background: #fffcf0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; }
+        .btn-next { background: var(--navy); color: var(--gold); }
+        .btn-prev { background: #eee; color: #333; }
+        .hidden-fields { display: none; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ddd; margin-top: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #success-container { display: none; text-align: center; padding: 20px; }
+        .success-icon { font-size: 60px; color: var(--success); }
+        .smart-badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; margin-top: 5px; display: none; }
+        .badge-citizen { background: #e3f2fd; color: #1976d2; }
+        .badge-resident { background: #f1f8e9; color: #388e3c; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <div id="form-content">
+        <div class="progress-container"><div id="pBar" class="progress-bar"></div></div>
+        <div id="motivationMsg" class="motivation">مرحباً بك! لنحدث بياناتك.. | Welcome!</div>
+
+        <form id="smartForm">
+            <input type="hidden" name="scopeId" value="<%= scope.uniqueId %>">
+
+            <div class="step active" data-step="1">
+                <label>الاسم الكامل</label>
+                <span class="en-label">Full Name (As in Passport)</span>
+                <input type="text" name="fullName" required>
+                
+                <div class="grid-2">
+                    <div>
+                        <label>الجنس</label>
+                        <span class="en-label">Gender</span>
+                        <select name="gender" required>
+                            <option value="male">ذكر | Male</option>
+                            <option value="female">أنثى | Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>رقم الجوال</label>
+                        <span class="en-label">Mobile Number</span>
+                        <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" required>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label>مدينة العمل / الفرع</label>
+                        <span class="en-label">Work City / Branch</span>
+                        <input type="text" name="branch">
+                    </div>
+                    <div>
+                        <label>عنوان السكن</label>
+                        <span class="en-label">Home Address</span>
+                        <input type="text" name="address">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn-next" onclick="nextStep(1, 'بيانات الهوية والجنسية | ID & Nationality')">التالي | Next ⮕</button>
+                </div>
+            </div>
+
+            <div class="step" data-step="2">
+                <label id="idLabel">رقم الهوية / الإقامة</label>
+                <span class="en-label" id="idEnLabel">Iqama / ID Number</span>
+                <input type="text" id="idNumberInput" name="idNumber" required maxlength="10" oninput="handleIdLogic(this.value)">
+                <div id="idBadge" class="smart-badge"></div>
+                
+                <div id="nationalityBox" style="margin-top: 15px;">
+                    <label>الجنسية</label>
+                    <span class="en-label">Nationality</span>
+                    <input type="text" id="nationalityInput" name="nationality" placeholder="مثلاً: مصر، الهند، باكستان...">
+                </div>
+
+                <label style="margin-top:15px;">تاريخ انتهاء الهوية</label>
+                <span class="en-label">ID Expiry Date</span>
+                <input type="date" name="idExpiry" required>
+
+                <label>اسم المنشأة الكفيلة الحالية</label>
+                <span class="en-label">Current Sponsor Name</span>
+                <input type="text" name="sponsorName">
+
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" onclick="prevStep(2)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(2, 'بيانات الجواز والتأمين | Passport & Insurance')">التالي | Next ⮕</button>
+                </div>
+            </div>
+
+            <div class="step" data-step="3">
+                <div class="grid-2">
+                    <div>
+                        <label>رقم الجواز</label>
+                        <span class="en-label">Passport Number</span>
+                        <input type="text" name="passportNumber">
+                    </div>
+                    <div>
+                        <label>انتهاء الجواز</label>
+                        <span class="en-label">Passport Expiry</span>
+                        <input type="date" name="passportExpiry">
+                    </div>
+                </div>
+                <label>هل لديك تأمين صحي؟</label>
+                <select name="hasHealthInsurance" onchange="toggleBox(this, 'insuranceBox')">
+                    <option value="false">لا يوجد | No</option>
+                    <option value="true">نعم | Yes</option>
+                </select>
+                <div id="insuranceBox" class="hidden-fields">
+                    <label>تاريخ انتهاء التأمين</label>
+                    <input type="date" name="insuranceExpiry">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" onclick="prevStep(3)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات القيادة والسيارة | Driving & Car info')">التالي | Next ⮕</button>
+                </div>
+            </div>
+
+            <div class="step" data-step="4">
+                <div class="grid-2">
+                    <div><label>رخصة قيادة؟</label><select name="hasDrivingLicense"><option value="false">لا</option><option value="true">نعم</option></select></div>
+                    <div><label>تفويض سيارة؟</label><select name="hasCarAuthorization"><option value="false">لا</option><option value="true">نعم</option></select></div>
+                </div>
+                <div class="grid-2">
+                    <div><label>نوع السيارة</label><input type="text" name="carType"></div>
+                    <div><label>رقم اللوحة</label><input type="text" name="carPlate"></div>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" onclick="prevStep(4)">السابق | Back</button>
+                    <button type="button" class="btn-next" onclick="nextStep(4, 'الوضع الاجتماعي | Social Status')">التالي | Next ⮕</button>
+                </div>
+            </div>
+
+            <div class="step" data-step="5">
+                <label>هل العائلة في السعودية؟</label>
+                <select name="hasFamilyInKSA"><option value="false">لا</option><option value="true">نعم</option></select>
+                <label>الوضع الاجتماعي (أعزب/متأهل)</label>
+                <input type="text" name="familyStatus">
+                <label>تاريخ نقل الكفالة (إن وجد)</label>
+                <input type="date" name="sponsorshipTransferDate">
+                <div class="btn-group">
+                    <button type="button" class="btn-prev" onclick="prevStep(5)">السابق | Back</button>
+                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ | Save Data 🚀</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="success-container">
+        <div class="success-icon">✓</div>
+        <h2>شكراً لك! | Thank You!</h2>
+        <p>تم تحديث بياناتك بنجاح في منصة أبو حمزة</p>
+        <button class="btn-next" onclick="window.location.reload()">تسجيل جديد | New Entry</button>
+    </div>
+</div>
+
+<script>
+    let current = 1;
+    const total = 5;
+
+    // --- منطق الهوية والجنسية الذكي ---
+    function handleIdLogic(val) {
+        const badge = document.getElementById('idBadge');
+        const natBox = document.getElementById('nationalityBox');
+        const natInput = document.getElementById('nationalityInput');
+        const idLabel = document.getElementById('idLabel');
+
+        if (val.startsWith('1')) {
+            badge.innerText = "✓ مواطن سعودي | Saudi Citizen";
+            badge.className = "smart-badge badge-citizen";
+            badge.style.display = "inline-block";
+            natBox.style.display = "none"; 
+            natInput.value = "السعودية"; 
+            idLabel.innerText = "رقم الهوية الوطنية";
+        } 
+        else if (val.startsWith('2')) {
+            badge.innerText = "✓ مقيم | Resident";
+            badge.className = "smart-badge badge-resident";
+            badge.style.display = "inline-block";
+            natBox.style.display = "block"; 
+            if(natInput.value === "السعودية") natInput.value = ""; 
+            idLabel.innerText = "رقم الإقامة";
+        } 
+        else {
+            badge.style.display = "none";
+            natBox.style.display = "block";
+        }
+    }
+
+    // التنقل بين الخطوات مع التحقق
+    function nextStep(step, msg) {
+        const currentStepEl = document.querySelector(`[data-step="${step}"]`);
+        const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
+        for (let input of inputs) {
+            if (!input.value) { 
+                input.style.borderColor = 'var(--red)'; 
+                input.focus();
+                return; 
+            }
+            input.style.borderColor = '#eee';
+        }
+        currentStepEl.classList.remove('active');
+        document.querySelector(`[data-step="${step+1}"]`).classList.add('active');
+        document.getElementById('motivationMsg').innerText = msg;
+        current++;
+        updateProgress();
+    }
+
+    function prevStep(step) {
+        document.querySelector(`[data-step="${step}"]`).classList.remove('active');
+        document.querySelector(`[data-step="${step-1}"]`).classList.add('active');
+        current--;
+        updateProgress();
+    }
+
+    function updateProgress() {
+        document.getElementById('pBar').style.width = (current / total) * 100 + '%';
+    }
+
+    function toggleBox(select, boxId) {
+        document.getElementById(boxId).style.display = select.value === 'true' ? 'block' : 'none';
+    }
+
+    // إرسال البيانات للسيرفر
+    document.getElementById('smartForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true; btn.innerText = "جاري الحفظ...";
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        // تحويل القيم النصية إلى Boolean كما يتوقع المودل
+        ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'].forEach(key => {
+            data[key] = (data[key] === 'true');
+        });
+
+        try {
+            const res = await fetch('/employee/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if(res.ok) {
+                document.getElementById('form-content').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } else {
+                const err = await res.json();
+                alert(err.message || 'خطأ في الحفظ');
+                btn.disabled = false;
+                btn.innerText = "اعتماد وحفظ | Save Data 🚀";
+            }
+        } catch (err) {
+            alert('فشل الاتصال بالسيرفر');
+            btn.disabled = false;
+            btn.innerText = "اعتماد وحفظ | Save Data 🚀";
+        }
+    };
+</script>
+</body>
+</html>

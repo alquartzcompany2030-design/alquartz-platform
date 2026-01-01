@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المنشآت الموحدة | الكوارتز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --navy: #0d2d4d; --gold: #ffcc00; --teal: #1abc9c; 
+            --red: #e74c3c; --orange: #f39c12; --gray: #777; --bg: #f4f7f6;
+            --saudi: #27ae60; --expat: #2980b9;
+        }
+        
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; background: var(--navy); color: white; 
+            padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .org-card {
+            background: white; border-radius: 15px; padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
+            transition: 0.3s ease; cursor: pointer; position: relative;
+            display: flex; flex-direction: column; min-height: 280px;
+            overflow: hidden;
+        }
+
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.97); }
+        
+        /* تنبيه الرخص المنتهية (أحمر) */
+        .alert-pulse {
+            position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
+            background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
+            z-index: 2;
+        }
+
+        /* تنبيه الرخص قريبة الانتهاء (برتقالي) */
+        .warning-pulse {
+            position: absolute; top: 12px; left: 30px; width: 12px; height: 12px;
+            background: var(--orange); border-radius: 50%; animation: blink 1.5s infinite;
+            z-index: 2;
+        }
+
+        .org-title { margin: 0; color: var(--navy); font-size: 1.15rem; font-weight: 700; text-align: center; position: relative; }
+        .org-id { color: #555; font-size: 0.8rem; display: block; margin-bottom: 15px; text-align: center; font-family: monospace; font-weight: bold; }
+
+        .worker-section {
+            background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;
+            padding: 12px; margin-bottom: 15px; backdrop-filter: blur(5px);
+        }
+        .worker-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+        .worker-row:not(:last-child) { border-bottom: 1px dashed rgba(0,0,0,0.1); }
+        
+        .main-stat { flex: 1; text-align: center; }
+        .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid rgba(0,0,0,0.1); }
+        
+        .w-label { font-size: 0.75rem; color: #444; display: block; font-weight: bold; }
+        .w-count { font-weight: 800; font-size: 1.4rem; }
+        .sub-count { font-size: 0.95rem; color: #222; font-weight: 700; }
+
+        .count-saudi { color: var(--saudi); }
+        .count-expat { color: var(--expat); }
+
+        .footer-info { 
+            font-size: 0.85rem; display: flex; align-items: center; justify-content: center; 
+            gap: 8px; padding: 8px; border-radius: 10px; margin-top: auto;
+            transition: 0.3s;
+        }
+
+        /* تنسيقات حالات المراقب */
+        .text-danger { color: #fff !important; background: var(--red) !important; font-weight: bold; }
+        .text-warning { color: #fff !important; background: var(--orange) !important; font-weight: bold; }
+        .text-safe { color: var(--navy); background: rgba(26, 188, 156, 0.1); }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        .btn-matrix-back {
+            color:white; text-decoration:none; background:rgba(255,255,255,0.1); 
+            padding:10px 20px; border-radius:8px; transition: 0.3s; font-weight: bold;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-matrix-back:hover { background: var(--gold); color: var(--navy); }
+
+        .error-container {
+            grid-column: 1 / -1; text-align: center; padding: 50px; 
+            background: #fff; border-radius: 15px; border: 2px dashed var(--red);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h2 style="margin:0;"><i class="fas fa-layer-group"></i> لوحة إدارة المنشآت</h2>
+            <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">نظام الرصد الذكي | أبو حمزة</p>
+        </div>
+        <a href="/admin/dashboard" class="btn-matrix-back">
+            <i class="fas fa-chart-line"></i> لوحة التحكم العامة
+        </a>
+    </div>
+
+    <div class="grid-container" id="matrixGrid">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 100px;">
+            <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--navy);"></i>
+            <p style="margin-top: 15px; color: var(--navy); font-weight: bold;">جاري مزامنة بيانات المنشآت والرقابة...</p>
+        </div>
+    </div>
+
+    <script>
+        const pastelColors = ['#E3F2FD', '#F1F8E9', '#FFFDE7', '#F3E5F5', '#EFEBE9', '#E0F2F1', '#FFF3E0', '#FCE4EC'];
+
+        function goToDashboard(scopeId) {
+            if (!scopeId || scopeId === 'undefined') return;
+            window.location.href = `/manager/dashboard?scope=${scopeId}`;
+        }
+
+        async function loadMatrix() {
+            const grid = document.getElementById('matrixGrid');
+            try {
+                const response = await fetch('/admin/get-all-orgs'); 
+                if (!response.ok) throw new Error("Connection Error");
+                const orgs = await response.json();
+                renderCards(orgs);
+            } catch (error) {
+                console.error("Matrix Error:", error);
+                grid.innerHTML = `<div class="error-container">...</div>`;
+            }
+        }
+
+        function renderCards(orgs) {
+            const grid = document.getElementById('matrixGrid');
+            if (!orgs || orgs.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding:50px;">لا توجد منشآت مسجلة</div>`;
+                return;
+            }
+
+            grid.innerHTML = orgs.map((org, index) => {
+                const bgColor = pastelColors[index % pastelColors.length];
+                const hasExpired = org.expiredLicenses > 0;
+                const hasWarning = org.nearExpiryLicenses > 0;
+                
+                // تحديد لون وشكل شريط الحالة السفلي
+                let statusClass = 'text-safe';
+                let statusIcon = 'fa-circle-check';
+                let statusText = 'جميع الرخص سارية';
+
+                if (hasExpired) {
+                    statusClass = 'text-danger';
+                    statusIcon = 'fa-triangle-exclamation';
+                    statusText = `رخص منتهية: ${org.expiredLicenses}`;
+                } else if (hasWarning) {
+                    statusClass = 'text-warning';
+                    statusIcon = 'fa-clock';
+                    statusText = `رخص شارفت على الانتهاء  ${org.nearExpiryLicenses}`;
+                }
+
+                return `
+                <div class="org-card" style="background-color: ${bgColor};" onclick="goToDashboard('${org.uniqueId}')">
+                    ${hasExpired ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
+                    ${hasWarning && !hasExpired ? '<div class="warning-pulse" title="رخص تنتهي قريباً"></div>' : ''}
+                    
+                    <h3 class="org-title">${org.name}</h3>
+                    <span class="org-id">ID: ${org.uniqueId}</span>
+
+                    <div class="worker-section">
+                        <div class="worker-row">
+                            <div class="main-stat">
+                                <span class="w-label">سعودي</span>
+                                <span class="w-count count-saudi">${org.saudiWorkers || 0}</span>
+                            </div>
+                            <div class="sub-stats">
+                                <div><span class="w-label">♂</span><span class="sub-count">${org.saudiMale || 0}</span></div>
+                                <div><span class="w-label">♀</span><span class="sub-count">${org.saudiFemale || 0}</span></div>
+                            </div>
+                        </div>
+                        <div class="worker-row">
+                            <div class="main-stat">
+                                <span class="w-label">مقيم</span>
+                                <span class="w-count count-expat">${org.expatWorkers || 0}</span>
+                            </div>
+                            <div class="sub-stats">
+                                <div><span class="w-label">♂</span><span class="sub-count">${org.expatMale || 0}</span></div>
+                                <div><span class="w-label">♀</span><span class="sub-count">${org.expatFemale || 0}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="footer-info ${statusClass}">
+                        <i class="fas ${statusIcon}"></i>
+                        <span>${statusText}</span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        window.onload = loadMatrix;
+    </script>
+</body>
+</html>

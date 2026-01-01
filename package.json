@@ -1,0 +1,27 @@
+{
+  "name": "alquartzcompany",
+  "version": "1.0.0",
+  "description": "منصة شركة الكوارتز - إدارة السجلات والموظفين",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "management",
+    "saudi-business",
+    "licenses"
+  ],
+  "author": "Abu Hamza",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.0",
+    "mongoose": "^8.0.0",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5"
+  }
+}

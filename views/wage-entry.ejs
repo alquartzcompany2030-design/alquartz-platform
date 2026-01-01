@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل بيانات الأجور | Golden Cloud</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1e3799; --accent: #f39c12; --bg: #f4f7f6; }
+        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .wage-form-container { background: #fff; width: 100%; max-width: 480px; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(30, 55, 153, 0.1); border-top: 8px solid var(--accent); }
+        .logo-section { text-align: center; margin-bottom: 30px; }
+        .logo-section h2 { color: var(--primary); font-weight: 800; margin: 0; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 0.95rem; }
+        .form-group input:focus { border-color: var(--primary); outline: none; }
+        .friday-box { background: #fff9e6; padding: 15px; border-radius: 12px; border: 1px solid #f39c12; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 20px; }
+        .friday-box input { width: 22px; height: 22px; cursor: pointer; }
+        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { background: #0c2461; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+<div class="wage-form-container">
+    <div class="logo-section">
+        <i class="fas fa-shield-alt fa-3x" style="color: var(--primary); margin-bottom: 10px;"></i>
+        <h2>تسجيل بيانات الأجور</h2>
+        <p style="color: #7f8c8d;">نظام غولدن كلاود - التحقق الذكي</p>
+    </div>
+    <form id="wageEntryForm">
+        <div class="form-group">
+            <label>اسم الموظف الثلاثي:</label>
+            <input type="text" id="fullName" placeholder="كما هو في الهوية" required>
+        </div>
+        <div class="form-group">
+            <label>المهنة (المسمى الوظيفي):</label>
+            <input type="text" id="jobTitle" placeholder="مثال: محاسب، سائق، مهندس" required>
+        </div>
+        <div class="form-group">
+            <label>رقم الهوية / الإقامة:</label>
+            <input type="number" id="idNumber" placeholder="10xxxxxxxx" required>
+        </div>
+        <div class="form-group">
+            <label>رقم الجوال:</label>
+            <input type="tel" id="phoneNumber" placeholder="05xxxxxxxx" required>
+        </div>
+        <div class="form-group">
+            <label>رقم الآيبان (IBAN):</label>
+            <input type="text" id="iban" placeholder="SA..." required>
+        </div>
+        <div class="form-group">
+            <label>الراتب الإجمالي المتفق عليه (صافي):</label>
+            <input type="number" id="totalSalary" style="font-weight: bold; color: #27ae60; font-size: 1.2rem; text-align: center;" required>
+        </div>
+        
+        <label class="friday-box">
+            <input type="checkbox" id="workFriday">
+            <div>
+                <span style="font-weight: bold; color: #d35400;">هل تعمل يوم الجمعة؟</span>
+                <small style="display: block; color: #7f8c8d;">سيتم توزيع الراتب ليشمل بدل الراحة الأسبوعية.</small>
+            </div>
+        </label>
+
+        <button type="submit" id="submitBtn" class="btn-submit">تأكيد وحفظ البيانات <i class="fas fa-save"></i></button>
+    </form>
+</div>
+
+<script>
+    const scopeId = new URLSearchParams(window.location.search).get('scope');
+    
+    document.getElementById('wageEntryForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+        const formData = {
+            scope: scopeId,
+            fullName: document.getElementById('fullName').value,
+            jobTitle: document.getElementById('jobTitle').value, // إرسال المهنة
+            idNumber: document.getElementById('idNumber').value,
+            phoneNumber: document.getElementById('phoneNumber').value,
+            iban: document.getElementById('iban').value,
+            totalSalary: document.getElementById('totalSalary').value,
+            workFriday: document.getElementById('workFriday').checked // ستُرسل true أو false
+        };
+
+        try {
+            const res = await fetch('/api/submit-wage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            
+            if(res.status === 409) {
+                alert("⚠️ تنبيه: رقم الهوية مسجل مسبقاً في هذا النطاق!");
+                btn.disabled = false;
+                btn.innerHTML = 'تأكيد وحفظ البيانات <i class="fas fa-save"></i>';
+            } else if(res.ok) {
+                alert("✅ تم حفظ بياناتك بنجاح");
+                window.location.href = "about:blank";
+            } else {
+                throw new Error();
+            }
+        } catch (err) {
+            alert("❌ حدث خطأ في الاتصال بالسيرفر");
+            btn.disabled = false;
+            btn.innerHTML = 'تأكيد وحفظ البيانات <i class="fas fa-save"></i>';
+        }
+    };
+</script>
+</body>
+</html>

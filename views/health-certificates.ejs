@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الشهادات الصحية | Golden Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --navy: #0b1d2a; --gold: #ffcc00; --bg: #f8fafc; 
+            --danger: #ff4757; --success: #2ed573; --white: #ffffff; --border: #e2e8f0;
+        }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; color: var(--navy); }
+        
+        header { 
+            background: var(--navy); color: var(--gold); padding: 12px 30px; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        }
+
+        .container { max-width: 1250px; margin: 20px auto; padding: 0 20px; }
+        
+        /* شريط الأدوات العلوي */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+        
+        .search-box { 
+            background: var(--white); flex: 1; display: flex; align-items: center; 
+            padding: 5px 15px; border-radius: 12px; border: 1px solid var(--border);
+            min-width: 300px;
+        }
+        .search-box input { border: none; outline: none; padding: 10px; width: 100%; font-family: 'Tajawal'; font-size: 1rem; }
+
+        .btn-action {
+            background: var(--navy); color: var(--gold); border: none;
+            padding: 10px 25px; border-radius: 10px; cursor: pointer;
+            font-weight: bold; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal';
+            transition: 0.3s;
+        }
+        .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .btn-back {
+            background: #f1f5f9; color: var(--navy); padding: 8px 15px; border-radius: 8px;
+            text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: 0.9rem;
+        }
+
+        /* الجدول */
+        .table-container { background: var(--white); border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; text-align: right; min-width: 900px; }
+        th { background: #f8fafc; color: var(--gray); padding: 15px; font-size: 0.85rem; border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:hover { background: #f1f5f9; }
+
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .expired { background: #fee2e2; color: var(--danger); }
+        .active { background: #dcfce7; color: var(--success); }
+
+        .action-btns { display: flex; gap: 8px; }
+        .icon-btn { 
+            width: 38px; height: 38px; border-radius: 10px; border: none; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+
+        /* المودال */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 29, 42, 0.6); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content { background: var(--white); width: 95%; max-width: 550px; border-radius: 20px; padding: 30px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-family: 'Tajawal'; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex; align-items:center; gap:20px;">
+        <a href="javascript:history.back()" class="btn-back">
+            <i class="fas fa-arrow-right"></i> عودة
+        </a>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fas fa-file-medical fa-lg"></i>
+            <h3 style="margin:0; color:var(--gold)">نظام الشهادات الصحية</h3>
+        </div>
+    </div>
+    <button class="btn-action" style="background:var(--gold); color:var(--navy)" onclick="copyRegistrationLink()">
+        <i class="fas fa-link"></i> نسخ رابط التسجيل الخارجي
+    </button>
+</header>
+
+<div class="container">
+    <div class="top-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="بحث بالاسم أو الهوية أو رقم بلدي..." onkeyup="filterTable()">
+        </div>
+        <button class="btn-action" onclick="openModal()">
+            <i class="fas fa-plus-circle"></i> إضافة شهادة
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table id="certTable">
+            <thead>
+                <tr>
+                    <th>الموظف</th>
+                    <th>رقم الهوية</th>
+                    <th>رقم بلدي</th>
+                    <th>تاريخ الانتهاء</th>
+                    <th>الجوال</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (typeof certificates !== 'undefined' && certificates.length > 0) { %>
+                    <% certificates.forEach(cert => { %>
+                        <tr>
+                            <td><strong><%= cert.name %></strong></td>
+                            <td style="font-family: monospace;"><%= cert.idNum %></td>
+                            <td><%= cert.baladyNum || '---' %></td>
+                            <td>
+                                <span class="status-badge <%= new Date(cert.expiryDate) < new Date() ? 'expired' : 'active' %>">
+                                    <%= cert.expiryDate %>
+                                </span>
+                            </td>
+                            <td><%= cert.phone %></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="icon-btn" style="background:#fef9c3; color:#854d0e;" onclick="editCert('<%= JSON.stringify(cert) %>')" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="icon-btn" style="background:#dcfce7; color:#166534;" onclick="copyCertLink('<%= cert._id %>')" title="رابط البطاقة">
+                                        <i class="fas fa-id-card"></i>
+                                    </button>
+                                    <button class="icon-btn" style="background:#fee2e2; color:var(--danger);" onclick="deleteCertificate('<%= cert._id %>')" title="حذف">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="6" style="text-align:center; padding:50px; color:var(--gray);">لا توجد بيانات حالياً</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="certModal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="margin-top:0">إضافة شهادة</h3>
+        <hr style="border:0; border-top:1px solid #eee; margin-bottom:20px;">
+        <form id="healthForm">
+            <input type="hidden" id="certId">
+            <label>اسم الموظف</label>
+            <input type="text" id="name" required>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div><label>رقم الهوية</label><input type="text" id="idNum" required></div>
+                <div><label>رقم الجوال</label><input type="text" id="phone"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div><label>رقم بلدي</label><input type="text" id="baladyNum"></div>
+                <div><label>تاريخ الانتهاء</label><input type="date" id="expiryDate" required></div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" id="saveBtn" class="btn-action" style="flex:2; justify-content:center;">حفظ الآن ✅</button>
+                <button type="button" class="btn-action" style="flex:1; justify-content:center; background:#eee; color:#333" onclick="closeModal()">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const scopeId = new URLSearchParams(window.location.search).get('scope');
+
+    function openModal() { 
+        document.getElementById('healthForm').reset();
+        document.getElementById('certId').value = '';
+        document.getElementById('modalTitle').innerText = 'إضافة شهادة صحية جديدة';
+        document.getElementById('certModal').style.display = 'flex'; 
+    }
+    
+    function closeModal() { document.getElementById('certModal').style.display = 'none'; }
+
+    function editCert(certData) {
+        const cert = JSON.parse(certData);
+        document.getElementById('certId').value = cert._id;
+        document.getElementById('name').value = cert.name;
+        document.getElementById('idNum').value = cert.idNum;
+        document.getElementById('phone').value = cert.phone;
+        document.getElementById('baladyNum').value = cert.baladyNum;
+        document.getElementById('expiryDate').value = cert.expiryDate;
+        document.getElementById('modalTitle').innerText = 'تعديل بيانات الشهادة';
+        document.getElementById('certModal').style.display = 'flex';
+    }
+
+    async function deleteCertificate(id) {
+        if(confirm('هل أنت متأكد من حذف هذه الشهادة نهائياً؟')) {
+            try {
+                const res = await fetch(`/health/delete/${id}`, { method: 'DELETE' });
+                if(res.ok) {
+                    location.reload();
+                } else {
+                    alert("فشل الحذف، تأكد من اتصال السيرفر.");
+                }
+            } catch (err) {
+                alert("حدث خطأ أثناء محاولة الحذف.");
+            }
+        }
+    }
+
+    function copyRegistrationLink() {
+        const regLink = `${window.location.origin}/health/register?scope=${scopeId}`;
+        navigator.clipboard.writeText(regLink);
+        alert("تم نسخ رابط تسجيل الموظفين بنجاح.");
+    }
+
+    function copyCertLink(id) {
+        const link = `${window.location.origin}/health/card/${id}`;
+        navigator.clipboard.writeText(link);
+        alert("تم نسخ رابط البطاقة.");
+    }
+
+    document.getElementById('healthForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('certId').value;
+        const endpoint = id ? `/health/update/${id}` : '/health/add'; 
+        
+        const payload = {
+            scopeId,
+            name: document.getElementById('name').value,
+            idNum: document.getElementById('idNum').value,
+            phone: document.getElementById('phone').value,
+            baladyNum: document.getElementById('baladyNum').value,
+            expiryDate: document.getElementById('expiryDate').value
+        };
+
+        const res = await fetch(endpoint, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        if (result.success) location.reload();
+        else alert(result.message || "حدث خطأ");
+    };
+
+    function filterTable() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#certTable tbody tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+</script>
+</body>
+</html>

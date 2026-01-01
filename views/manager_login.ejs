@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول النظام | Golden Cloud Server</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy: #0b1d2a; --gold: #ffcc00; --white: #ffffff; --gray: #f4f7f6; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--gray); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-card { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 10px solid var(--gold); text-align: center; }
+        h2 { color: var(--navy); margin-bottom: 30px; font-weight: 700; }
+        .input-group { text-align: right; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--navy); font-weight: bold; }
+        input { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
+        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 8px rgba(255, 204, 0, 0.2); }
+        .btn-login { width: 100%; padding: 15px; background: var(--navy); color: var(--gold); border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-login:hover { background: #162e40; transform: translateY(-2px); }
+        .error-msg { color: #e74c3c; background: #fdeaea; padding: 10px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Golden Cloud Server</h2>
+        <div id="errorBox" class="error-msg"></div>
+        <form id="loginForm">
+            <div class="input-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
+            </div>
+            <div class="input-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-login" id="submitBtn">دخول النظام 🚀</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorBox = document.getElementById('errorBox');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // إظهار حالة جاري الدخول
+            submitBtn.disabled = true;
+            submitBtn.textContent = "جاري التحقق... ⏳";
+            errorBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/unified-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 1. تنظيف أي بيانات جلسة سابقة قديمة
+                    localStorage.clear();
+
+                    // 2. تخزين البيانات الجديدة بدقة
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('userName', data.name);
+                    if (data.scopeId) localStorage.setItem('scopeId', data.scopeId);
+
+                    // 3. تأخير بسيط (300 ملي ثانية) لضمان كتابة البيانات في المتصفح قبل التوجيه
+                    // هذا يمنع خروج النظام المفاجئ
+                    setTimeout(() => {
+                        window.location.href = data.role === 'super-admin' ? '/admin/dashboard' : '/manager/dashboard';
+                    }, 300);
+
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "دخول النظام 🚀";
+                    errorBox.textContent = data.message;
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "دخول النظام 🚀";
+                errorBox.textContent = "فشل في الاتصال بالسيرفر";
+                errorBox.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>

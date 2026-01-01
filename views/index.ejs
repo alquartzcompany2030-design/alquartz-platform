@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Cloud Server | البوابة الموحدة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy: #0d2d4d; --gold: #ffcc00; --bg: #f4f7f6; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 10px solid var(--gold); max-width: 400px; width: 90%; }
+        h1 { color: var(--navy); margin-bottom: 20px; font-size: 28px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .btn-main { width: 100%; padding: 15px; background: var(--navy); color: var(--gold); border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { background: #081d33; transform: translateY(-2px); }
+        #message { margin-top: 15px; font-size: 14px; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="font-size: 60px; margin-bottom: 10px;">☁️</div>
+        <h1>Golden Cloud Server</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="password" placeholder="كلمة المرور" required>
+            <button type="submit" class="btn-main" id="submitBtn">دخول النظام الموحد 🛡️</button>
+        </form>
+        <div id="message"></div>
+        <div style="margin-top: 25px; font-size: 12px; color: #aaa;">All Rights Reserved © 2025</div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('message');
+            
+            btn.innerText = "جاري التحقق... ⏳";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/unified-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    msg.innerHTML = `<span style="color: green;">✅ تم التحقق، جاري التوجيه...</span>`;
+                    // التوجيه بناءً على الرتبة
+                    if (data.role === 'super-admin') {
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        window.location.href = `/manager/dashboard?scope=${data.scopeId}`;
+                    }
+                } else {
+                    msg.innerHTML = `<span style="color: red;">❌ ${data.message}</span>`;
+                    btn.innerText = "دخول النظام الموحد 🛡️";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                msg.innerHTML = `<span style="color: red;">⚠️ خطأ في الاتصال بالسيرفر</span>`;
+                btn.innerText = "دخول النظام الموحد 🛡️";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

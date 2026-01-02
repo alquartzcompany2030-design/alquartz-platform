@@ -3,111 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل بيانات الأجور | Golden Cloud</title>
+    <title>تسجيل بيانات الأجور | Wage Registration</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1e3799; --accent: #f39c12; --bg: #f4f7f6; }
-        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .wage-form-container { background: #fff; width: 100%; max-width: 480px; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(30, 55, 153, 0.1); border-top: 8px solid var(--accent); }
-        .logo-section { text-align: center; margin-bottom: 30px; }
-        .logo-section h2 { color: var(--primary); font-weight: 800; margin: 0; }
+        :root { --primary: #0c2461; --accent: #e67e22; --success: #1b5e20; --bg: #f4f7f6; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px; 
+        }
+        .wage-form-container { 
+            background: #fff; width: 100%; max-width: 550px; padding: 30px; 
+            border-radius: 25px; box-shadow: 0 15px 35px rgba(30, 55, 153, 0.1); 
+            border-top: 10px solid var(--accent); 
+        }
+        .logo-section { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .logo-section h2 { color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem; }
+        .logo-section p { margin: 5px 0 0; font-size: 0.9rem; color: #7f8c8d; }
+        
         .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
-        .form-group input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 0.95rem; }
-        .form-group input:focus { border-color: var(--primary); outline: none; }
-        .friday-box { background: #fff9e6; padding: 15px; border-radius: 12px; border: 1px solid #f39c12; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 20px; }
+        .label-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .label-ar { font-weight: 700; color: #34495e; font-size: 0.9rem; }
+        .label-en { font-weight: 500; color: #95a5a6; font-size: 0.8rem; text-transform: uppercase; }
+        
+        input, select { 
+            width: 100%; padding: 12px 15px; border: 2px solid #edf2f7; 
+            border-radius: 12px; box-sizing: border-box; font-family: inherit; 
+            font-size: 0.95rem; transition: 0.3s; 
+        }
+        input:focus { border-color: var(--primary); outline: none; background-color: #fcfdfe; }
+        
+        .sponsor-box { background: #eef2ff; padding: 15px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; }
+        
+        .friday-box { 
+            background: #fff9e6; padding: 15px; border-radius: 12px; 
+            border: 1px solid #f39c12; display: flex; align-items: center; 
+            gap: 12px; cursor: pointer; margin-bottom: 20px; 
+        }
         .friday-box input { width: 22px; height: 22px; cursor: pointer; }
-        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .btn-submit:hover { background: #0c2461; transform: translateY(-2px); }
+        
+        .btn-submit { 
+            width: 100%; padding: 16px; background: var(--primary); color: white; 
+            border: none; border-radius: 15px; font-size: 1.1rem; font-weight: 700; 
+            cursor: pointer; transition: 0.4s; display: flex; 
+            justify-content: center; align-items: center; gap: 10px; 
+        }
+        .btn-submit:hover { background: #06123d; transform: translateY(-2px); }
+        .btn-submit:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+        .info-note { font-size: 0.75rem; color: #7f8c8d; margin-top: 5px; display: block; }
     </style>
 </head>
 <body>
+
 <div class="wage-form-container">
     <div class="logo-section">
-        <i class="fas fa-shield-alt fa-3x" style="color: var(--primary); margin-bottom: 10px;"></i>
-        <h2>تسجيل بيانات الأجور</h2>
-        <p style="color: #7f8c8d;">نظام غولدن كلاود - التحقق الذكي</p>
+        <i class="fas fa-university fa-3x" style="color: var(--primary); margin-bottom: 10px;"></i>
+        <h2>شركة الكوارتز | ALquartz</h2>
+        <p>نظام تسجيل بيانات الرواتب الذكي</p>
     </div>
+
     <form id="wageEntryForm">
+        <div class="form-group sponsor-box">
+            <div class="label-wrapper">
+                <span class="label-ar">اسم المنشأة (الكفيل):</span>
+                <span class="label-en">Sponsor / Employer</span>
+            </div>
+            <input type="text" id="sponsorName" placeholder="أدخل اسم الشركة التابع لها" required>
+            <small class="info-note">يستخدم لفرز الموظفين حسب السجل التجاري.</small>
+        </div>
+
         <div class="form-group">
-            <label>اسم الموظف الثلاثي:</label>
+            <div class="label-wrapper">
+                <span class="label-ar">اسم الموظف الكامل:</span>
+                <span class="label-en">Full Name</span>
+            </div>
             <input type="text" id="fullName" placeholder="كما هو في الهوية" required>
         </div>
+
         <div class="form-group">
-            <label>المهنة (المسمى الوظيفي):</label>
-            <input type="text" id="jobTitle" placeholder="مثال: محاسب، سائق، مهندس" required>
+            <div class="label-wrapper">
+                <span class="label-ar">المسمى الوظيفي:</span>
+                <span class="label-en">Job Title</span>
+            </div>
+            <input type="text" id="jobTitle" placeholder="مثال: عامل، فني، إداري" required>
         </div>
-        <div class="form-group">
-            <label>رقم الهوية / الإقامة:</label>
-            <input type="number" id="idNumber" placeholder="10xxxxxxxx" required>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <div class="label-wrapper">
+                    <span class="label-ar">رقم الهوية:</span>
+                    <span class="label-en">ID Number</span>
+                </div>
+                <input type="number" id="idNumber" placeholder="10xxxxxxxx" required>
+            </div>
+            <div class="form-group">
+                <div class="label-wrapper">
+                    <span class="label-ar">رقم الجوال:</span>
+                    <span class="label-en">Mobile</span>
+                </div>
+                <input type="tel" id="phoneNumber" placeholder="05xxxxxxxx" required>
+            </div>
         </div>
+
         <div class="form-group">
-            <label>رقم الجوال:</label>
-            <input type="tel" id="phoneNumber" placeholder="05xxxxxxxx" required>
+            <div class="label-wrapper">
+                <span class="label-ar">رقم الآيبان (IBAN):</span>
+                <span class="label-en">IBAN</span>
+            </div>
+            <input type="text" id="iban" placeholder="SA..." maxlength="24" oninput="this.value = this.value.toUpperCase()" required>
+            <small class="info-note">يجب أن يبدأ بـ SA ويتكون من 24 خانة.</small>
         </div>
+
         <div class="form-group">
-            <label>رقم الآيبان (IBAN):</label>
-            <input type="text" id="iban" placeholder="SA..." required>
-        </div>
-        <div class="form-group">
-            <label>الراتب الإجمالي المتفق عليه (صافي):</label>
-            <input type="number" id="totalSalary" style="font-weight: bold; color: #27ae60; font-size: 1.2rem; text-align: center;" required>
+            <div class="label-wrapper">
+                <span class="label-ar">إجمالي الراتب (شامل البدلات):</span>
+                <span class="label-en">Total Salary</span>
+            </div>
+            <input type="number" id="totalSalary" step="0.01" style="font-weight: bold; color: var(--success); font-size: 1.2rem; text-align: center;" placeholder="0.00" required>
         </div>
         
         <label class="friday-box">
-            <input type="checkbox" id="workFriday">
+            <input type="checkbox" id="workFriday" checked>
             <div>
                 <span style="font-weight: bold; color: #d35400;">هل تعمل يوم الجمعة؟</span>
-                <small style="display: block; color: #7f8c8d;">سيتم توزيع الراتب ليشمل بدل الراحة الأسبوعية.</small>
+                <small style="display: block; color: #7f8c8d;">Working on Friday?</small>
             </div>
         </label>
 
-        <button type="submit" id="submitBtn" class="btn-submit">تأكيد وحفظ البيانات <i class="fas fa-save"></i></button>
+        <button type="submit" id="submitBtn" class="btn-submit">
+            <span>إرسال البيانات</span>
+            <span>|</span>
+            <span style="font-size: 0.9rem;">Submit Data</span>
+            <i class="fas fa-paper-plane"></i>
+        </button>
     </form>
 </div>
 
 <script>
-    const scopeId = new URLSearchParams(window.location.search).get('scope');
+    // الحصول على معرف النطاق من الرابط
+    const urlParams = new URLSearchParams(window.location.search);
+    const scopeId = urlParams.get('scope');
     
     document.getElementById('wageEntryForm').onsubmit = async (e) => {
         e.preventDefault();
+        
+        // التحقق من وجود الـ Scope
+        if (!scopeId) {
+            alert("⚠️ خطأ: رابط الدخول غير صالح (مفقود كود النطاق). يرجى طلب الرابط من المدير.");
+            return;
+        }
+
         const btn = document.getElementById('submitBtn');
+        const ibanVal = document.getElementById('iban').value.trim();
+
+        // تحقق بسيط من طول الآيبان
+        if (ibanVal.length !== 24 || !ibanVal.startsWith('SA')) {
+            alert("⚠️ خطأ: رقم الآيبان يجب أن يبدأ بـ SA ويتكون من 24 حرفاً ورقماً.");
+            return;
+        }
+
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
         const formData = {
-            scope: scopeId,
+            scope: scopeId, // يتم إرساله كـ scope ليتوافق مع الـ Backend
+            sponsorName: document.getElementById('sponsorName').value,
             fullName: document.getElementById('fullName').value,
-            jobTitle: document.getElementById('jobTitle').value, // إرسال المهنة
+            jobTitle: document.getElementById('jobTitle').value,
             idNumber: document.getElementById('idNumber').value,
             phoneNumber: document.getElementById('phoneNumber').value,
-            iban: document.getElementById('iban').value,
+            iban: ibanVal,
             totalSalary: document.getElementById('totalSalary').value,
-            workFriday: document.getElementById('workFriday').checked // ستُرسل true أو false
+            workFriday: document.getElementById('workFriday').checked
         };
 
         try {
-            const res = await fetch('/api/submit-wage', {
+            // تم تعديل المسار هنا ليكون مطابقاً لملف wageRouter.js الخاص بك
+            const res = await fetch('/api/submit-wage', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
             
-            if(res.status === 409) {
-                alert("⚠️ تنبيه: رقم الهوية مسجل مسبقاً في هذا النطاق!");
-                btn.disabled = false;
-                btn.innerHTML = 'تأكيد وحفظ البيانات <i class="fas fa-save"></i>';
-            } else if(res.ok) {
-                alert("✅ تم حفظ بياناتك بنجاح");
-                window.location.href = "about:blank";
+            const result = await res.json();
+
+            if(res.ok && result.success) {
+                alert("✅ تم استلام بياناتك بنجاح! شكراً لك.");
+                e.target.reset();
+                // توجيه لصفحة شكر أو إعادة تحميل
+                window.location.reload();
             } else {
-                throw new Error();
+                alert("⚠️ تنبيه: " + (result.message || "فشل في حفظ البيانات"));
             }
         } catch (err) {
-            alert("❌ حدث خطأ في الاتصال بالسيرفر");
+            console.error(err);
+            alert("❌ خطأ في الاتصال بالسيرفر. تأكد من تشغيل النظام.");
+        } finally {
             btn.disabled = false;
-            btn.innerHTML = 'تأكيد وحفظ البيانات <i class="fas fa-save"></i>';
+            btn.innerHTML = 'إرسال البيانات | Submit Data <i class="fas fa-paper-plane"></i>';
         }
     };
 </script>

@@ -31,20 +31,20 @@
             background: white; border-radius: 15px; padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid var(--navy);
             transition: 0.3s ease; cursor: pointer; position: relative;
-            display: flex; flex-direction: column; min-height: 280px;
+            display: flex; flex-direction: column; min-height: 320px;
             overflow: hidden;
         }
 
         .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); filter: brightness(0.97); }
         
-        /* تنبيه الرخص المنتهية (أحمر) */
+        /* تنبيه نبضي للانتهاء (أحمر) - يشمل الرخص والشهادات الصحية */
         .alert-pulse {
             position: absolute; top: 12px; left: 12px; width: 12px; height: 12px;
             background: var(--red); border-radius: 50%; animation: blink 1.2s infinite;
             z-index: 2;
         }
 
-        /* تنبيه الرخص قريبة الانتهاء (برتقالي) */
+        /* تنبيه قريب الانتهاء (برتقالي) */
         .warning-pulse {
             position: absolute; top: 12px; left: 30px; width: 12px; height: 12px;
             background: var(--orange); border-radius: 50%; animation: blink 1.5s infinite;
@@ -62,24 +62,30 @@
         .worker-row:not(:last-child) { border-bottom: 1px dashed rgba(0,0,0,0.1); }
         
         .main-stat { flex: 1; text-align: center; }
-        .sub-stats { flex: 1; display: flex; justify-content: space-around; border-right: 1px solid rgba(0,0,0,0.1); }
-        
         .w-label { font-size: 0.75rem; color: #444; display: block; font-weight: bold; }
         .w-count { font-weight: 800; font-size: 1.4rem; }
-        .sub-count { font-size: 0.95rem; color: #222; font-weight: 700; }
 
         .count-saudi { color: var(--saudi); }
         .count-expat { color: var(--expat); }
 
+        /* قسم الإحصائيات المالية والصحية الجديدة */
+        .extra-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.7); padding: 8px; border-radius: 10px; 
+            text-align: center; border: 1px solid rgba(0,0,0,0.03);
+        }
+        .stat-val { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
+
         .footer-info { 
             font-size: 0.85rem; display: flex; align-items: center; justify-content: center; 
-            gap: 8px; padding: 8px; border-radius: 10px; margin-top: auto;
+            gap: 8px; padding: 10px; border-radius: 10px; margin-top: auto;
             transition: 0.3s;
         }
 
-        /* تنسيقات حالات المراقب */
-        .text-danger { color: #fff !important; background: var(--red) !important; font-weight: bold; }
-        .text-warning { color: #fff !important; background: var(--orange) !important; font-weight: bold; }
+        .text-danger { color: #fff !important; background: var(--red) !important; }
+        .text-warning { color: #fff !important; background: var(--orange) !important; }
         .text-safe { color: var(--navy); background: rgba(26, 188, 156, 0.1); }
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -90,18 +96,13 @@
             display: flex; align-items: center; gap: 8px;
         }
         .btn-matrix-back:hover { background: var(--gold); color: var(--navy); }
-
-        .error-container {
-            grid-column: 1 / -1; text-align: center; padding: 50px; 
-            background: #fff; border-radius: 15px; border: 2px dashed var(--red);
-        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div>
-            <h2 style="margin:0;"><i class="fas fa-layer-group"></i> لوحة إدارة المنشآت</h2>
+            <h2 style="margin:0;"><i class="fas fa-layer-group"></i> لوحة إدارة المنشآت الموحدة</h2>
             <p style="margin:5px 0 0; font-size:0.9rem; color:var(--gold);">نظام الرصد الذكي | أبو حمزة</p>
         </div>
         <a href="/admin/dashboard" class="btn-matrix-back">
@@ -112,7 +113,7 @@
     <div class="grid-container" id="matrixGrid">
         <div style="grid-column: 1 / -1; text-align: center; padding: 100px;">
             <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--navy);"></i>
-            <p style="margin-top: 15px; color: var(--navy); font-weight: bold;">جاري مزامنة بيانات المنشآت والرقابة...</p>
+            <p style="margin-top: 15px; font-weight: bold;">جاري مزامنة الرخص والشهادات الصحية...</p>
         </div>
     </div>
 
@@ -132,8 +133,7 @@
                 const orgs = await response.json();
                 renderCards(orgs);
             } catch (error) {
-                console.error("Matrix Error:", error);
-                grid.innerHTML = `<div class="error-container">...</div>`;
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 50px;">خطأ في تحميل البيانات</div>`;
             }
         }
 
@@ -146,28 +146,32 @@
 
             grid.innerHTML = orgs.map((org, index) => {
                 const bgColor = pastelColors[index % pastelColors.length];
-                const hasExpired = org.expiredLicenses > 0;
-                const hasWarning = org.nearExpiryLicenses > 0;
                 
-                // تحديد لون وشكل شريط الحالة السفلي
+                // فحص الانتهاء: رخص + شهادات صحية
+                const expiredLicenseCount = org.expiredLicenses || 0;
+                const expiredHealthCount = org.expiredHealthCerts || 0;
+                const hasCriticalExpired = expiredLicenseCount > 0 || expiredHealthCount > 0;
+                
+                const hasWarning = (org.nearExpiryLicenses > 0 || org.nearExpiryHealth > 0);
+                
                 let statusClass = 'text-safe';
                 let statusIcon = 'fa-circle-check';
-                let statusText = 'جميع الرخص سارية';
+                let statusText = 'جميع السجلات سارية';
 
-                if (hasExpired) {
+                if (hasCriticalExpired) {
                     statusClass = 'text-danger';
                     statusIcon = 'fa-triangle-exclamation';
-                    statusText = `رخص منتهية: ${org.expiredLicenses}`;
+                    statusText = `تنبيه: سجلات منتهية (${expiredLicenseCount + expiredHealthCount})`;
                 } else if (hasWarning) {
                     statusClass = 'text-warning';
                     statusIcon = 'fa-clock';
-                    statusText = `رخص شارفت على الانتهاء  ${org.nearExpiryLicenses}`;
+                    statusText = `سجلات تقترب من الانتهاء`;
                 }
 
                 return `
                 <div class="org-card" style="background-color: ${bgColor};" onclick="goToDashboard('${org.uniqueId}')">
-                    ${hasExpired ? '<div class="alert-pulse" title="يوجد رخص منتهية"></div>' : ''}
-                    ${hasWarning && !hasExpired ? '<div class="warning-pulse" title="رخص تنتهي قريباً"></div>' : ''}
+                    ${hasCriticalExpired ? '<div class="alert-pulse" title="يوجد سجلات منتهية!"></div>' : ''}
+                    ${(hasWarning && !hasCriticalExpired) ? '<div class="warning-pulse" title="سجلات تنتهي قريباً"></div>' : ''}
                     
                     <h3 class="org-title">${org.name}</h3>
                     <span class="org-id">ID: ${org.uniqueId}</span>
@@ -178,20 +182,24 @@
                                 <span class="w-label">سعودي</span>
                                 <span class="w-count count-saudi">${org.saudiWorkers || 0}</span>
                             </div>
-                            <div class="sub-stats">
-                                <div><span class="w-label">♂</span><span class="sub-count">${org.saudiMale || 0}</span></div>
-                                <div><span class="w-label">♀</span><span class="sub-count">${org.saudiFemale || 0}</span></div>
-                            </div>
-                        </div>
-                        <div class="worker-row">
-                            <div class="main-stat">
+                            <div class="main-stat" style="border-right: 1px solid rgba(0,0,0,0.05);">
                                 <span class="w-label">مقيم</span>
                                 <span class="w-count count-expat">${org.expatWorkers || 0}</span>
                             </div>
-                            <div class="sub-stats">
-                                <div><span class="w-label">♂</span><span class="sub-count">${org.expatMale || 0}</span></div>
-                                <div><span class="w-label">♀</span><span class="sub-count">${org.expatFemale || 0}</span></div>
-                            </div>
+                        </div>
+                    </div>
+
+                    <div class="extra-stats">
+                        <div class="stat-box">
+                            <span class="w-label">مسير الرواتب</span>
+                            <span class="stat-val">${org.totalWages || 0} ر.س</span>
+                        </div>
+                        <div class="stat-box" style="${expiredHealthCount > 0 ? 'border: 1px solid var(--red)' : ''}">
+                            <span class="w-label">شهادات صحية</span>
+                            <span class="stat-val" style="color: ${expiredHealthCount > 0 ? 'var(--red)' : 'var(--navy)'}">
+                                ${org.healthCertsCount || 0} 
+                                ${expiredHealthCount > 0 ? '<i class="fas fa-exclamation-circle"></i>' : ''}
+                            </span>
                         </div>
                     </div>
 

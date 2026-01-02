@@ -2,64 +2,95 @@ const express = require('express');
 const router = express.Router();
 const Wage = require('../models/Wage');
 
-// أ. عرض الصفحات (Views)
-// رابط المدير: /manager/wages
-router.get('/manager/wages', (req, res) => {
-    res.render('wages'); 
-});
+// كلمة المرور الخاصة بالعمليات المالية (يمكنك تغييرها من هنا)
+const ADMIN_PASSWORD = "hDB3xqff@"; 
 
-// رابط الموظف: /employee/wage-entry
-router.get('/employee/wage-entry', (req, res) => {
-    res.render('wage-entry'); 
-});
+// --- 1. عرض الصفحات (Views) ---
+router.get('/manager/wages', (req, res) => res.render('wages'));
+router.get('/wage-entry', (req, res) => res.render('wage-entry'));
 
-// ب. العمليات البرمجية (APIs)
-
-// جلب بيانات الأجور حسب النطاق
+// --- 2. جلب البيانات حسب النطاق ---
 router.get('/manager/api/get-wages/:scopeId', async (req, res) => {
     try {
-        const wages = await Wage.find({ scopeId: req.params.scopeId });
+        const wages = await Wage.find({ scopeId: req.params.scopeId }).sort({ createdAt: -1 });
         res.json(wages);
     } catch (err) {
         res.status(500).json({ error: "خطأ في جلب البيانات" });
     }
 });
 
-// حفظ بيانات أجور موظف جديد (مع المهنة وبدل الجمعة)
+// --- 3. حفظ بيانات موظف جديد (مع منع التكرار) ---
 router.post('/api/submit-wage', async (req, res) => {
     try {
-        // منع تكرار الهوية في نفس المنشأة
-        const existing = await Wage.findOne({ idNumber: req.body.idNumber, scopeId: req.body.scope });
+        const { idNumber, scope } = req.body;
+        
+        // التحقق من وجود الهوية مسبقاً
+        const existing = await Wage.findOne({ idNumber: idNumber.trim() });
         if (existing) {
-            return res.status(409).json({ success: false, message: "رقم الهوية مسجل مسبقاً" });
+            return res.status(409).json({ success: false, message: "رقم الهوية مسجل مسبقاً في النظام" });
         }
 
         const newWage = new Wage({
-            scopeId: req.body.scope,
-            fullName: req.body.fullName,
-            jobTitle: req.body.jobTitle, // إضافة المهنة
-            idNumber: req.body.idNumber,
-            phoneNumber: req.body.phoneNumber,
-            iban: req.body.iban,
+            ...req.body,
+            scopeId: scope,
+            idNumber: idNumber.trim(),
             totalSalary: parseFloat(req.body.totalSalary),
-            workFriday: req.body.workFriday === true || req.body.workFriday === 'true'
+            workFriday: req.body.workFriday === true || req.body.workFriday === 'true',
+            deduction: 0 // يبدأ الخصم دائماً من صفر
         });
 
         await newWage.save();
-        res.json({ success: true });
+        res.json({ success: true, message: "تم الحفظ بنجاح" });
     } catch (err) {
-        console.error("Save Error:", err);
-        res.status(500).json({ success: false, message: "خطأ في حفظ البيانات" });
+        console.error(err);
+        res.status(500).json({ success: false, message: "خطأ فني في السيرفر" });
     }
 });
 
-// حذف سجل أجر
-router.delete('/manager/api/delete-wage/:id', async (req, res) => {
+// --- 4. تحديث الخصومات (محمي بكلمة مرور) ---
+router.post('/manager/api/update-deduction', async (req, res) => {
     try {
-        await Wage.findByIdAndDelete(req.params.id);
-        res.json({ success: true });
+        const { idNumber, deduction, password } = req.body;
+
+        // التحقق من كلمة المرور قبل التعديل
+        if (password !== ADMIN_PASSWORD) {
+            return res.status(403).json({ success: false, message: "كلمة مرور خاطئة! لا تملك صلاحية التعديل المالي." });
+        }
+
+        const result = await Wage.findOneAndUpdate(
+            { idNumber: idNumber },
+            { deduction: parseFloat(deduction) || 0 },
+            { new: true }
+        );
+        
+        if (result) {
+            res.json({ success: true, message: "تم تحديث الخصم بنجاح" });
+        } else {
+            res.status(404).json({ success: false, message: "الموظف غير موجود" });
+        }
     } catch (err) {
-        res.status(500).json({ error: "فشل الحذف" });
+        res.status(500).json({ success: false, error: "فشل تحديث الخصم" });
+    }
+});
+
+// --- 5. الحذف النهائي من قاعدة البيانات (محمي بكلمة مرور) ---
+router.delete('/manager/api/delete-wage/:idNumber', async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        // التحقق من كلمة المرور قبل الحذف
+        if (password !== ADMIN_PASSWORD) {
+            return res.status(403).json({ success: false, message: "كلمة مرور خاطئة! لا تملك صلاحية الحذف." });
+        }
+
+        const result = await Wage.findOneAndDelete({ idNumber: req.params.idNumber });
+        if (result) {
+            res.json({ success: true, message: "تم الحذف نهائياً" });
+        } else {
+            res.status(404).json({ success: false, message: "السجل غير موجود" });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: "فشل الحذف" });
     }
 });
 

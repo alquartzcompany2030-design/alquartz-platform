@@ -276,11 +276,20 @@
 <div class="container">
     <div class="stats-grid" id="statsContainer"></div>
 
-    <div class="toolbar">
-        <div class="search-wrapper">
-            <i class="fas fa-search"></i>
-            <input type="text" id="mainSearch" placeholder="ابحث بالاسم، الهوية، أو الجنسية..." onkeyup="handleSearch()">
-        </div>
+   <div class="toolbar">
+    <div class="search-wrapper">
+        <input type="text" id="mainSearch" placeholder="ابحث بالاسم أو الهوية...">
+    </div>
+    
+    <select id="branchFilter" class="chamber-dropdown" onchange="filterByBranch()" style="height: 45px;">
+        <option value="all">كل السجلات التجارية</option>
+        <option value="main">المركز الرئيسي</option>
+        <option value="branch1">فرع القصيم</option>
+        <option value="branch2">فرع الرياض</option>
+    </select>
+    
+    <button class="btn btn-excel" onclick="exportToExcel()">تصدير إكسل</button>
+</div>
         <button class="btn btn-excel" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
         <button class="btn" style="background: var(--navy); color:white" onclick="init()"><i class="fas fa-sync"></i> تحديث</button>
     </div>
@@ -292,16 +301,16 @@
 </div>
     <div class="table-card">
         <table>
-            <thead>
-                <tr>
-                    <th>الموظف</th>
-                    <th>الجنسية</th>
-                    <th>الهوية</th>
-                    <th>الجوال</th>
-                    <th>انتهاء الهوية</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
+           <thead>
+    <tr>
+        <th>الموظف</th>
+        <th>المنشأة/الفرع</th> <th>الجنسية</th>
+        <th>الهوية</th>
+        <th>انتهاء الهوية</th>
+        <th>الإجراءات</th>
+    </tr>
+</thead>
+
             <tbody id="employeeTable">
                 <tr><td colspan="6">جاري جلب البيانات...</td></tr>
             </tbody>
@@ -445,33 +454,48 @@ function goToWages() {
     }
 
     // 4. عرض البيانات والفلترة
+    // 4. عرض البيانات والفلترة (تم إصلاح عمود الإجراءات)
     function renderTable(data) {
         const tbody = document.getElementById('employeeTable');
-        if(!data || data.length === 0) {
+        if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6">لا يوجد موظفين مسجلين حالياً.</td></tr>';
             return;
         }
+
         tbody.innerHTML = data.map(emp => {
             const isExp = emp.idExpiry && new Date(emp.idExpiry) < new Date();
-            const waLink = `https://wa.me/${emp.phoneNumber?.replace(/\D/g,'')}?text=تحية طيبة، نود تذكيرك بتحديث بياناتك لدى غولدن كلاود`;
+            const establishmentBranch = emp.establishmentName || document.getElementById('scopeNameDisplay').innerText;
+
             return `
                 <tr>
                     <td>
                         <div style="display:flex; align-items:center; gap:10px; justify-content:center">
-                            <i class="fas ${emp.gender === 'female' ? 'fa-female' : 'fa-male'}" style="color:${emp.gender === 'female' ? '#e84393' : '#3498db'}"></i>
+                            <i class="fas ${emp.gender === 'female' ? 'fa-female' : 'fa-male'}" 
+                               style="color:${emp.gender === 'female' ? '#e84393' : '#3498db'}"></i>
                             <b>${emp.fullName}</b>
                         </div>
-                        <small style="color:#888">${emp.jobTitle || 'موظف'}</small>
+                    </td>
+                    <td>
+                        <span style="color: var(--navy); font-weight: bold; font-size: 0.85rem;">
+                            <i class="fas fa-building" style="opacity:0.5"></i> ${establishmentBranch}
+                        </span>
                     </td>
                     <td><span style="background:#eee; padding:3px 10px; border-radius:5px; font-size:0.8rem">${emp.nationality || 'غير محدد'}</span></td>
                     <td><code>${emp.idNumber}</code></td>
-                    <td>${emp.phoneNumber}</td>
-                    <td style="color:${isExp ? 'red' : 'green'}; font-weight:bold">${emp.idExpiry ? new Date(emp.idExpiry).toLocaleDateString('en-GB') : '-'}</td>
+                    <td style="color:${isExp ? 'red' : 'green'}; font-weight:bold">
+                        ${emp.idExpiry ? new Date(emp.idExpiry).toLocaleDateString('en-GB') : '-'}
+                    </td>
                     <td>
                         <div style="display:flex; gap:5px; justify-content:center">
-                            <button class="btn btn-whatsapp" onclick="window.open('${waLink}')" title="واتساب"><i class="fab fa-whatsapp"></i></button>
-                            <button class="btn btn-info" onclick="viewDetails('${emp._id}')" title="عرض وتعديل"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-danger" onclick="deleteEmployee('${emp._id}')" title="حذف"><i class="fas fa-trash"></i></button>
+                            <button class="btn btn-info" onclick="viewDetails('${emp._id}')" title="تفاصيل">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-edit" onclick="openEditModal('${emp._id}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteEmployee('${emp._id}')" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -479,6 +503,8 @@ function goToWages() {
         }).join('');
     }
 
+    // إضافة مستمع لحدث البحث عند الكتابة
+    document.getElementById('mainSearch').addEventListener('input', handleSearch);
     function renderStats(response) {
         const data = response.employees;
         const hStats = response.healthStats;

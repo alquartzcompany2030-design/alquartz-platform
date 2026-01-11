@@ -20,21 +20,22 @@ router.get('/worker-auth', (req, res) => {
  */
 router.post('/api/save-signature', async (req, res) => {
     try {
-        let userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        if (userIp && userIp.includes('::ffff:')) userIp = userIp.split(':').pop();
-
-        // req.body يحتوي الآن على fullName, idNumber, companyName, scopeId, faceImage, signatureData
-        const dataToSave = new Clearance({
+        // تنظيف البيانات القادمة لضمان المطابقة
+        const cleanedData = {
             ...req.body,
-            userIp: userIp,
+            idNumber: String(req.body.idNumber).trim(), // إزالة أي مسافات من الهوية
+            scopeId: String(req.body.scopeId).trim(),   // إزالة أي مسافات من الكود SC-ED2064
             createdAt: new Date()
-        });
+        };
 
+        const dataToSave = new Clearance(cleanedData);
         await dataToSave.save();
-        res.status(200).json({ success: true, message: "تم الحفظ والتوثيق بنجاح" });
+        
+        console.log(`✅ تم توثيق مخالصة جديدة للمنشأة: ${cleanedData.scopeId}`);
+        res.status(200).json({ success: true });
     } catch (err) {
-        console.error("خطأ في الحفظ:", err);
-        res.status(500).json({ error: "فشل الحفظ", details: err.message });
+        console.error("❌ خطأ في الحفظ:", err);
+        res.status(500).json({ error: "فشل الحفظ" });
     }
 });
 

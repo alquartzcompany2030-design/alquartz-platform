@@ -9,8 +9,9 @@ const ClearanceSchema = new mongoose.Schema({
     authIp: { type: String },                        
     deviceInfo: { type: String },                    
     scopeId: { type: String, required: true },
-    lang: { type: String, default: 'ar' }, // تم إضافة حقل اللغة هنا لضمان الحفظ
-    signedAt: { type: Date, default: Date.now }      
+    lang: { type: String, default: 'ar' },
+    createdAt: { type: Date, default: Date.now } // نستخدم createdAt ليتوافق مع كود الأرشيف
 });
 
+// تأكد من تصديره باسم Clearance
 module.exports = mongoose.model('Clearance', ClearanceSchema);

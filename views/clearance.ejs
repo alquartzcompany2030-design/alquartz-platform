@@ -170,31 +170,35 @@
     }
 
     function renderTable(employees) {
-        const tbody = document.getElementById('employeeList');
-        if (!employees || employees.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4">لا يوجد موظفون مضافون.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = employees.map(emp => {
-            const signs = allSignatures.filter(s => String(s.idNumber) === String(emp.idNumber));
-            const lastUpdate = signs.length > 0 ? new Date(signs[0].createdAt).toLocaleDateString('ar-SA') : '-';
-            
-            return `
-                <tr>
-                    <td><b>${emp.fullName}</b></td>
-                    <td><code>${emp.idNumber}</code></td>
-                    <td><span class="badge-count">${signs.length}</span></td>
-                    <td>${lastUpdate}</td>
-                    <td>
-                        <button class="btn btn-view" onclick="openArchive('${emp.idNumber}', '${emp.fullName}')">
-                            <i class="fas fa-folder-open"></i> الأرشيف
-                        </button>
-                    </td>
-                </tr>`;
-        }).join('');
+    const tbody = document.getElementById('employeeList');
+    if (!employees || employees.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">لا يوجد موظفون مضافون.</td></tr>';
+        return;
     }
 
+    tbody.innerHTML = employees.map(emp => {
+        // تحسين المطابقة عبر إزالة الفراغات وتحويل القيم إلى نصوص
+        const empId = String(emp.idNumber || '').trim();
+        const signs = allSignatures.filter(s => String(s.idNumber || '').trim() === empId);
+        
+        const lastUpdate = signs.length > 0 ? new Date(signs[0].createdAt).toLocaleDateString('ar-SA') : '-';
+        
+        return `
+            <tr>
+                <td><b>${emp.fullName}</b></td>
+                <td><code>${empId}</code></td>
+                <td><span class="badge-count" style="background: ${signs.length > 0 ? '#27ae60' : '#ffcc00'}; color: white;">
+                    ${signs.length}
+                </span></td>
+                <td>${lastUpdate}</td>
+                <td>
+                    <button class="btn btn-view" onclick="openArchive('${empId}', '${emp.fullName}')">
+                        <i class="fas fa-folder-open"></i> الأرشيف
+                    </button>
+                </td>
+            </tr>`;
+    }).join('');
+}
     function openArchive(idNumber, name) {
         const modal = document.getElementById('archiveModal');
         const content = document.getElementById('archiveContent');

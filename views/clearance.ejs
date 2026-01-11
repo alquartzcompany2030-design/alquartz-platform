@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أرشيف التوثيق | Golden Cloud Server</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #0b1d2a; --gold: #ffcc00; --white: #ffffff;
+            --bg: #f0f2f5; --shadow-sm: 0 5px 15px rgba(0,0,0,0.05);
+            --danger: #e74c3c; --success: #27ae60;
+        }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; }
+        
+        header {
+            background: linear-gradient(135deg, var(--navy) 0%, #162e3e 100%);
+            color: var(--gold); padding: 15px 40px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 1000;
+        }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+
+        .scope-badge { 
+            background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 50px; 
+            color: #fff; font-weight: 700; border: 1px solid var(--gold);
+        }
+
+        .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: 0.3s; }
+        
+        /* زر النسخ الجديد في اليسار */
+        .btn-copy-link { background: var(--gold); color: var(--navy); }
+        .btn-copy-link:hover { background: #fff; transform: translateY(-2px); }
+        
+        .btn-back { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+        .btn-back:hover { background: rgba(255,204,0,0.1); }
+
+        .gov-bar {
+            background: #fdfdfd; padding: 10px 20px; display: flex; gap: 12px;
+            overflow-x: auto; white-space: nowrap; border-bottom: 2px solid #eee;
+        }
+        .gov-link {
+            text-decoration: none; color: var(--navy); padding: 6px 12px;
+            border-radius: 8px; background: #eee; font-weight: 700; font-size: 0.8rem;
+        }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .table-card { background: white; border-radius: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background: var(--navy); color: var(--gold); padding: 15px; text-align: center; }
+        td { padding: 15px; border-bottom: 1px solid #f0f0f0; text-align: center; font-weight: 600; }
+
+        .btn-view { background: var(--navy); color: var(--gold); }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 800px; margin: 50px auto; border-radius: 20px;
+            padding: 25px; max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .close-modal { position: absolute; left: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--danger); }
+        
+        .archive-item {
+            border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; background: #fafafa;
+        }
+        .badge-count {
+            background: var(--gold); color: var(--navy); padding: 2px 8px; border-radius: 50%; font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-right">
+        <i class="fas fa-server fa-2x"></i>
+        <div>
+            <h2 style="margin:0; font-size: 1.2rem;">Golden Cloud Server</h2>
+            <div id="scopeNameDisplay" class="scope-badge">جاري التحميل...</div>
+        </div>
+    </div>
+
+    <div class="header-left">
+        <button class="btn btn-copy-link" onclick="copyWorkerLink()">
+            <i class="fas fa-copy"></i> نسخ رابط الموظفين
+        </button>
+        <button class="btn btn-back" onclick="history.back()">
+            <i class="fas fa-arrow-right"></i> العودة
+        </button>
+    </div>
+</header>
+
+<div class="gov-bar">
+    <a href="https://www.qiwa.sa" target="_blank" class="gov-link">قوى</a>
+    <a href="https://www.mudad.com.sa" target="_blank" class="gov-link">مدد</a>
+    <a href="https://muqeem.sa" target="_blank" class="gov-link">مقيم</a>
+</div>
+
+<div class="container">
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>الموظف</th>
+                    <th>الهوية</th>
+                    <th>عدد التوثيقات</th>
+                    <th>آخر تحديث</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="employeeList">
+                <tr><td colspan="5">جاري جلب بيانات الأرشيف...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="archiveModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle" style="color: var(--navy); border-bottom: 2px solid var(--gold); padding-bottom: 10px;">أرشيف المستندات</h3>
+        <div id="archiveContent"></div>
+    </div>
+</div>
+
+<script>
+    let scopeId = new URLSearchParams(window.location.search).get('scope') || localStorage.getItem('last_active_scope');
+    let allSignatures = [];
+    let currentScopeName = "";
+
+    async function init() {
+        if(!scopeId) return alert("خطأ: لم يتم تحديد النطاق.");
+        
+        try {
+            const infoRes = await fetch(`/manager/api/get-scope-info/${scopeId}`);
+            const info = await infoRes.json();
+            currentScopeName = info.name || "نطاق تجريبي";
+            document.getElementById('scopeNameDisplay').innerText = currentScopeName;
+
+            const [signRes, wageRes] = await Promise.all([
+                fetch(`/clearance-system/api/list/${scopeId}`),
+                fetch(`/manager/api/get-wages/${scopeId}`)
+            ]);
+            
+            allSignatures = await signRes.json();
+            const wageData = await wageRes.json();
+            const employees = Array.isArray(wageData) ? wageData : (wageData.wages || []);
+            
+            renderTable(employees);
+        } catch (e) {
+            console.error("Initialization Error:", e);
+            document.getElementById('employeeList').innerHTML = '<tr><td colspan="5">حدث خطأ أثناء تحميل البيانات.</td></tr>';
+        }
+    }
+
+    function copyWorkerLink() {
+        const baseUrl = window.location.origin;
+        // الرابط الذي سيتم إرساله للموظف
+        const workerUrl = `${baseUrl}/worker-auth?scope=${scopeId}&company=${encodeURIComponent(currentScopeName)}`;
+        
+        navigator.clipboard.writeText(workerUrl).then(() => {
+            alert("✅ تم نسخ الرابط بنجاح!\nالآن يمكنك لصقه وإرساله للموظفين.");
+        }).catch(err => {
+            alert("فشل نسخ الرابط، يرجى المحاولة مرة أخرى.");
+        });
+    }
+
+    function renderTable(employees) {
+        const tbody = document.getElementById('employeeList');
+        if (!employees || employees.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">لا يوجد موظفون مضافون.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = employees.map(emp => {
+            const signs = allSignatures.filter(s => String(s.idNumber) === String(emp.idNumber));
+            const lastUpdate = signs.length > 0 ? new Date(signs[0].createdAt).toLocaleDateString('ar-SA') : '-';
+            
+            return `
+                <tr>
+                    <td><b>${emp.fullName}</b></td>
+                    <td><code>${emp.idNumber}</code></td>
+                    <td><span class="badge-count">${signs.length}</span></td>
+                    <td>${lastUpdate}</td>
+                    <td>
+                        <button class="btn btn-view" onclick="openArchive('${emp.idNumber}', '${emp.fullName}')">
+                            <i class="fas fa-folder-open"></i> الأرشيف
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    function openArchive(idNumber, name) {
+        const modal = document.getElementById('archiveModal');
+        const content = document.getElementById('archiveContent');
+        const title = document.getElementById('modalTitle');
+        
+        title.innerText = `مستندات: ${name}`;
+        const signs = allSignatures.filter(s => String(s.idNumber) === String(idNumber));
+        
+        if (signs.length === 0) {
+            content.innerHTML = '<div style="text-align:center; padding:40px; color:#777;">لا توجد مخالصات موثقة لهذا الموظف.</div>';
+        } else {
+            content.innerHTML = signs.map((s, index) => `
+                <div class="archive-item">
+                    <div>
+                        <strong>مخالصة رقم ${signs.length - index}</strong><br>
+                        <small style="color:#666;"><i class="far fa-calendar-alt"></i> ${new Date(s.createdAt).toLocaleString('ar-SA')}</small>
+                    </div>
+                    <a href="/clearance-system/view/${s._id}" target="_blank" class="btn btn-view" style="font-size: 0.8rem;">
+                        <i class="fas fa-external-link-alt"></i> عرض المستند
+                    </a>
+                </div>
+            `).join('');
+        }
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('archiveModal').style.display = 'none';
+    }
+
+    window.onclick = (e) => { if (e.target.className === 'modal') closeModal(); }
+
+    init();
+</script>
+</body>
+</html>

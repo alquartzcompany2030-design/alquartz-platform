@@ -1,0 +1,209 @@
+<% 
+    const safeScope = typeof scopeKey !== 'undefined' ? scopeKey : '';
+    const safeId = typeof idVal !== 'undefined' ? idVal : ''; 
+    const safeName = typeof nameVal !== 'undefined' ? nameVal : '';
+%>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة التوثيق الرقمي | Golden Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --navy: #0b1d2a; --gold: #ffcc00; --bg: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; }
+        header { background: var(--navy); color: var(--gold); padding: 15px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        .card-main { background: var(--white); border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding: 30px; }
+        .step { display: none; animation: fadeIn 0.5s ease; }
+        .step.active { display: block; }
+        .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .lang-btn { padding: 15px; border: 2px solid #eee; border-radius: 12px; background: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .lang-btn:hover { background: var(--gold); color: var(--navy); }
+        .input-box { border: 2px solid #eee; border-radius: 12px; padding: 10px; margin-bottom: 15px; }
+        .input-box label { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
+        .input-box input { width: 100%; border: none; outline: none; font-size: 1rem; font-family: 'Tajawal'; background: transparent; }
+        .btn-next { background: var(--navy); color: var(--gold); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        canvas { border: 2px dashed #cbd5e1; border-radius: 15px; background: #fafafa; width: 100%; height: 180px; touch-action: none; }
+        video { width: 100%; border-radius: 15px; background: #000; transform: scaleX(-1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <i class="fas fa-server fa-2x" style="margin-bottom: 10px;"></i>
+    <h2 style="margin:0; font-weight: 800;">Golden Cloud Server</h2>
+    <p style="margin:5px 0; font-size: 0.9rem; opacity: 0.8;">بوابة التوثيق الرقمي الآمنة</p>
+</header>
+
+<div class="container">
+    <div class="card-main">
+        <div id="step1" class="step active">
+            <h3 style="text-align:center;">اختر اللغة / Select Language</h3>
+            <div class="lang-grid">
+                <button class="lang-btn" onclick="setLang('ar')">العربية</button>
+                <button class="lang-btn" onclick="setLang('en')">English</button>
+                <button class="lang-btn" onclick="setLang('ur')">اردو</button>
+                <button class="lang-btn" onclick="setLang('bn')">বাংলা</button>
+            </div>
+        </div>
+
+        <div id="step2" class="step" style="text-align:center;">
+            <i class="fas fa-certificate fa-3x" style="color: var(--gold); margin-bottom: 15px;"></i>
+            <h2 id="welcome-msg"></h2>
+            <p id="appreciation-msg"></p>
+            <button class="btn-next" onclick="nextStep(3)">بدء التوثيق / Start</button>
+        </div>
+
+        <div id="step3" class="step">
+            <h3 id="data-title">البيانات الشخصية</h3>
+            <div class="input-box">
+                <label id="lbl-name">الاسم الكامل (كما في الإقامة)</label>
+                <input type="text" id="full-name" value="<%= safeName %>">
+            </div>
+            <div class="input-box">
+                <label id="lbl-id">رقم الهوية / الإقامة</label>
+                <input type="text" id="id-num" value="<%= safeId %>">
+            </div>
+            
+            <div class="input-box" style="border-color: var(--gold); background: #fffdf0;">
+                <label id="lbl-comp" style="color: var(--navy); font-weight: bold;">اسم المنشأة الكفيلة (كما في أبشر)</label>
+                <input type="text" id="company-name" placeholder="اكتب اسم الشركة أو المؤسسة بدقة" oninput="updateLegalText()">
+            </div>
+
+            <div class="input-box">
+                <label id="lbl-phone">رقم الجوال</label>
+                <input type="tel" id="absher-phone" placeholder="05xxxxxxxx">
+            </div>
+            <button class="btn-next" onclick="nextStep(4)">التالي: بصمة الوجه</button>
+        </div>
+
+        <div id="step4" class="step">
+            <h3 style="text-align:center;">بصمة الوجه الرقمية</h3>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+            <img id="photo-preview" style="display:none; width:100%; border-radius:15px; margin-bottom:10px; border: 3px solid var(--navy);">
+            <button id="capture-btn" class="btn-next" onclick="takeSnapshot()">التقاط الصورة</button>
+            <button id="next-to-sign" class="btn-next" style="display:none;" onclick="nextStep(5)">المتابعة للتوقيع</button>
+        </div>
+
+        <div id="step5" class="step">
+            <div style="background:#f8f9fa; padding:15px; border-radius:12px; margin-bottom:15px; border-right: 5px solid var(--gold);">
+                <p id="legal-text" style="font-weight:bold; line-height: 1.6; color: var(--navy);"></p>
+            </div>
+            <p style="font-size: 0.8rem; color: #666; text-align: center;">وقع بإصبعك داخل المربع أدناه</p>
+            <canvas id="signature-pad"></canvas>
+            <button class="btn-next" id="final-submit" onclick="finalSubmit()">إعتماد وإرسال المخالصة</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+<script>
+    let pad, faceData = null, currentLang = 'ar';
+
+    const dict = {
+        ar: { 
+            welcome: "أهلاً بك", 
+            appreciation: "نقدر جهودكم معنا.", 
+            legal: "أقر أنا الموظف الموضح بياناتي أعلاه، باستلامي كافة مستحقاتي المالية والنظامية من منشأة: ",
+            errComp: "يرجى كتابة اسم المنشأة بدقة كما في الإقامة الرقمية",
+            errSign: "يرجى وضع التوقيع في المربع المخصص"
+        },
+        en: { 
+            welcome: "Welcome", 
+            appreciation: "We appreciate your efforts.", 
+            legal: "I, the employee mentioned above, acknowledge receipt of all my financial and legal dues from: ",
+            errComp: "Please enter the company name as shown in your Digital ID",
+            errSign: "Please provide your signature"
+        }
+    };
+
+    function setLang(l) {
+        currentLang = l;
+        const c = dict[l] || dict['en'];
+        document.getElementById('welcome-msg').innerText = c.welcome;
+        document.getElementById('appreciation-msg').innerText = c.appreciation;
+        updateLegalText();
+        nextStep(2);
+    }
+
+    // تحديث النص القانوني فوراً أثناء الكتابة
+    function updateLegalText() {
+        const c = dict[currentLang] || dict['ar'];
+        const writtenComp = document.getElementById('company-name').value.trim() || "..........";
+        document.getElementById('legal-text').innerText = c.legal + " (" + writtenComp + ")";
+    }
+
+    function nextStep(n) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step'+n).classList.add('active');
+        if(n===4) startCamera();
+        if(n===5) { 
+            const canvas = document.getElementById('signature-pad');
+            pad = new SignaturePad(canvas);
+            canvas.width = canvas.offsetWidth;
+        }
+    }
+
+    function startCamera() {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(s => document.getElementById('video').srcObject = s)
+            .catch(err => alert("يرجى السماح بصلاحية الكاميرا لإتمام عملية التوثيق"));
+    }
+
+    function takeSnapshot() {
+        const v = document.getElementById('video');
+        const c = document.getElementById('camera-canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        faceData = c.toDataURL('image/jpeg');
+        document.getElementById('photo-preview').src = faceData;
+        document.getElementById('photo-preview').style.display = 'block';
+        v.style.display = 'none'; 
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('next-to-sign').style.display = 'block';
+    }
+
+    async function finalSubmit() {
+        const comp = document.getElementById('company-name').value.trim();
+        const c = dict[currentLang] || dict['ar'];
+
+        if(!comp) return alert(c.errComp);
+        if(!faceData) return alert("يرجى التقاط صورة الوجه");
+        if(pad.isEmpty()) return alert(c.errSign);
+
+        const payload = {
+            fullName: document.getElementById('full-name').value,
+            idNumber: document.getElementById('id-num').value,
+            companyName: comp, // إرسال الاسم الذي كتبه الموظف لليحفظ في الموديل
+            scopeId: "<%= safeScope %>",
+            faceImage: faceData,
+            signatureData: pad.toDataURL(),
+            survey: { 
+                whatsapp: document.getElementById('absher-phone').value, 
+                language: currentLang,
+                timestamp: new Date().toISOString()
+            }
+        };
+
+        try {
+            const res = await fetch('/clearance-system/api/save-signature', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert("✅ تم التوثيق بنجاح. شكراً لك.");
+                window.location.href = "https://www.google.com"; // أو أي صفحة نجاح
+            }
+        } catch (e) {
+            alert("فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى");
+        }
+    }
+</script>
+</body>
+</html>

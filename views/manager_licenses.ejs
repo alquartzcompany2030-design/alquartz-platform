@@ -169,7 +169,7 @@
 </div>
 
 <script>
-    // ✅ تصحيح جلب الـ scopeId من الرابط (المصدر الموثوق)
+    // ✅ جلب الـ scopeId من الرابط
     const urlParams = new URLSearchParams(window.location.search);
     const scopeId = urlParams.get('scope');
 
@@ -184,7 +184,7 @@
     function closeModal() { document.getElementById('licenseModal').style.display = 'none'; }
 
     async function loadLicenses() {
-        if(!scopeId) return alert("خطأ: لم يتم العثور على معرف المنشأة في الرابط");
+        if(!scopeId) return alert("خطأ: لم يتم العثور على معرف المنشأة");
         try {
             const res = await fetch(`/manager/licenses/api/all/${scopeId}`);
             allLicenses = await res.json();
@@ -250,7 +250,7 @@
     async function saveLicense() {
         const payload = {
             id: document.getElementById('licenseId').value,
-            scopeId: scopeId, // ✅ التأكد من إرسال الـ scopeId الصحيح
+            scopeId: scopeId,
             licenseType: document.getElementById('licenseType').value,
             orgName: document.getElementById('orgName').value,
             unifiedNumber: document.getElementById('unifiedNumber').value,
@@ -258,7 +258,7 @@
             expiryDate: document.getElementById('expiryDate').value
         };
 
-        if(!payload.orgName || !payload.expiryDate || !payload.licenseNumber) return alert("يرجى إكمال البيانات الأساسية (الاسم، الرقم، التاريخ)");
+        if(!payload.orgName || !payload.expiryDate || !payload.licenseNumber) return alert("يرجى إكمال البيانات الأساسية");
 
         try {
             const res = await fetch('/manager/licenses/api/save', {
@@ -266,10 +266,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             });
-            if(res.ok) {
-                closeModal();
-                loadLicenses(); // تحديث القائمة فوراً
-            }
+            if(res.ok) { closeModal(); loadLicenses(); }
         } catch (err) { alert("حدث خطأ أثناء الحفظ"); }
     }
 
@@ -285,13 +282,34 @@
         document.getElementById('licenseModal').style.display = 'flex';
     }
 
-    async function deleteLic(id) {
-        if(confirm('هل تريد حذف هذه الوثيقة نهائياً؟')) {
-            await fetch(`/manager/licenses/api/delete/${id}`, { method: 'DELETE' });
-            loadLicenses();
+async function deleteLic(id) {
+    // 1. نطلب الباسورد
+    const password = prompt("🔐 أمن السجلات: أدخل كلمة المرور الموحدة:");
+    if (!password) return; 
+
+    if(confirm('⚠️ هل أنت متأكد من حذف هذه الوثيقة نهائياً؟')) {
+        try {
+            // 2. الرابط الجديد الذي يتوافق مع تعديل السيرفر الأخير
+            const url = `/manager/licenses/secure-delete/${id}?password=${encodeURIComponent(password.trim())}`;
+            
+            const res = await fetch(url, { 
+                method: 'DELETE' // تأكد أن النوع DELETE
+            });
+
+            const result = await res.json();
+            
+            if(result.success) {
+                alert("✅ تم الحذف بنجاح");
+                loadLicenses(); // تحديث الجدول
+            } else {
+                // هنا سيقف النظام ويخبرك أن الباسورد غلط
+                alert("❌ فشل الإجراء: " + result.message);
+            }
+        } catch (e) { 
+            alert("خطأ: تعذر الوصول للمسار الجديد في السيرفر"); 
         }
     }
-
+}
     async function toggleStatus(id, status) {
         await fetch('/manager/licenses/api/status', {
             method: 'POST',

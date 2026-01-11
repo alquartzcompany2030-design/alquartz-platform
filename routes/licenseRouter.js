@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-// تعريف الموديل
+// تعريف الموديل (تأكد من مطابقة الحقول)
 const LicenseSchema = new mongoose.Schema({
     scopeId: String,
     orgName: String,
@@ -16,15 +16,15 @@ const LicenseSchema = new mongoose.Schema({
 
 const License = mongoose.models.License || mongoose.model('License', LicenseSchema);
 
-// --- [ 1. واجهة العرض UI ] ---
-// هذا المسار لفتح صفحة الرخص عند طلب /manager/licenses
+// كلمة المرور الموحدة (مطابقة لنظام الأجور لديك)
+const ADMIN_PASSWORD = "hDB3xqff@"; 
+
+// --- 1. واجهة العرض ---
 router.get('/', (req, res) => {
     res.render('manager_licenses'); 
 });
 
-// --- [ 2. مسارات الـ API ] ---
-
-// جلب جميع السجلات لنطاق معين
+// --- 2. جلب البيانات ---
 router.get('/api/all/:scopeId', async (req, res) => {
     try {
         const licenses = await License.find({ scopeId: req.params.scopeId }).sort({ expiryDate: 1 });
@@ -34,11 +34,10 @@ router.get('/api/all/:scopeId', async (req, res) => {
     }
 });
 
-// حفظ سجل جديد أو تحديث سجل موجود
+// --- 3. حفظ أو تحديث ---
 router.post('/api/save', async (req, res) => {
     try {
         const { id, ...data } = req.body;
-        // تنظيف الـ ID إذا كان فارغاً (لتجنب أخطاء CastError)
         if (id && id !== "" && id !== "undefined") {
             await License.findByIdAndUpdate(id, data);
             res.json({ success: true, message: "تم التحديث بنجاح" });
@@ -48,22 +47,26 @@ router.post('/api/save', async (req, res) => {
             res.status(201).json({ success: true, message: "تمت الإضافة بنجاح" });
         }
     } catch (err) {
-        console.error("License Save Error:", err);
         res.status(400).json({ success: false, message: "خطأ في حفظ البيانات" });
     }
 });
 
-// حذف سجل
-router.delete('/api/delete/:id', async (req, res) => {
-    try {
-        await License.findByIdAndDelete(req.params.id);
-        res.json({ success: true, message: "تم الحذف بنجاح" });
-    } catch (err) {
-        res.status(500).json({ success: false });
-    }
-});
+// --- راوتر الرخص والسجلات المؤمن (نسخة أبو حمزة النهائية) ---
 
-// تغيير حالة السجل (نشط / موقوف)
+// داخل ملف licenseRouter.js
+// داخل ملف licenseRouter.js
+router.delete('/secure-delete/:id', async (req, res) => { // غيرنا api/delete إلى secure-delete
+    const password = req.query.password; 
+    const ADMIN_PASSWORD = "hDB3xqff@";
+
+    if (!password || password !== ADMIN_PASSWORD) {
+        return res.status(403).json({ success: false, message: "الباسورد غلط!" });
+    }
+
+    await License.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "تم الحذف بنجاح" });
+});
+// --- 5. تغيير الحالة ---
 router.post('/api/status', async (req, res) => {
     try {
         const { id, status } = req.body;

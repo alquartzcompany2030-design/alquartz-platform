@@ -3,186 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل بيانات الأجور | Wage Registration</title>
+    <title>تسجيل بيانات الأجور الموحد | 2026</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0c2461; --accent: #e67e22; --success: #1b5e20; --bg: #f4f7f6; }
+        :root { --primary: #0c2461; --accent: #e67e22; --success: #1b5e20; --bg: #f4f7f6; --danger: #c0392b; }
         body { 
             font-family: 'Tajawal', sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            background: linear-gradient(135deg, #0b1d2a 0%, #162e3e 100%); 
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; padding: 20px; 
         }
         .wage-form-container { 
-            background: #fff; width: 100%; max-width: 550px; padding: 30px; 
-            border-radius: 25px; box-shadow: 0 15px 35px rgba(30, 55, 153, 0.1); 
-            border-top: 10px solid var(--accent); 
+            background: #fff; width: 100%; max-width: 650px; padding: 35px; 
+            border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+            border-top: 12px solid var(--accent); position: relative;
         }
-        .logo-section { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .logo-section h2 { color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem; }
-        .logo-section p { margin: 5px 0 0; font-size: 0.9rem; color: #7f8c8d; }
+        .logo-section { text-align: center; margin-bottom: 25px; }
+        .logo-section h2 { color: var(--primary); font-weight: 800; margin: 0; font-size: 1.6rem; }
+        .logo-section p { margin: 5px 0 10px; font-size: 0.95rem; color: var(--accent); font-weight: bold; }
         
-        .form-group { margin-bottom: 18px; }
-        .label-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .label-ar { font-weight: 700; color: #34495e; font-size: 0.9rem; }
-        .label-en { font-weight: 500; color: #95a5a6; font-size: 0.8rem; text-transform: uppercase; }
+        .section-title { 
+            background: #f8fafc; padding: 10px 15px; border-radius: 8px; 
+            color: var(--primary); font-weight: 800; font-size: 0.9rem; 
+            margin: 20px 0 15px; border-right: 5px solid var(--primary);
+        }
+
+        .grid-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 700; color: #34495e; font-size: 0.85rem; margin-bottom: 6px; }
         
         input, select { 
             width: 100%; padding: 12px 15px; border: 2px solid #edf2f7; 
             border-radius: 12px; box-sizing: border-box; font-family: inherit; 
-            font-size: 0.95rem; transition: 0.3s; 
+            font-size: 0.95rem; transition: 0.3s; background: #fafafa;
         }
-        input:focus { border-color: var(--primary); outline: none; background-color: #fcfdfe; }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; box-shadow: 0 0 8px rgba(12, 36, 97, 0.1); }
         
-        .sponsor-box { background: #eef2ff; padding: 15px; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 20px; }
+        .highlight-box { background: #fff9e6; border: 1px solid #ffeaa7; padding: 15px; border-radius: 15px; margin-top: 10px; }
         
-        .friday-box { 
-            background: #fff9e6; padding: 15px; border-radius: 12px; 
-            border: 1px solid #f39c12; display: flex; align-items: center; 
-            gap: 12px; cursor: pointer; margin-bottom: 20px; 
+        .friday-toggle { 
+            background: #fdf2f2; border: 2px solid #fee2e2; padding: 15px; border-radius: 15px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
         }
-        .friday-box input { width: 22px; height: 22px; cursor: pointer; }
-        
-        .btn-submit { 
-            width: 100%; padding: 16px; background: var(--primary); color: white; 
-            border: none; border-radius: 15px; font-size: 1.1rem; font-weight: 700; 
-            cursor: pointer; transition: 0.4s; display: flex; 
-            justify-content: center; align-items: center; gap: 10px; 
-        }
-        .btn-submit:hover { background: #06123d; transform: translateY(-2px); }
-        .btn-submit:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .friday-toggle:hover { background: #fee2e2; }
+        .friday-toggle input { width: 22px; height: 22px; cursor: pointer; }
 
-        .info-note { font-size: 0.75rem; color: #7f8c8d; margin-top: 5px; display: block; }
+        .btn-submit { 
+            width: 100%; padding: 18px; background: var(--primary); color: white; 
+            border: none; border-radius: 15px; font-size: 1.1rem; font-weight: 800; 
+            cursor: pointer; transition: 0.4s; display: flex; 
+            justify-content: center; align-items: center; gap: 12px; margin-top: 25px;
+        }
+        .btn-submit:hover { background: #e67e22; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3); }
+        
+        .warning-text { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: block; }
+        
+        @media (max-width: 480px) { .grid-fields { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="wage-form-container">
     <div class="logo-section">
-        <i class="fas fa-university fa-3x" style="color: var(--primary); margin-bottom: 10px;"></i>
-        <h2>شركة الكوارتز | ALquartz</h2>
-        <p>نظام تسجيل بيانات الرواتب الذكي</p>
+        <i class="fas fa-shield-halved fa-3x" style="color: var(--primary);"></i>
+        <h2>مجموعة الكوارتز العالمية</h2>
+        <p>بوابة تسجيل البيانات الوظيفية والمالية (قوى/2026)</p>
     </div>
 
-    <form id="wageEntryForm">
-        <div class="form-group sponsor-box">
-            <div class="label-wrapper">
-                <span class="label-ar">اسم المنشأة (الكفيل):</span>
-                <span class="label-en">Sponsor / Employer</span>
-            </div>
-            <input type="text" id="sponsorName" placeholder="أدخل اسم الشركة التابع لها" required>
-            <small class="info-note">يستخدم لفرز الموظفين حسب السجل التجاري.</small>
-        </div>
-
+    <form id="enhancedWageForm">
+        <div class="section-title"><i class="fas fa-id-card"></i> المعلومات القانونية (كما في الإقامة)</div>
         <div class="form-group">
-            <div class="label-wrapper">
-                <span class="label-ar">اسم الموظف الكامل:</span>
-                <span class="label-en">Full Name</span>
-            </div>
-            <input type="text" id="fullName" placeholder="كما هو في الهوية" required>
+            <label>الاسم الكامل (عربي):</label>
+            <input type="text" id="fullName" placeholder="أدخل اسمك رباعياً كما في الهوية" required>
         </div>
 
-        <div class="form-group">
-            <div class="label-wrapper">
-                <span class="label-ar">المسمى الوظيفي:</span>
-                <span class="label-en">Job Title</span>
-            </div>
-            <input type="text" id="jobTitle" placeholder="مثال: عامل، فني، إداري" required>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="grid-fields">
             <div class="form-group">
-                <div class="label-wrapper">
-                    <span class="label-ar">رقم الهوية:</span>
-                    <span class="label-en">ID Number</span>
-                </div>
+                <label>رقم الإقامة / الهوية:</label>
                 <input type="number" id="idNumber" placeholder="10xxxxxxxx" required>
             </div>
             <div class="form-group">
-                <div class="label-wrapper">
-                    <span class="label-ar">رقم الجوال:</span>
-                    <span class="label-en">Mobile</span>
-                </div>
-                <input type="tel" id="phoneNumber" placeholder="05xxxxxxxx" required>
+                <label>تاريخ الميلاد:</label>
+                <input type="date" id="birthDate" required>
             </div>
         </div>
 
         <div class="form-group">
-            <div class="label-wrapper">
-                <span class="label-ar">رقم الآيبان (IBAN):</span>
-                <span class="label-en">IBAN</span>
+            <label>المنشأة الكافلة (Employer):</label>
+            <input type="text" id="sponsorName" placeholder="اسم المنشأة المسجلة في الإقامة" required>
+        </div>
+
+        <div class="section-title"><i class="fas fa-fingerprint"></i> بيانات توثيق أبشر ومكان العمل</div>
+        <div class="grid-fields">
+            <div class="form-group">
+                <label>رقم جوال أبشر:</label>
+                <input type="tel" id="absherPhone" placeholder="05xxxxxxxx" required>
+                <small class="warning-text">* ضروري لتوثيق العقد عبر قوى ومدد</small>
             </div>
+            <div class="form-group">
+                <label>مكان التواجد الوظيفي:</label>
+                <input type="text" id="workLocation" placeholder="المدينة الحالية" required>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-money-bill-wave"></i> التفاصيل المالية (الآيبان والراتب)</div>
+        <div class="form-group">
+            <label>رقم الآيبان (IBAN):</label>
             <input type="text" id="iban" placeholder="SA..." maxlength="24" oninput="this.value = this.value.toUpperCase()" required>
-            <small class="info-note">يجب أن يبدأ بـ SA ويتكون من 24 خانة.</small>
         </div>
 
-        <div class="form-group">
-            <div class="label-wrapper">
-                <span class="label-ar">إجمالي الراتب (شامل البدلات):</span>
-                <span class="label-en">Total Salary</span>
+        <div class="highlight-box">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="color: var(--primary);">إجمالي الراتب المتفق عليه (الشامل):</label>
+                <input type="number" id="totalSalary" step="0.01" style="font-weight: 800; color: var(--success); font-size: 1.4rem; text-align: center;" placeholder="0.00" required>
+                <small style="display:block; text-align:center; margin-top:5px; font-weight:bold; font-size: 0.75rem;">
+                    نظام الكوارتز يقوم بتوزيع الراتب (أساسي + بدلات) لضمان حمايتك قانونياً.
+                </small>
             </div>
-            <input type="number" id="totalSalary" step="0.01" style="font-weight: bold; color: var(--success); font-size: 1.2rem; text-align: center;" placeholder="0.00" required>
         </div>
-        
-        <label class="friday-box">
-            <input type="checkbox" id="workFriday" checked>
-            <div>
-                <span style="font-weight: bold; color: #d35400;">هل تعمل يوم الجمعة؟</span>
-                <small style="display: block; color: #7f8c8d;">Working on Friday?</small>
-            </div>
-        </label>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label class="friday-toggle">
+                <input type="checkbox" id="workFriday">
+                <div>
+                    <span style="font-weight: 800; color: var(--danger);">هل يتطلب عملك الحضور يوم الجمعة؟</span>
+                    <small style="display: block; color: #636e72;">(يتم احتساب أجر الجمعة كعمل إضافي مضاعف)</small>
+                </div>
+            </label>
+        </div>
 
         <button type="submit" id="submitBtn" class="btn-submit">
-            <span>إرسال البيانات</span>
-            <span>|</span>
-            <span style="font-size: 0.9rem;">Submit Data</span>
-            <i class="fas fa-paper-plane"></i>
+            <span>اعتماد وتوثيق البيانات</span>
+            <i class="fas fa-check-circle"></i>
         </button>
     </form>
 </div>
 
 <script>
-    // الحصول على معرف النطاق من الرابط
     const urlParams = new URLSearchParams(window.location.search);
-    const scopeId = urlParams.get('scope');
+    const scopeId = urlParams.get('scope'); 
     
-    document.getElementById('wageEntryForm').onsubmit = async (e) => {
+    document.getElementById('enhancedWageForm').onsubmit = async (e) => {
         e.preventDefault();
         
-        // التحقق من وجود الـ Scope
         if (!scopeId) {
-            alert("⚠️ خطأ: رابط الدخول غير صالح (مفقود كود النطاق). يرجى طلب الرابط من المدير.");
+            alert("⚠️ خطأ في الرابط! لا يوجد كود نطاق (Scope ID). يرجى مراجعة المسؤول.");
+            return;
+        }
+
+        const ibanVal = document.getElementById('iban').value.trim();
+        if (ibanVal.length !== 24 || !ibanVal.startsWith('SA')) {
+            alert("⚠️ رقم الآيبان غير صحيح. يجب أن يبدأ بـ SA ويتكون من 24 خانة.");
             return;
         }
 
         const btn = document.getElementById('submitBtn');
-        const ibanVal = document.getElementById('iban').value.trim();
-
-        // تحقق بسيط من طول الآيبان
-        if (ibanVal.length !== 24 || !ibanVal.startsWith('SA')) {
-            alert("⚠️ خطأ: رقم الآيبان يجب أن يبدأ بـ SA ويتكون من 24 حرفاً ورقماً.");
-            return;
-        }
-
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري معالجة البيانات القانونية...';
 
+        // تجهيز البيانات لتطابق الموديل Wage.js تماماً
         const formData = {
-            scope: scopeId, // يتم إرساله كـ scope ليتوافق مع الـ Backend
-            sponsorName: document.getElementById('sponsorName').value,
+            scopeId: scopeId, 
             fullName: document.getElementById('fullName').value,
-            jobTitle: document.getElementById('jobTitle').value,
-            idNumber: document.getElementById('idNumber').value,
-            phoneNumber: document.getElementById('phoneNumber').value,
+            idNumber: document.getElementById('idNumber').value.trim(),
+            absherPhone: document.getElementById('absherPhone').value,
             iban: ibanVal,
-            totalSalary: document.getElementById('totalSalary').value,
-            workFriday: document.getElementById('workFriday').checked
+            totalSalary: parseFloat(document.getElementById('totalSalary').value),
+            workFriday: document.getElementById('workFriday').checked,
+            // إضافة الحقول الافتراضية لمنع خطأ السيرفر
+            deduction: 0,
+            deductionReason: ""
         };
 
         try {
-            // تم تعديل المسار هنا ليكون مطابقاً لملف wageRouter.js الخاص بك
-            const res = await fetch('/api/submit-wage', { 
+            // توجيه الطلب إلى المسار الصحيح المبرمج في السيرفر
+            const res = await fetch('/manager/api/submit-wage', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -191,19 +187,19 @@
             const result = await res.json();
 
             if(res.ok && result.success) {
-                alert("✅ تم استلام بياناتك بنجاح! شكراً لك.");
-                e.target.reset();
-                // توجيه لصفحة شكر أو إعادة تحميل
-                window.location.reload();
+                alert("✅ تم توثيق بياناتك بنجاح يا " + formData.fullName + ".\nتم حفظ السجل وتوزيعه قانونياً بنظام 70/30.");
+                document.getElementById('enhancedWageForm').reset();
+                window.scrollTo(0,0);
             } else {
-                alert("⚠️ تنبيه: " + (result.message || "فشل في حفظ البيانات"));
+                // إظهار رسالة الخطأ القادمة من السيرفر (مثل: الهوية مسجلة مسبقاً)
+                alert("⚠️ " + (result.message || "فشل في الحفظ"));
             }
         } catch (err) {
-            console.error(err);
+            console.error("Fetch Error:", err);
             alert("❌ خطأ في الاتصال بالسيرفر. تأكد من تشغيل النظام.");
         } finally {
             btn.disabled = false;
-            btn.innerHTML = 'إرسال البيانات | Submit Data <i class="fas fa-paper-plane"></i>';
+            btn.innerHTML = '<span>اعتماد وتوثيق البيانات</span> <i class="fas fa-check-circle"></i>';
         }
     };
 </script>

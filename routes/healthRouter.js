@@ -58,9 +58,15 @@ router.put('/update/:id', async (req, res) => {
     }
 });
 
-// 4. حذف شهادة (DELETE) - تم الربط مع زر الحذف في الواجهة
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/secure-delete/:id', async (req, res) => {
     try {
+        const password = req.query.password; 
+        const ADMIN_PASSWORD = "hDB3xqff@"; // كلمتك الموحدة
+
+        if (!password || password !== ADMIN_PASSWORD) {
+            return res.status(403).json({ success: false, message: "عذراً.. كلمة مرور الإدارة خاطئة!" });
+        }
+
         const deleted = await HealthCertificate.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ success: false, message: "الشهادة غير موجودة" });
         res.status(200).json({ success: true });

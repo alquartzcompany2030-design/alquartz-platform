@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');
-// التعديل الضروري: استخدام الموديل الموحد لضمان عمل الرابط SC-XXXX
 const Organization = require('../models/Organization'); 
 
 // --- [ أولاً: واجهة الموظف - عرض نموذج التسجيل ] ---
 router.get('/register', async (req, res) => {
     try {
         const uniqueId = req.query.scope; 
-        // البحث في المنشآت النشطة لفتح الرابط
         const scope = await Organization.findOne({ uniqueId: uniqueId });
         
         if (!scope) {
@@ -26,7 +24,7 @@ router.post('/api/register', async (req, res) => {
     try {
         let data = req.body;
         
-        // 1. تحويل الحقول المنطقية لضمان تخزينها كـ Boolean (مهم جداً للإحصائيات)
+        // 1. معالجة الحقول المنطقية (Boolean)
         const booleanFields = ['hasHealthInsurance', 'hasFamilyInKSA', 'hasCarAuthorization', 'hasDrivingLicense'];
         booleanFields.forEach(field => {
             if (data[field] !== undefined) {
@@ -34,12 +32,11 @@ router.post('/api/register', async (req, res) => {
             }
         });
 
-        // 2. ذكاء اصطناعي: تحديد الجنسية تلقائياً + حماية حقل الجنس
+        // 2. ذكاء البيانات: تحديد الجنسية تلقائياً من رقم الهوية
         if (data.idNumber && data.idNumber.startsWith('1')) {
             data.nationality = "السعودية";
         }
         
-        // التأكد من وجود قيمة للجنس (افتراضياً male إذا لم يرسل)
         if (!data.gender) data.gender = 'male';
 
         // 3. منع تكرار التسجيل برقم الهوية
@@ -48,9 +45,11 @@ router.post('/api/register', async (req, res) => {
             return res.status(400).json({ success: false, message: "عذراً، رقم الهوية/الإقامة مسجل لدينا مسبقاً" });
         }
 
-        // 4. إنشاء وحفظ الموظف الجديد
+        // 4. إنشاء وحفظ الموظف (تم إضافة dateOfBirth و phoneNumber)
         const newEmployee = new Employee({ 
             ...data, 
+            phoneNumber: data.phoneNumber ? data.phoneNumber.trim() : "",
+            dateOfBirth: data.dateOfBirth, // هام جداً لنجاح التوثيق اللاحق
             status: 'active',
             createdAt: new Date() 
         });
@@ -95,10 +94,7 @@ router.put('/manager/api/update-employee/:id', async (req, res) => {
             }
         });
 
-        if (updateData.idNumber && updateData.idNumber.startsWith('1')) {
-            updateData.nationality = "السعودية";
-        }
-
+        // ضمان تحديث تاريخ الميلاد والجوال في حال تم تغييرهم من قبل المدير
         await Employee.findByIdAndUpdate(req.params.id, { $set: updateData });
         res.json({ success: true, message: "تم تحديث ملف الموظف بنجاح" });
     } catch (err) { 
@@ -114,7 +110,7 @@ router.delete('/manager/api/delete-employee/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: "فشل عملية الحذف" }); }
 });
 
-// 5. جلب إحصائيات سريعة
+// 5. جلب إحصائيات سريعة (محدث لدعم الجنسين والسعودة)
 router.get('/manager/api/scope-stats/:scopeId', async (req, res) => {
     try {
         const scopeId = req.params.scopeId;

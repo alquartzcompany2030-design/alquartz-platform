@@ -674,13 +674,33 @@ function renderTable(data) {
         showToast("تم نسخ رابط التسجيل"); 
     }
     
-    async function deleteEmployee(id) { 
-        if(!confirm("هل أنت متأكد؟")) return; 
+    // البحث عن دالة الحذف واستبدالها بهذا الكود المؤمن
+async function deleteEmployee(id) {
+    // 1. طلب كلمة المرور أولاً
+    const password = prompt("⚠️ أدخل كلمة مرور الإدارة لإتمام عملية الحذف:");
+    if (!password) return; // إلغاء إذا لم يدخل شيء
+
+    // 2. تأكيد الحذف النهائي
+    if (confirm("هل أنت متأكد من حذف بيانات هذا الموظف نهائياً من السيرفر؟")) {
         try {
-            const res = await fetch(`/manager/api/delete-employee/${id}`, { method: 'DELETE' }); 
-            if(res.ok) init();
-        } catch (e) { showToast("فشل الحذف", true); }
+            const res = await fetch(`/manager/api/delete-employee/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password.trim() }) // إرسال الكلمة للسيرفر
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                showToast("✅ تم حذف الموظف بنجاح");
+                init(); // تحديث الجدول
+            } else {
+                alert("❌ " + result.message); // ستظهر "كلمة مرور خاطئة" إذا لم تطابق
+            }
+        } catch (e) {
+            showToast("❌ فشل الاتصال بالسيرفر", true);
+        }
     }
+}
 
     function exportToExcel() {
         const exportData = rawData.map(e => ({
@@ -711,6 +731,38 @@ function renderTable(data) {
         showToast("عذراً: كود النطاق مفقود، يرجى إعادة تحميل الصفحة", true);
     }
 }
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scopeId = urlParams.get('scope');
+
+    if (scopeId) {
+        fetchProtocolData(scopeId);
+    }
+});
+
+async function fetchProtocolData(scopeId) {
+    try {
+        // استدعاء بيانات البروتوكول من السيرفر
+        const response = await fetch(`/manager/api/get-scope-info/${scopeId}`);
+        const data = await response.json();
+
+        if (data) {
+            // تحديث الواجهة
+            document.getElementById('protocolNameDisplay').innerText = data.scopeName || 'شركة الكوارتز العالمية';
+            
+            // تحديث حالة الشارة (Badge)
+            const badge = document.getElementById('protocolBadge');
+            badge.style.background = (data.status === 'verified') ? '#27ae60' : '#f39c12';
+            
+            // تجهيز محتوى النافذة المنبثقة
+            window.currentProtocol = data;
+        }
+    } catch (error) {
+        console.error('خطأ في جلب بيانات البروتوكول:', error);
+    }
+}
+
+
 </script>
 </body>
 </html>

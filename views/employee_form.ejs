@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحديث بيانات الموظفين | Employee Data Update</title>
+    <title>تحديث بيانات الموظفين | السحابة الذهبية</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -58,24 +58,15 @@
                         </select>
                     </div>
                     <div>
-                        <label>رقم الجوال</label>
-                        <span class="en-label">Mobile Number</span>
-                        <input type="tel" name="phoneNumber" placeholder="05xxxxxxxx" required>
+                        <label>رقم الجوال (بصيغة 966)</label>
+                        <span class="en-label">Mobile Number (966)</span>
+                        <input type="tel" name="phoneNumber" placeholder="9665xxxxxxxx" required>
                     </div>
                 </div>
 
-                <div class="grid-2">
-                    <div>
-                        <label>مدينة العمل / الفرع</label>
-                        <span class="en-label">Work City / Branch</span>
-                        <input type="text" name="branch">
-                    </div>
-                    <div>
-                        <label>عنوان السكن</label>
-                        <span class="en-label">Home Address</span>
-                        <input type="text" name="address">
-                    </div>
-                </div>
+                <label>تاريخ الميلاد</label>
+                <span class="en-label">Date of Birth</span>
+                <input type="date" name="dateOfBirth" required>
 
                 <div class="btn-group">
                     <button type="button" class="btn-next" onclick="nextStep(1, 'بيانات الهوية والجنسية | ID & Nationality')">التالي | Next ⮕</button>
@@ -91,16 +82,12 @@
                 <div id="nationalityBox" style="margin-top: 15px;">
                     <label>الجنسية</label>
                     <span class="en-label">Nationality</span>
-                    <input type="text" id="nationalityInput" name="nationality" placeholder="مثلاً: مصر، الهند، باكستان...">
+                    <input type="text" id="nationalityInput" name="nationality" placeholder="مثلاً: مصر، الهند...">
                 </div>
 
                 <label style="margin-top:15px;">تاريخ انتهاء الهوية</label>
                 <span class="en-label">ID Expiry Date</span>
                 <input type="date" name="idExpiry" required>
-
-                <label>اسم المنشأة الكفيلة الحالية</label>
-                <span class="en-label">Current Sponsor Name</span>
-                <input type="text" name="sponsorName">
 
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(2)">السابق | Back</button>
@@ -132,14 +119,14 @@
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(3)">السابق | Back</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات القيادة والسيارة | Driving & Car info')">التالي | Next ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3, 'بيانات المركبة والعمل | Car & Work')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="4">
                 <div class="grid-2">
+                    <div><label>مدينة العمل</label><input type="text" name="branch"></div>
                     <div><label>رخصة قيادة؟</label><select name="hasDrivingLicense"><option value="false">لا</option><option value="true">نعم</option></select></div>
-                    <div><label>تفويض سيارة؟</label><select name="hasCarAuthorization"><option value="false">لا</option><option value="true">نعم</option></select></div>
                 </div>
                 <div class="grid-2">
                     <div><label>نوع السيارة</label><input type="text" name="carType"></div>
@@ -147,20 +134,21 @@
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(4)">السابق | Back</button>
-                    <button type="button" class="btn-next" onclick="nextStep(4, 'الوضع الاجتماعي | Social Status')">التالي | Next ⮕</button>
+                    <button type="button" class="btn-next" onclick="nextStep(4, 'الوضع الاجتماعي والنهائي | Final Details')">التالي | Next ⮕</button>
                 </div>
             </div>
 
             <div class="step" data-step="5">
-                <label>هل العائلة في السعودية؟</label>
-                <select name="hasFamilyInKSA"><option value="false">لا</option><option value="true">نعم</option></select>
+                <label>عنوان السكن الحالي</label>
+                <input type="text" name="address">
                 <label>الوضع الاجتماعي (أعزب/متأهل)</label>
                 <input type="text" name="familyStatus">
-                <label>تاريخ نقل الكفالة (إن وجد)</label>
-                <input type="date" name="sponsorshipTransferDate">
+                <label>هل العائلة في السعودية؟</label>
+                <select name="hasFamilyInKSA"><option value="false">لا</option><option value="true">نعم</option></select>
+                
                 <div class="btn-group">
                     <button type="button" class="btn-prev" onclick="prevStep(5)">السابق | Back</button>
-                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ | Save Data 🚀</button>
+                    <button type="submit" id="submitBtn" class="btn-next" style="background:var(--success); color:white;">اعتماد وحفظ البيانات | Save 🚀</button>
                 </div>
             </div>
         </form>
@@ -168,8 +156,8 @@
 
     <div id="success-container">
         <div class="success-icon">✓</div>
-        <h2>شكراً لك! | Thank You!</h2>
-        <p>تم تحديث بياناتك بنجاح في منصة أبو حمزة</p>
+        <h2>تم التحديث بنجاح!</h2>
+        <p>شكراً لك يا بطل، تم حفظ بياناتك في نظام السحابة الذهبية.</p>
         <button class="btn-next" onclick="window.location.reload()">تسجيل جديد | New Entry</button>
     </div>
 </div>
@@ -178,7 +166,6 @@
     let current = 1;
     const total = 5;
 
-    // --- منطق الهوية والجنسية الذكي ---
     function handleIdLogic(val) {
         const badge = document.getElementById('idBadge');
         const natBox = document.getElementById('nationalityBox');
@@ -186,28 +173,25 @@
         const idLabel = document.getElementById('idLabel');
 
         if (val.startsWith('1')) {
-            badge.innerText = "✓ مواطن سعودي | Saudi Citizen";
+            badge.innerText = "✓ مواطن سعودي";
             badge.className = "smart-badge badge-citizen";
             badge.style.display = "inline-block";
             natBox.style.display = "none"; 
             natInput.value = "السعودية"; 
             idLabel.innerText = "رقم الهوية الوطنية";
-        } 
-        else if (val.startsWith('2')) {
-            badge.innerText = "✓ مقيم | Resident";
+        } else if (val.startsWith('2')) {
+            badge.innerText = "✓ مقيم نظامي";
             badge.className = "smart-badge badge-resident";
             badge.style.display = "inline-block";
             natBox.style.display = "block"; 
             if(natInput.value === "السعودية") natInput.value = ""; 
             idLabel.innerText = "رقم الإقامة";
-        } 
-        else {
+        } else {
             badge.style.display = "none";
             natBox.style.display = "block";
         }
     }
 
-    // التنقل بين الخطوات مع التحقق
     function nextStep(step, msg) {
         const currentStepEl = document.querySelector(`[data-step="${step}"]`);
         const inputs = currentStepEl.querySelectorAll('input[required], select[required]');
@@ -241,7 +225,6 @@
         document.getElementById(boxId).style.display = select.value === 'true' ? 'block' : 'none';
     }
 
-    // إرسال البيانات للسيرفر
     document.getElementById('smartForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -250,7 +233,6 @@
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        // تحويل القيم النصية إلى Boolean كما يتوقع المودل
         ['hasHealthInsurance', 'hasDrivingLicense', 'hasCarAuthorization', 'hasFamilyInKSA'].forEach(key => {
             data[key] = (data[key] === 'true');
         });
@@ -273,7 +255,6 @@
         } catch (err) {
             alert('فشل الاتصال بالسيرفر');
             btn.disabled = false;
-            btn.innerText = "اعتماد وحفظ | Save Data 🚀";
         }
     };
 </script>

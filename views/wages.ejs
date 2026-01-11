@@ -3,287 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الأجور المطور | Golden Cloud</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>إدارة الأجور | Golden Cloud Server</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root {
-            --primary: #0c2461; --accent: #e67e22; --success: #1b5e20;
-            --danger: #c0392b; --bg: #f0f4f8; --white: #ffffff;
-            --shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); margin: 0; color: #1a1a1a; }
-        .header-nav { background: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .top-bar { background: linear-gradient(135deg, var(--primary) 0%, #06123d 100%); padding: 35px 0 75px 0; color: white; text-align: center; border-radius: 0 0 40px 40px; }
-        .container { max-width: 1750px; margin: -55px auto 40px auto; padding: 0 20px; }
-        
-        .control-panel { background: var(--white); padding: 25px; border-radius: 15px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 25px; box-shadow: var(--shadow); border-right: 10px solid var(--accent); }
-        
-        .search-wrapper { position: relative; flex: 1; min-width: 300px; }
-        .search-wrapper i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
-        .smart-search { 
-            width: 100%; padding: 12px 45px 12px 15px; border-radius: 8px; border: 2px solid var(--primary); 
-            font-family: 'Tajawal'; font-weight: bold; outline: none; transition: 0.3s;
+        :root { 
+            --navy: #0b1d2a; --gold: #ffcc00; --bg-light: #f4f7f6;
+            --white: #ffffff; --danger: #ff4d4d; --success: #27ae60;
         }
 
-        .btn-export { padding: 12px 20px; border-radius: 8px; background: var(--success); color: white; border: none; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-light); margin: 0; color: #333; }
+
+        header { 
+            background: linear-gradient(135deg, var(--navy) 0%, #162e3e 100%);
+            color: var(--gold); padding: 15px 40px; display: flex; 
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 1000;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 20px; }
+        .scope-badge { 
+            background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 50px; 
+            color: #fff; font-weight: 700; border: 1px solid var(--gold);
+        }
+
+        .gov-bar {
+            background: #fdfdfd; padding: 10px 20px; display: flex; gap: 12px;
+            align-items: center; border-bottom: 2px solid #eee; overflow-x: auto;
+        }
+
+        .gov-link {
+            text-decoration: none; color: var(--navy); padding: 6px 15px;
+            border-radius: 8px; background: #eee; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; font-size: 0.85rem;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
+
+        .table-card { background: var(--white); border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background: var(--navy); color: var(--gold); padding: 18px; font-size: 0.9rem; border-bottom: 2px solid var(--gold); }
+        tbody td { padding: 15px; text-align: center; border-bottom: 1px solid #f0f0f0; font-weight: 700; }
+
+        .emp-name { color: var(--navy); font-weight: 800; font-size: 1rem; display: block; }
+        .emp-id { color: #777; font-size: 0.8rem; }
+        .net-box { background: #e3f2fd; color: #1565c0; padding: 8px 15px; border-radius: 8px; font-weight: 800; }
+
+        .btn { padding: 10px 18px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: inherit; text-decoration: none; font-size: 0.85rem; }
+        .btn-gold { background: var(--gold); color: var(--navy); }
+        .btn-white { background: #fff; color: var(--navy); }
+        .btn-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); }
         
-        .share-box { display: flex; align-items: center; gap: 10px; background: #eef2f7; padding: 8px 15px; border-radius: 10px; border: 1px solid #0c2461; }
-        .share-input { border: none; background: transparent; width: 250px; color: #0c2461; font-size: 0.85rem; font-family: sans-serif; font-weight: bold; }
-        .btn-copy-main { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
-        .btn-copy-main:hover { background: var(--accent); }
-
-        .table-wrapper { background: var(--white); border-radius: 20px; box-shadow: var(--shadow); overflow-x: auto; border: 1px solid #cbd5e0; }
-        table { width: 100%; border-collapse: collapse; min-width: 1600px; }
-        th { background: #e2e8f0; padding: 18px; font-size: 0.85rem; color: #000; border-bottom: 3px solid var(--primary); font-weight: 800; }
-        td { padding: 12px; border-bottom: 1px solid #cbd5e0; text-align: center; font-weight: 600; }
-        
-        .sponsor-badge { background: #f1f2f6; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; display: block; margin-top: 5px; border: 1px solid #ddd; }
-        .emp-info-box { text-align: right; border-right: 4px solid var(--accent); padding-right: 12px; }
-        .emp-name { font-weight: 800; color: var(--primary); font-size: 0.95rem; display: block; }
-
-        .iban-container { position: relative; width: 220px; margin: 0 auto; }
-        .iban-hidden { background: #f1f2f6; border: 1px solid #dfe4ea; padding: 8px; border-radius: 6px; font-family: monospace; cursor: pointer; color: #7f8c8d; }
-        .iban-container:hover .iban-text { display: inline; color: var(--primary); }
-        .iban-container:hover .iban-stars { display: none; }
-        .iban-text { display: none; }
-
-        .deduction-val { font-weight: bold; color: var(--danger); font-size: 1rem; }
-        .salary-badge { background: #e8f5e9; color: #1b5e20; padding: 6px 10px; border-radius: 8px; font-weight: 900; border: 1px solid #c8e6c9; }
-        
-        .actions-cell { display: flex; justify-content: center; gap: 15px; align-items: center; }
-        .btn-action { background: none; border: none; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
-        .btn-edit-deduction { color: var(--accent); }
-        .btn-delete { color: var(--danger); }
-        .btn-action:hover { transform: scale(1.2); }
-
-        #toast { position: fixed; bottom: 20px; left: 20px; background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; display: none; z-index: 1000; box-shadow: var(--shadow); }
+        .btn-edit { color: #2980b9; background: #ebf5fb; border: 1px solid #d4e6f1; padding: 5px 10px; border-radius: 6px; cursor: pointer; margin-left: 5px; }
+        .btn-delete { color: #c0392b; background: #fdedec; border: 1px solid #fadbd8; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="toast"></div>
+<header>
+    <div class="logo-section">
+        <i class="fas fa-server fa-2x"></i>
+        <div>
+            <h2 style="margin:0; font-size: 1.4rem;">Golden Cloud Server</h2>
+            <div id="scopeNameDisplay" class="scope-badge">جاري التحميل...</div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-white" onclick="goToClearance()">
+            <i class="fas fa-file-contract"></i> المخالصات
+        </button>
+        <button class="btn btn-gold" onclick="copyEntryLink()">
+            <i class="fas fa-link"></i> رابط التسجيل
+        </button>
+        <a href="/manager/dashboard" id="backLink" class="btn btn-outline">
+            العودة للوحة الإدارة <i class="fas fa-chevron-left"></i>
+        </a>
+    </div>
+</header>
 
-<div class="header-nav">
-    <div style="font-weight: 800; font-size: 1.2rem; color: var(--primary);">GOLDEN CLOUD | أبو حمزة</div>
-    <div id="empCount" style="font-weight: bold; background: var(--accent); color: white; padding: 5px 20px; border-radius: 20px;">0 موظف</div>
-</div>
-
-<div class="top-bar">
-    <h1><i class="fas fa-file-invoice-dollar"></i> مسير الرواتب الاحترافي</h1>
-    <p>توزيع تلقائي للبدلات | الحفاظ على إجمالي الراتب المتفق عليه</p>
+<div class="gov-bar">
+    <span style="font-weight: 800; color: var(--navy); border-left: 2px solid #ddd; padding-left: 10px;">المنصات:</span>
+    <a href="https://www.qiwa.sa" target="_blank" class="gov-link">قوى</a>
+    <a href="https://www.mudad.com.sa" target="_blank" class="gov-link">مدد</a>
+    <a href="https://muqeem.sa" target="_blank" class="gov-link">مقيم</a>
 </div>
 
 <div class="container">
-    <div class="control-panel">
-        <div class="search-wrapper">
-            <i class="fas fa-search"></i>
-            <input type="text" id="smartSearch" class="smart-search" placeholder="ابحث باسم الموظف أو المنشأة..." onkeyup="filterData()">
-        </div>
-
-        <div class="share-box">
-            <span style="font-weight: bold; font-size: 0.8rem; color: var(--primary);">رابط إدخال الموظفين:</span>
-            <input type="text" id="shareLinkInput" class="share-input" readonly>
-            <button onclick="copyShareLink()" class="btn-copy-main"><i class="fas fa-copy"></i> نسخ الرابط</button>
-        </div>
-
-        <button class="btn-export" onclick="exportToExcel()">
-            <i class="fas fa-file-excel"></i> تصدير المسير
-        </button>
-    </div>
-
-    <div class="table-wrapper">
+    <div class="table-card">
         <table>
             <thead>
                 <tr>
-                    <th>الموظف / المنشأة</th>
-                    <th>رقم الآيبان</th>
-                    <th>أساسي (60%)</th>
-                    <th>سكن ونقل (15%)</th>
-                    <th>إضافي تقديري</th>
-                    <th>بدل جمعة (توزيع)</th>
-                    <th>بدلات أخرى</th>
-                    <th style="color: var(--danger);">خصومات</th>
+                    <th>الموظف</th>
+                    <th>الأساسي</th>
+                    <th>سكن/نقل</th>
+                    <th>ب. إجازة (30%)</th>
+                    <th>إضافي (70%)</th>
+                    <th>الخصم</th>
                     <th>صافي المستحق</th>
-                    <th>إجراءات</th>
+                    <th>الإجراءات</th>
                 </tr>
             </thead>
-            <tbody id="wagesTable"></tbody>
+            <tbody id="wagesTableBody">
+                <tr><td colspan="8">جاري جلب بيانات الأجور...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const scopeId = new URLSearchParams(window.location.search).get('scope');
-    let allEmployees = [];
+    let currentScope = new URLSearchParams(window.location.search).get('scope') || localStorage.getItem('last_active_scope');
 
-    async function loadWages() {
-        const fullUrl = window.location.origin + "/wage-entry?scope=" + scopeId;
-        document.getElementById("shareLinkInput").value = fullUrl;
+    async function init() {
+        if (!currentScope) return;
+        document.getElementById('backLink').href = `/manager/dashboard?scope=${currentScope}`;
+        await fetchScopeInfo(currentScope);
+        await loadWagesData(currentScope);
+    }
+
+    async function fetchScopeInfo(id) {
         try {
-            const res = await fetch(`/manager/api/get-wages/${scopeId}`);
-            const rawData = await res.json();
-            allEmployees = rawData.map(e => ({ ...e, deduction: e.deduction || 0 }));
-            renderTable(allEmployees);
-        } catch (e) { console.error("Error loading wages:", e); }
+            const res = await fetch(`/manager/api/get-scope-info/${id}`);
+            const data = await res.json();
+            document.getElementById('scopeNameDisplay').innerText = data.name || "نطاق غير مسمى";
+        } catch (e) { document.getElementById('scopeNameDisplay').innerText = "خطأ في الاتصال"; }
     }
 
-    function calculateWage(emp) {
-        const total = parseFloat(emp.totalSalary) || 0;
-        const deduction = parseFloat(emp.deduction) || 0;
-        const dailyRate = total / 30;
-        const hourlyRate = dailyRate / 8;
-        const basic = total * 0.60;
-        const allowance = total * 0.15;
-        const otVal = (hourlyRate * 1.5) * (2 * 26); 
-        const isFridayWorker = (emp.workFriday === true || emp.workFriday === 'true');
-        const holidayVal = isFridayWorker ? (dailyRate * 4) : 0; 
-        let others = total - (basic + allowance + otVal + holidayVal);
-        if (others < 0) others = 0;
-        const net = total - deduction;
-        return {
-            basic: basic.toFixed(2),
-            allowance: allowance.toFixed(2),
-            ot: otVal.toFixed(2),
-            holiday: holidayVal.toFixed(2),
-            others: others.toFixed(2),
-            net: net.toLocaleString('en-US', { minimumFractionDigits: 2 })
-        };
+    async function loadWagesData(id) {
+        try {
+            const res = await fetch(`/manager/api/get-wages/${id}`);
+            const data = await res.json();
+            renderTable(data);
+        } catch (e) { document.getElementById('wagesTableBody').innerHTML = '<tr><td colspan="8">فشل التحميل</td></tr>'; }
     }
 
-    function renderTable(data) {
-        const tbody = document.getElementById('wagesTable');
-        document.getElementById('empCount').innerText = `${data.length} موظف`;
-        
-        tbody.innerHTML = data.map(emp => {
-            const w = calculateWage(emp);
+    function renderTable(wages) {
+        const tbody = document.getElementById('wagesTableBody');
+        if(!wages || wages.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات</td></tr>';
+            return;
+        }
+        tbody.innerHTML = wages.map(emp => {
+            const total = parseFloat(emp.totalSalary) || 0;
+            const deduct = parseFloat(emp.deduction) || 0;
+            // نستخدم البيانات المحسوبة القادمة من السيرفر (المعادلة 70:30)
+            const basic = emp.basicSalary || 400;
+            const housing = emp.housingTransportAllowance || 50;
+            const holiday = emp.fridayPay || 0;
+            const overtime = emp.overtimePay || 0;
+            const net = total - deduct;
+
             return `
                 <tr>
+                    <td><span class="emp-name">${emp.fullName}</span><span class="emp-id">${emp.idNumber}</span></td>
+                    <td>${basic.toFixed(2)}</td>
+                    <td>${housing.toFixed(2)}</td>
+                    <td style="color:var(--success)">${holiday.toFixed(2)}</td>
+                    <td style="color:#e67e22">${overtime.toFixed(2)}</td>
+                    <td style="color:var(--danger)">${deduct.toFixed(2)}</td>
+                    <td><span class="net-box">${net.toLocaleString()}</span></td>
                     <td>
-                        <div class="emp-info-box">
-                            <span class="emp-name">${emp.fullName}</span>
-                            <small>${emp.jobTitle}</small>
-                            <span class="sponsor-badge">${emp.sponsorName || 'غير محدد'}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="iban-container" onclick="copyIban('${emp.iban}')">
-                            <div class="iban-hidden">
-                                <span class="iban-stars">SA •••• •••• ••••</span>
-                                <span class="iban-text">${emp.iban}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td>${w.basic}</td>
-                    <td>${w.allowance}</td>
-                    <td style="color: var(--accent);">${w.ot}</td>
-                    <td style="color: var(--success);">${w.holiday}</td>
-                    <td>${w.others}</td>
-                    <td><span class="deduction-val">${emp.deduction}</span></td>
-                    <td><span class="salary-badge">${w.net}</span></td>
-                    <td>
-                        <div class="actions-cell">
-                            <button class="btn-action btn-edit-deduction" title="تعديل الخصم" onclick="promptUpdateDeduction('${emp.idNumber}', ${emp.deduction})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-action btn-delete" title="حذف نهائي" onclick="deleteEmp('${emp.idNumber}')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
+                        <button class="btn-edit" onclick="updateDeduction('${emp.idNumber}')" title="تعديل الخصم"><i class="fas fa-minus-circle"></i></button>
+                        <button class="btn-delete" onclick="confirmDelete('${emp.idNumber}', '${emp.fullName}')" title="حذف الموظف"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 </tr>`;
         }).join('');
     }
 
-    // --- دالة طلب التعديل (القيمة الجديدة + كلمة المرور) ---
-    function promptUpdateDeduction(id, currentVal) {
-        const newVal = prompt(`القيمة الحالية للخصم: ${currentVal}\nأدخل القيمة الجديدة للخصم:`, currentVal);
-        if (newVal === null || newVal === "") return;
-        
-        const password = prompt("هذا تعديل مالي. يرجى إدخال كلمة المرور لاعتماده:");
-        if (password === null) return;
-
-        updateDeductionOnServer(id, newVal, password);
+    function goToClearance() {
+        window.location.href = `/manager/clearance?scope=${currentScope}`;
     }
 
-    async function updateDeductionOnServer(id, val, password) {
+    async function confirmDelete(idNumber, name) {
+        const password = prompt(`أدخل كلمة مرور الإدارة لحذف الموظف (${name}):`);
+        if (!password) return;
+
+        if (confirm(`هل أنت متأكد من حذف ${name} نهائياً؟`)) {
+            try {
+                const res = await fetch(`/manager/api/delete-wage/${idNumber}`, { 
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: password.trim() })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert("✅ تم الحذف بنجاح");
+                    loadWagesData(currentScope);
+                } else { 
+                    alert("❌ " + result.message); 
+                }
+            } catch (e) { alert("❌ فشل الاتصال بالسيرفر"); }
+        }
+    }
+
+    async function updateDeduction(id) {
+        const amount = prompt("أدخل قيمة الخصم الجديد:");
+        if (amount === null) return;
+        
+        const reason = prompt("سبب الخصم:");
+        const password = prompt("كلمة مرور الإدارة للتعميد المالي:");
+        if (!password) return;
+
         try {
             const res = await fetch('/manager/api/update-deduction', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idNumber: id, deduction: val, password: password })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    idNumber: id, 
+                    deduction: amount, 
+                    reason: reason, 
+                    password: password.trim() 
+                })
             });
             const result = await res.json();
-            if (res.ok && result.success) {
-                const emp = allEmployees.find(e => e.idNumber === id);
-                if (emp) emp.deduction = parseFloat(val) || 0;
-                renderTable(allEmployees);
-                showToast("✅ تم تحديث الخصم بنجاح");
+            if (result.success) {
+                alert("✅ تم تحديث الخصم");
+                loadWagesData(currentScope);
             } else {
-                alert("❌ " + (result.message || "فشل التحديث"));
+                alert("❌ " + result.message);
             }
-        } catch (err) { alert("خطأ في السيرفر"); }
+        } catch (e) { alert("❌ فشل الاتصال"); }
     }
 
-    async function deleteEmp(idNumber) {
-        const password = prompt("⚠️ تنبيه: سيتم حذف الموظف نهائياً. أدخل كلمة المرور للتأكيد:");
-        if (password === null) return;
-        try {
-            const res = await fetch(`/manager/api/delete-wage/${idNumber}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: password })
-            });
-            const result = await res.json();
-            if(res.ok && result.success) {
-                allEmployees = allEmployees.filter(e => e.idNumber !== idNumber);
-                filterData();
-                showToast("✅ تم الحذف من قاعدة البيانات");
-            } else { alert("❌ " + (result.message || "فشل الحذف")); }
-        } catch (err) { alert("خطأ في الاتصال"); }
+    function copyEntryLink() {
+        const url = `${window.location.origin}/wage-entry?scope=${currentScope}`;
+        navigator.clipboard.writeText(url);
+        alert("✅ تم نسخ رابط التسجيل");
     }
 
-    function filterData() {
-        const searchTerm = document.getElementById('smartSearch').value.toLowerCase();
-        const filtered = allEmployees.filter(emp => 
-            emp.fullName.toLowerCase().includes(searchTerm) || 
-            (emp.sponsorName && emp.sponsorName.toLowerCase().includes(searchTerm))
-        );
-        renderTable(filtered);
-    }
-
-    function copyIban(text) {
-        navigator.clipboard.writeText(text).then(() => showToast("تم نسخ الآيبان!"));
-    }
-
-    function copyShareLink() {
-        const copyText = document.getElementById("shareLinkInput");
-        copyText.select();
-        navigator.clipboard.writeText(copyText.value);
-        showToast("✅ تم نسخ رابط الموظفين!");
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
-    }
-
-    function exportToExcel() {
-        const rows = [["المنشأة", "الاسم", "رقم الهوية", "الآيبان", "الصافي المستحق"]];
-        allEmployees.forEach(emp => {
-            const w = calculateWage(emp);
-            rows.push([emp.sponsorName, emp.fullName, emp.idNumber, emp.iban, w.net]);
-        });
-        const ws = XLSX.utils.aoa_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Payroll");
-        XLSX.writeFile(wb, `Payroll_Report_AbuHamza.xlsx`);
-    }
-
-    window.onload = loadWages;
+    window.onload = init;
 </script>
 </body>
 </html>

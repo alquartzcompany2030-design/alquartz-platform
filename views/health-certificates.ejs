@@ -206,20 +206,28 @@
     }
 
     async function deleteCertificate(id) {
-        if(confirm('هل أنت متأكد من حذف هذه الشهادة نهائياً؟')) {
-            try {
-                const res = await fetch(`/health/delete/${id}`, { method: 'DELETE' });
-                if(res.ok) {
-                    location.reload();
-                } else {
-                    alert("فشل الحذف، تأكد من اتصال السيرفر.");
-                }
-            } catch (err) {
-                alert("حدث خطأ أثناء محاولة الحذف.");
+    // 1. طلب كلمة المرور أولاً
+    const password = prompt("🔐 أمن الشهادات: أدخل كلمة مرور الإدارة لإتمام الحذف:");
+    if (!password) return; 
+
+    if(confirm('⚠️ هل أنت متأكد من حذف هذه الشهادة الصحية نهائياً؟')) {
+        try {
+            // 2. إرسال الطلب للمسار المؤمن مع الكلمة في الرابط
+            const url = `/health/secure-delete/${id}?password=${encodeURIComponent(password.trim())}`;
+            const res = await fetch(url, { method: 'DELETE' });
+            const result = await res.json();
+            
+            if(result.success) {
+                alert("✅ تم حذف الشهادة بنجاح");
+                location.reload(); // تحديث الصفحة لرؤية النتائج
+            } else {
+                alert("❌ فشل الإجراء: " + result.message);
             }
+        } catch (err) {
+            alert("حدث خطأ في الاتصال بالسيرفر");
         }
     }
-
+}
     function copyRegistrationLink() {
         const regLink = `${window.location.origin}/health/register?scope=${scopeId}`;
         navigator.clipboard.writeText(regLink);

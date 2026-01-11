@@ -1,103 +1,52 @@
 const mongoose = require('mongoose');
 
-/**
- * موديل الموظفين المطور - نسخة أبو حمزة النهائية
- * تم إضافة: حقل الجنس، وتحسين أنواع البيانات لضمان دقة إحصائيات اللوحة
- */
 const EmployeeSchema = new mongoose.Schema({
-    // ربط الموظف بالنطاق (المؤسسة/الشركة)
-    scopeId: { 
-        type: String, 
-        required: true, 
-        index: true 
-    }, 
+    scopeId: { type: String, required: true, index: true }, 
+    fullName: { type: String, required: true, trim: true }, 
+    phoneNumber: { type: String, trim: true }, // الحقل الحالي كما هو
     
-    // البيانات الشخصية الأساسية
-    fullName: { 
-        type: String, 
-        required: true,
-        trim: true 
-    }, 
-    phoneNumber: { 
-        type: String,
-        trim: true
-    },
-    
-    // --- [ التعديل 1: إضافة حقل الجنس لدعم إحصائيات اللوحة ] ---
+    // --- [ الإضافة المطلوبة للتوثيق ] ---
+    dateOfBirth: { type: String }, // تاريخ الميلاد (يضاف هنا للمطابقة)
+    tempOTP: { type: String },     // رمز التحقق المؤقت
+    otpExpiry: { type: Date },     // صلاحية الرمز
+    signingIP: { type: String },   // عنوان IP الموظف عند التوقيع
+    // -----------------------------------
+
     gender: { 
         type: String, 
         enum: ['male', 'female', 'غير محدد'], 
         default: 'غير محدد' 
     },
-
-    nationality: { 
-        type: String, 
-        default: "غير محدد",
-        trim: true 
-    },
-    idNumber: { 
-        type: String, 
-        unique: true, 
-        sparse: true  
-    },
-    // تم التغيير لـ String ليتوافق مع input type="date"
+    nationality: { type: String, default: "غير محدد", trim: true },
+    idNumber: { type: String, unique: true, sparse: true },
     idExpiry: { type: String }, 
     sponsorName: { type: String },
-    
-    // بيانات الجواز والتأمين الصحي
     passportNumber: { type: String },
     passportExpiry: { type: String },
-    hasHealthInsurance: { 
-        type: Boolean, 
-        default: false 
-    },
+    hasHealthInsurance: { type: Boolean, default: false },
     insuranceExpiry: { type: String },
     healthStatus: { type: String },
-    
-    // البيانات المالية والوظيفية
-    salary: { 
-        type: Number, 
-        default: 0 
-    },
+    salary: { type: Number, default: 0 },
     branch: { type: String }, 
     address: { type: String }, 
-    
-    // بيانات المركبة والرخصة
-    hasDrivingLicense: { 
-        type: Boolean, 
-        default: false 
-    },
-    hasCarAuthorization: { 
-        type: Boolean, 
-        default: false 
-    },
+    hasDrivingLicense: { type: Boolean, default: false },
+    hasCarAuthorization: { type: Boolean, default: false },
     carPlate: { type: String }, 
     carType: { type: String },  
     carRegistrationNumber: { type: String }, 
-    
-    // الوضع الاجتماعي والعائلي
-    hasFamilyInKSA: { 
-        type: Boolean, 
-        default: false 
-    },
+    hasFamilyInKSA: { type: Boolean, default: false },
     familyStatus: { type: String }, 
     sponsorshipTransferDate: { type: String }, 
-
-    // حالة الحساب في النظام
-    status: { 
-        type: String, 
-        enum: ['active', 'suspended'], 
-        default: 'active' 
-    },
-
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
-    }
+    status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+    createdAt: { type: Date, default: Date.now }
 });
 
-// تحسين الأداء للبحث السريع
+// إضافة حقول التوثيق القانوني (كما طلبت لإرتباطها باللوحة)
+EmployeeSchema.add({
+    legalSigned: { type: Boolean, default: false },
+    legalSignDate: { type: String }
+});
+
 EmployeeSchema.index({ scopeId: 1, fullName: 1 });
-EmployeeSchema.index({ idNumber: 1 });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخالصة توثيق رقمية | <%= doc.fullName %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: #f0f2f5; 
+            margin: 0; padding: 20px; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
+
+        .page { 
+            background: white; 
+            width: 90%; max-width: 800px; 
+            padding: 40px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            border-radius: 8px; position: relative;
+        }
+
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0b1d2a; padding-bottom: 15px; margin-bottom: 30px; }
+        .title { text-align: center; color: #0b1d2a; margin: 30px 0; }
+        .title h1 { font-size: 24px; border-bottom: 2px solid #ffcc00; display: inline-block; padding-bottom: 5px; }
+
+        .info-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .info-table td { padding: 12px; border: 1px solid #eee; font-size: 15px; }
+        .label { background: #f8f9fa; font-weight: bold; width: 35%; color: #333; }
+
+        .declaration { 
+            margin-top: 30px; line-height: 1.8; font-size: 17px; color: #1a1a1a; 
+            text-align: justify; background: #fffdf0; padding: 20px; border-right: 5px solid #ffcc00; border-radius: 4px;
+        }
+
+        .signature-section { display: flex; justify-content: space-around; margin-top: 50px; text-align: center; }
+        .sig-container { width: 45%; }
+        .sig-container p { font-weight: bold; margin-bottom: 15px; color: #0b1d2a; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        
+        .sig-img { max-width: 100%; height: auto; max-height: 120px; }
+        .face-img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 3px solid #0b1d2a; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .footer-note { font-size: 11px; color: #888; margin-top: 60px; border-top: 1px dashed #ccc; padding-top: 10px; text-align: center; }
+
+        .no-print { margin-bottom: 20px; }
+        .print-btn { 
+            padding: 12px 35px; cursor: pointer; background: #0b1d2a; color: #ffcc00; 
+            border: none; border-radius: 50px; font-weight: bold; font-family: inherit; transition: 0.3s;
+        }
+        .print-btn:hover { background: #1a3a52; transform: translateY(-2px); }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .page { width: 100%; max-width: none; box-shadow: none; margin: 0; padding: 10mm; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button class="print-btn" onclick="window.print()">
+        <i class="fas fa-print"></i> طباعة المستند / حفظ كـ PDF
+    </button>
+</div>
+
+<div class="page">
+    <div class="header">
+        <div>
+            <h2 style="margin:0; color:#0b1d2a;">Golden Cloud Server</h2>
+            <small style="color: #666;">نظام التوثيق الرقمي المعتمد</small>
+        </div>
+        <div style="text-align: left; font-size: 13px;">
+            <strong>رقم المستند:</strong> <%= doc._id.toString().slice(-8).toUpperCase() %><br>
+            <strong>تاريخ التوثيق:</strong> <%= new Date(doc.createdAt).toLocaleString('ar-SA') %>
+        </div>
+    </div>
+
+    <div class="title">
+        <h1>إقرار مخالصة نهائية</h1>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">اسم المنشأة (المُبرأة):</td>
+            <td style="font-weight: bold; color: #0b1d2a; font-size: 17px;"><%= doc.companyName %></td>
+        </tr>
+        <tr>
+            <td class="label">اسم الموظف (المُقر):</td>
+            <td><%= doc.fullName %></td>
+        </tr>
+        <tr>
+            <td class="label">رقم الهوية / الإقامة:</td>
+            <td><%= doc.idNumber %></td>
+        </tr>
+        <tr>
+            <td class="label">بصمة الاتصال (IP):</td>
+            <td><code style="background: #eee; padding: 2px 5px; border-radius: 4px;"><%= doc.userIp %></code></td>
+        </tr>
+    </table>
+
+    <div class="declaration">
+        أقر أنا الموظف الموضح بياناتي أعلاه، وبكامل أهليتي المعتبرة شرعاً ونظاماً، بأنني قد استلمت كافة حقوقي ومستحقاتي المالية والعمالية الناتجة عن فترة عملي لدى منشأة 
+        <strong>( <%= doc.companyName %> )</strong> 
+        حتى تاريخه، وبموجب هذا التوقيع الرقمي أصبحت ذمة المنشأة بريئة من أي حق تجاهي براءة تامة ونهائية.
+    </div>
+
+    <div class="signature-section">
+        <div class="sig-container">
+            <p>بصمة الوجه الرقمية (FaceID)</p>
+            <img src="<%= doc.faceImage %>" class="face-img">
+        </div>
+        <div class="sig-container">
+            <p>توقيع الموظف (E-Signature)</p>
+            <img src="<%= doc.signatureData %>" class="sig-img">
+        </div>
+    </div>
+
+    <div class="footer-note">
+        * هذا المستند صادر عن أنظمة "Golden Cloud" وموثق إلكترونياً. أي كشط أو تعديل في البيانات الورقية المطبوعة يلغي صحة المستند. يمكنك التحقق من الأصل عبر النظام الرقمي.
+    </div>
+</div>
+
+</body>
+</html>

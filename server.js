@@ -21,7 +21,7 @@ const wageRouter = require('./routes/wageRouter');       // نظام الأجو�
 const healthRouter = require('./routes/healthRouter');   // الشهادات الصحية والموارد البشرية
 const licenseRouter = require('./routes/licenseRouter'); // التراخيص والعمليات الميدانية
 const clearanceRouter = require('./routes/clearanceRouter'); // نظام التوثيق الرقمي والأرشيف (الجديد)
-
+const contractRoutes = require('./routes/contractRoutes');
 const app = express();
 
 // 2. الاتصال بقاعدة البيانات
@@ -61,7 +61,8 @@ app.use('/health', healthRouter);
  * --- [ مسارات الوصول المباشر ] ---
  */
 app.use('/', wageRouter); // لتمكين /wage-entry المباشر
-
+app.use('/', contractRoutes);
+app.use('/uploads', express.static('public/uploads'));
 /**
  * --- [ تسجيل الدخول الموحد ] ---
  */

@@ -6,6 +6,8 @@
     <title>لوحة الإدارة | Golden Cloud Server</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -230,22 +232,30 @@
     </div>
 
     <div style="display: flex; gap: 10px; align-items: center; margin-right: auto;">
-        <button class="btn" style="background: #0984e3; color: white; border: none;" onclick="goToWages()">
-    <i class="fas fa-file-invoice-dollar"></i> إدارة الأجور
-</button>
-        <button class="btn btn-licenses" onclick="goToLicenses()">
-            <i class="fas fa-file-contract"></i> السجلات والرخص
-        </button>
-        <button class="btn btn-link" onclick="copyRegLink()">
-            <i class="fas fa-user-plus"></i> رابط التسجيل
-        </button>
-        <button class="btn" style="background: #2ed573; color: white; border: none;" onclick="goToHealthCertificates()">
-            <i class="fas fa-heartbeat"></i> الشهادات الصحية
-        </button>
-        <button class="btn btn-danger" onclick="logout()">
-            <i class="fas fa-power-off"></i> خروج
-        </button>
-    </div>
+    <button class="btn" style="background: #f39c12; color: white; border: none; border-bottom: 3px solid #d35400;" onclick="goToContracts()">
+        <i class="fas fa-file-signature"></i> إدارة العقود
+    </button>
+
+    <button class="btn" style="background: #0984e3; color: white; border: none;" onclick="goToWages()">
+        <i class="fas fa-file-invoice-dollar"></i> إدارة الأجور
+    </button>
+    
+    <button class="btn btn-licenses" onclick="goToLicenses()">
+        <i class="fas fa-file-contract"></i> السجلات والرخص
+    </button>
+    
+    <button class="btn btn-link" onclick="copyRegLink()">
+        <i class="fas fa-user-plus"></i> رابط التسجيل
+    </button>
+    
+    <button class="btn" style="background: #2ed573; color: white; border: none;" onclick="goToHealthCertificates()">
+        <i class="fas fa-heartbeat"></i> الشهادات الصحية
+    </button>
+    
+    <button class="btn btn-danger" onclick="logout()">
+        <i class="fas fa-power-off"></i> خروج
+    </button>
+</div>
 </header>
 <div class="gov-bar">
     <span style="font-weight: 800; color: var(--navy); border-left: 2px solid #ddd; padding-left: 10px;">المنصات:</span>
@@ -761,7 +771,15 @@ async function fetchProtocolData(scopeId) {
         console.error('خطأ في جلب بيانات البروتوكول:', error);
     }
 }
-
+function goToContracts() {
+    const activeScope = getSafeScope();
+    if(activeScope) {
+        // التوجيه لصفحة إدارة العقود المستقلة
+        window.location.href = `/manager/contracts?scope=${activeScope}`;
+    } else {
+        showToast("عذراً: كود النطاق مفقود، يرجى إعادة تحميل الصفحة", true);
+    }
+}
 
 </script>
 </body>

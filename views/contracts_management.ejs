@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة العقارات | شركة الكوارتز</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --navy: #0b1d2a; --gold: #ffcc00; --shadow: 0 5px 15px rgba(0,0,0,0.1); --success: #27ae60; --danger: #e74c3c; }
+        body { font-family: 'Tajawal', sans-serif; background: #f4f7f6; margin: 0; color: var(--navy); }
+        
+        header { background: var(--navy); color: var(--gold); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .container { padding: 30px; max-width: 1300px; margin: auto; }
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f8f9fa; padding: 15px; border-bottom: 2px solid var(--gold); text-align: center; }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+        
+        .btn-add { background: var(--navy); color: var(--gold); padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-add:hover { background: #162e42; transform: translateY(-2px); }
+        
+        .btn-action { border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; color: white; margin: 0 2px; transition: 0.2s; }
+        .btn-map { background: #3498db; }
+        .btn-delete { background: var(--danger); }
+        .btn-action:hover { opacity: 0.8; transform: scale(1.1); }
+
+        /* النافذة المنبثقة والخريطة */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; backdrop-filter: blur(5px); }
+        .modal-content { background: white; width: 95%; max-width: 800px; margin: 20px auto; border-radius: 15px; overflow: hidden; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-header { background: var(--navy); color: var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        #map-selector { grid-column: span 2; height: 350px; border-radius: 10px; border: 2px solid #ddd; margin: 10px 0; z-index: 1; }
+        
+        .full { grid-column: span 2; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; }
+        .btn-save { grid-column: span 2; padding: 15px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .map-hint { grid-column: span 2; font-size: 0.9rem; color: #555; text-align: center; background: #fff9e6; padding: 8px; border-radius: 5px; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-gem fa-2x"></i>
+        <h2 style="margin:0">نظام إدارة العقارات - الكوارتز</h2>
+    </div>
+    <div class="nav-buttons">
+        <a href="/admin/dashboard" style="color: white; text-decoration: none; font-weight: bold;"><i class="fas fa-arrow-right"></i> العودة للرئيسية</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3><i class="fas fa-file-contract"></i> العقود النشطة للنطاق: <span id="scopeDisplay" style="color: #3498db;"></span></h3>
+            <button class="btn-add" onclick="openModal()">+ إضافة عقار جديد</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم العقار</th>
+                    <th>النوع</th>
+                    <th>المالك</th>
+                    <th>الإيجار السنوي</th>
+                    <th>نهاية العقد</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="contractsTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span><i class="fas fa-map-pin"></i> تسجيل عقار وإسقاط الدبوس يدوياً</span>
+            <span onclick="closeModal()" style="cursor:pointer; font-size: 24px;">&times;</span>
+        </div>
+        <form id="addForm" class="modal-body">
+            <input type="text" id="pName" placeholder="اسم العقار" class="full" required>
+            <select id="pType">
+                <option value="ورشة">ورشة</option>
+                <option value="سكن">سكن</option>
+                <option value="مكتب">مكتب</option>
+                <option value="مستودع">مستودع</option>
+            </select>
+            <input type="text" id="pOwner" placeholder="اسم المالك" required>
+            <input type="number" id="pRent" placeholder="الإيجار السنوي (ريال)" required>
+            <input type="date" id="pEnd" title="تاريخ نهاية العقد" required>
+
+            <div class="map-hint"><i class="fas fa-mouse-pointer"></i> يرجى النقر على موقع العقار في الخريطة أدناه لتثبيت الدبوس</div>
+            <div id="map-selector"></div>
+
+            <input type="hidden" id="pLat" value="26.3256"> 
+            <input type="hidden" id="pLng" value="43.9746">
+
+            <input type="file" id="pFile" class="full" accept=".pdf,image/*">
+            <button type="submit" class="btn-save">حفظ العقد في أرشيف الكوارتز 💾</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const scopeId = new URLSearchParams(window.location.search).get('scope');
+    document.getElementById('scopeDisplay').innerText = scopeId || 'عام';
+    let map, marker;
+
+    function initMap() {
+        if (map) return;
+        // المركز الافتراضي (بريدة)
+        map = L.map('map-selector').setView([26.3256, 43.9746], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng, {draggable: true}).addTo(map);
+            }
+            document.getElementById('pLat').value = lat;
+            document.getElementById('pLng').value = lng;
+        });
+    }
+
+    function openModal() {
+        document.getElementById('addModal').style.display = 'block';
+        setTimeout(() => {
+            initMap();
+            map.invalidateSize();
+        }, 300);
+    }
+
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    async function loadContracts() {
+        const res = await fetch(`/api/get-contracts/${scopeId}`);
+        const data = await res.json();
+        const tbody = document.getElementById('contractsTableBody');
+        
+        tbody.innerHTML = data.map(c => {
+            const gMapsUrl = `https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}`;
+            return `
+                <tr>
+                    <td><b>${c.propertyName}</b></td>
+                    <td>${c.propertyType}</td>
+                    <td>${c.ownerName}</td>
+                    <td>${Number(c.annualRent).toLocaleString()} ريال</td>
+                    <td>${new Date(c.endDate).toLocaleDateString('ar-SA')}</td>
+                    <td>
+                        <button class="btn-action btn-map" title="فتح في خرائط جوجل" onclick="window.open('${gMapsUrl}', '_blank')">
+                            <i class="fas fa-directions"></i>
+                        </button>
+                        <button class="btn-action btn-delete" title="حذف العقد" onclick="deleteItem('${c._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    // --- دالة الحذف المحدثة بكلمة مرور أبو حمزة ---
+    async function deleteItem(id) {
+        if (!confirm("⚠️ هل أنت متأكد من حذف هذا العقد نهائياً؟")) return;
+        
+        const pass = prompt("🔐 يرجى إدخال كلمة مرور الإدارة لإتمام الحذف:");
+        if (!pass) return;
+
+        const res = await fetch(`/api/delete-contract/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pass })
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+            alert("✅ تم الحذف بنجاح");
+            loadContracts();
+        } else {
+            alert("❌ فشل الحذف: " + (result.message || "كلمة المرور خاطئة"));
+        }
+    }
+
+    document.getElementById('addForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData();
+        fd.append('scopeId', scopeId);
+        fd.append('propertyName', document.getElementById('pName').value);
+        fd.append('propertyType', document.getElementById('pType').value);
+        fd.append('ownerName', document.getElementById('pOwner').value);
+        fd.append('annualRent', document.getElementById('pRent').value);
+        fd.append('endDate', document.getElementById('pEnd').value);
+        fd.append('lat', document.getElementById('pLat').value);
+        fd.append('lng', document.getElementById('pLng').value);
+        if(document.getElementById('pFile').files[0]) fd.append('contractFile', document.getElementById('pFile').files[0]);
+
+        const res = await fetch('/api/add-contract', { method: 'POST', body: fd });
+        if(res.ok) { 
+            alert("✅ تم الحفظ بنجاح");
+            closeModal(); 
+            loadContracts(); 
+            document.getElementById('addForm').reset();
+        }
+    };
+
+    window.onload = loadContracts;
+</script>
+</body>
+</html>

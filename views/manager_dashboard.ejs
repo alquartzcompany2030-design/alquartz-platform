@@ -230,7 +230,10 @@
             <div id="scopeNameDisplay" class="scope-badge">جاري التحميل...</div>
         </div>
     </div>
-
+<div style="display: flex; gap: 10px; align-items: center; margin-right: auto;">
+        <button class="btn" style="background: #2d3436; color: white; border: none; border-bottom: 3px solid #000;" onclick="goToMainPanel()">
+    <i class="fas fa-th-large"></i> اللوحة الأم
+</button>
     <div style="display: flex; gap: 10px; align-items: center; margin-right: auto;">
     <button class="btn" style="background: #f39c12; color: white; border: none; border-bottom: 3px solid #d35400;" onclick="goToContracts()">
         <i class="fas fa-file-signature"></i> إدارة العقود
@@ -414,12 +417,13 @@
         }
     }
 function goToWages() {
-    const activeScope = getSafeScope();
-    if(activeScope) {
-        // التوجيه لصفحة الأجور المستقلة التي أنشأناها
-        window.location.href = `/manager/wages?scope=${activeScope}`;
-    } else {
-        showToast("عذراً: كود النطاق مفقود، يرجى إعادة تحميل الصفحة", true);
+    const sid = getSafeScope();
+    if(sid) {
+        // المسار كما هو معرف في wageRouter (app.use('/manager', wageRouter))
+        // بما أنك استخدمت /manager في الربط، والملف نفسه فيه /manager/wages
+        // الرابط قد يصبح /manager/manager/wages (وهذا خطأ شائع)
+        // الأفضل تعديل الربط في app.js أو تعديل الدالة هنا:
+        window.location.href = `/manager/wages?scope=${sid}`;
     }
 }
     // 3. التشغيل وجلب البيانات (تم التحديث لربط محرك الإحصائيات الشامل)
@@ -772,15 +776,19 @@ async function fetchProtocolData(scopeId) {
     }
 }
 function goToContracts() {
-    const activeScope = getSafeScope();
-    if(activeScope) {
-        // التوجيه لصفحة إدارة العقود المستقلة
-        window.location.href = `/manager/contracts?scope=${activeScope}`;
+    const sid = getSafeScope();
+    if(sid) {
+        // تم التعديل ليتطابق مع السيرفر: /manager/contracts
+        window.location.href = `/manager/contracts?scope=${sid}`;
     } else {
-        showToast("عذراً: كود النطاق مفقود، يرجى إعادة تحميل الصفحة", true);
+        alert("عذراً: كود النطاق مفقود، يرجى إعادة تحميل الصفحة");
     }
 }
-
+function goToMainPanel() {
+    const activeScope = getSafeScope();
+    // نستخدم المسار المعرف في ملف panelRoutes.js وهو /main-panel
+    window.location.href = `/manager/main-panel?scope=${activeScope}`;
+}
 </script>
 </body>
 </html>

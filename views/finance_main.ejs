@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الإدارة المالية | شركة الكوارتز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/finance.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-gem fa-2x" style="color: var(--gold);"></i>
+            <h3>الكوارتز المالية</h3>
+        </div>
+        <nav>
+            <a href="#" class="menu-item active"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+            <a href="#" class="menu-item"><i class="fas fa-vault"></i> الصناديق والبنك</a>
+            <a href="#" class="menu-item"><i class="fas fa-truck"></i> حسابات الموردين</a>
+            <a href="#" class="menu-item"><i class="fas fa-user-tie"></i> حسابات العملاء</a>
+            <a href="#" class="menu-item"><i class="fas fa-file-invoice"></i> التقارير الضريبية</a>
+            <div style="margin-top: 50px;">
+                <a href="/manager/main-panel?scope=<%= scopeId %>" class="menu-item" style="color: var(--gold);">
+                    <i class="fas fa-arrow-right"></i> العودة للوحة الأم
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <main class="main-content">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2>ملخص المركز المالي <small style="font-size: 0.9rem; color: #666;">(النطاق: <%= scopeId %>)</small></h2>
+            <div>
+                <button onclick="openModal('قبض')" style="background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-plus"></i> سند قبض جديد
+                </button>
+                <button onclick="openModal('صرف')" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-minus"></i> سند صرف جديد
+                </button>
+            </div>
+        </header>
+
+        <div class="stat-grid">
+            <div class="stat-card bank">
+                <h4><i class="fas fa-university"></i> رصيد البنك</h4>
+                <div class="value">0.00 <small>ر.س</small></div>
+            </div>
+            <div class="stat-card cash">
+                <h4><i class="fas fa-money-bill-wave"></i> صندوق الكاش</h4>
+                <div class="value"><%= income.toLocaleString() %> <small>ر.س</small></div>
+            </div>
+            <div class="stat-card debt">
+                <h4><i class="fas fa-file-invoice-dollar"></i> مديونية الموردين</h4>
+                <div class="value">0.00 <small>ر.س</small></div>
+            </div>
+            <div class="stat-card" style="border-color: var(--gold);">
+                <h4><i class="fas fa-hand-holding-dollar"></i> مستحقات العملاء</h4>
+                <div class="value">0.00 <small>ر.س</small></div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3>أحدث العمليات المالية</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>النوع</th>
+                        <th>الطرف</th>
+                        <th>المبلغ</th>
+                        <th>الصندوق</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if(transactions && transactions.length > 0) { %>
+                        <% transactions.forEach(t => { %>
+                            <tr>
+                                <td><%= new Date(t.date).toLocaleDateString('ar-SA') %></td>
+                                <td style="color: <%= t.type === 'قبض' ? 'green' : 'red' %>;"><%= t.type %></td>
+                                <td><%= t.partyName || 'عام' %></td>
+                                <td><b><%= t.amount.toLocaleString() %></b></td>
+                                <td><%= t.accountType || 'كاش' %></td>
+                                <td><span style="background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">مكتمل</span></td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="6" style="text-align: center;">لا توجد قيود محاسبية مسجلة</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="transModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">إضافة عملية مالية</h3>
+            <form action="/finance/add-transaction" method="POST">
+                <input type="hidden" name="scopeId" value="<%= scopeId %>">
+                <input type="hidden" name="type" id="transType">
+                
+                <div style="margin-bottom: 15px;">
+                    <label>الطرف الآخر (مورد / عميل)</label>
+                    <input type="text" name="partyName" placeholder="اتركه فارغاً إذا كانت مصاريف عامة" style="width:100%; padding:10px; margin-top:5px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div>
+                        <label>المبلغ</label>
+                        <input type="number" name="amount" required style="width:100%; padding:10px; margin-top:5px;">
+                    </div>
+                    <div>
+                        <label>نوع الصندوق</label>
+                        <select name="accountType" style="width:100%; padding:10px; margin-top:5px;">
+                            <option value="كاش">صندوق الكاش</option>
+                            <option value="بنك">التحويل البنكي</option>
+                            <option value="عهدة">عهدة موظف</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label>البيان / الوصف</label>
+                    <textarea name="description" rows="3" style="width:100%; padding:10px; margin-top:5px;"></textarea>
+                </div>
+
+                <button type="submit" style="width:100%; background: var(--navy); color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">ترحيل العملية</button>
+                <button type="button" onclick="closeModal()" style="width:100%; background: none; border: none; color: gray; margin-top: 10px; cursor: pointer;">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/finance.js"></script>
+</body>
+</html>

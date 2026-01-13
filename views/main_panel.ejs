@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>اللوحة الأم | شركة الكوارتز</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --navy: #0b1d2a; 
+            --gold: #ffcc00; 
+            --danger: #e74c3c;
+            --shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* الهيدر المطور مع نصوص واضحة */
+        header { 
+            background: var(--navy); 
+            color: var(--gold); 
+            padding: 10px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 5px solid var(--gold);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 20px; }
+        .scope-badge { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; color: #fff; font-size: 0.85rem; border: 1px solid var(--gold); }
+
+        /* منطقة أدوات المدير المحدثة بنصوص */
+        .header-tools { display: flex; align-items: center; gap: 10px; }
+
+        .tool-link {
+            color: white; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            transition: 0.3s;
+            font-size: 0.9rem;
+            border: 1px solid transparent;
+        }
+        .tool-link i { font-size: 1.1rem; color: var(--gold); }
+        .tool-link:hover { 
+            background: rgba(255,204,0,0.1); 
+            border-color: var(--gold);
+            transform: translateY(-2px); 
+        }
+
+        .btn-logout {
+            background: var(--danger); color: white; border: none; padding: 8px 18px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; 
+            font-family: 'Tajawal'; transition: 0.3s; margin-right: 10px;
+        }
+        .btn-logout:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* حاوية الشبكة الرئيسية */
+        .main-panel-container { flex: 1; padding: 50px 20px; display: flex; justify-content: center; }
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 25px; 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        
+        .panel-card { 
+            background: white; border-radius: 25px; padding: 40px 20px; text-align: center; 
+            text-decoration: none; color: var(--navy); box-shadow: var(--shadow); 
+            transition: all 0.3s ease; border: 1px solid #eee; position: relative; overflow: hidden; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .panel-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(11, 29, 42, 0.2); }
+        .panel-card i { font-size: 3.5rem; margin-bottom: 15px; }
+        .panel-card h3 { margin: 10px 0; font-size: 1.5rem; font-weight: 900; }
+        .panel-card p { font-size: 0.9rem; color: #555; line-height: 1.4; margin-bottom: 15px; }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 8px; }
+        .online { background: #27ae60; }
+        .setup { background: #f39c12; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-section">
+        <i class="fas fa-gem fa-2x"></i>
+        <div>
+            <h2 style="margin:0; font-size: 1.2rem;" id="welcomeMessage">مرحباً بك..</h2>
+            <div id="scopeNameDisplay" class="scope-badge">جاري جلب البيانات..</div>
+        </div>
+    </div>
+
+    <div class="header-tools">
+        <a href="/manager/users-management?scope=<%= scopeId %>" class="tool-link">
+            <i class="fas fa-users-gear"></i>
+            <span>إدارة المستخدمين</span>
+        </a>
+        
+        <a href="/manager/permissions?scope=<%= scopeId %>" class="tool-link">
+            <i class="fas fa-user-shield"></i>
+            <span>إدارة الصلاحيات</span>
+        </a>
+
+        <div style="width: 1px; height: 25px; background: rgba(255,255,255,0.2); margin: 0 5px;"></div>
+        
+        <button class="btn-logout" onclick="logout()">
+            <i class="fas fa-power-off"></i> خروج
+        </button>
+    </div>
+</header>
+
+<div class="main-panel-container">
+    <div class="grid-layout">
+        
+        <a href="/manager/dashboard?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-users-viewfinder" style="color: #2c3e50;"></i>
+            <h3>الموارد البشرية</h3>
+            <p>إدارة مصفوفة الرصد، التوظيف، وسجلات المنشأة الشاملة.</p>
+            <div><span class="status-dot online"></span> <small>نظام متصل</small></div>
+        </a>
+
+        <a href="/finance/dashboard?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-chart-line" style="color: #27ae60;"></i>
+            <h3>الحسابات المالية</h3>
+            <p>مراقبة التدفقات النقدية، الصناديق، الموردين والعملاء.</p>
+            <div><span class="status-dot online"></span> <small>نظام متصل</small></div>
+        </a>
+
+        <a href="/inventory/dashboard?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-warehouse" style="color: #e67e22;"></i>
+            <h3>إدارة المخازن</h3>
+            <p>تتبع المواد الخام، المنتجات، والأصول والمخزون الدوري.</p>
+            <div><span class="status-dot setup"></span> <small>قيد التطوير</small></div>
+        </a>
+
+        <a href="/sales/dashboard?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-file-invoice-dollar" style="color: #3498db;"></i>
+            <h3>المبيعات والعقود</h3>
+            <p>إدارة عروض الأسعار، فواتير المبيعات، وعقود العملاء.</p>
+            <div><span class="status-dot setup"></span> <small>قيد التجهيز</small></div>
+        </a>
+
+        <a href="/e-store/admin?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-shopping-cart" style="color: #9b59b6;"></i>
+            <h3>المتجر الإلكتروني</h3>
+            <p>إدارة الطلبات أونلاين، المنتجات المعروضة، وبوابة الدفع.</p>
+            <div><span class="status-dot setup"></span> <small>قيد البرمجة</small></div>
+        </a>
+
+        <a href="/tech-services/dashboard?scope=<%= scopeId %>" class="panel-card">
+            <i class="fas fa-laptop-code" style="color: #e74c3c;"></i>
+            <h3>الخدمات التقنية</h3>
+            <p>إدارة الدعم الفني، الحلول السحابية، والاشتراكات التقنية.</p>
+            <div><span class="status-dot online"></span> <small>نشط</small></div>
+        </a>
+
+    </div>
+</div>
+
+<footer style="padding: 30px; text-align: center; color: #777;">
+    &copy; 2026 منصة الكوارتز الذكية | تطوير أبو حمزة
+</footer>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const scopeId = urlParams.get('scope') || '<%= scopeId %>';
+
+    async function fetchHeaderData() {
+        if (!scopeId || scopeId === 'undefined') return;
+        try {
+            const response = await fetch(`/manager/api/get-scope-info/${scopeId}`);
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('welcomeMessage').innerText = `مرحباً، ${data.managerName || "المدير"}`;
+                document.getElementById('scopeNameDisplay').innerHTML = `<i class="fas fa-building"></i> ${data.name || "نطاق رئيسي"}`;
+            }
+        } catch (error) { console.error("Error:", error); }
+    }
+
+    function logout() {
+        if(confirm("هل أنت متأكد من تسجيل الخروج؟")) window.location.href = '/';
+    }
+
+    window.onload = fetchHeaderData;
+</script>
+</body>
+</html>

@@ -1,5 +1,52 @@
-<div style="text-align:center; padding:50px; font-family:sans-serif;">
-    <h1>404</h1>
-    <p>عذراً يا أبو حمزة، هذه الصفحة غير موجودة</p>
-    <a href="/">العودة للرئيسية</a>
-</div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إشراقة جديدة | شركة الكوارتز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --gold: #ffcc00; --soft-white: #f8f9fa; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Tajawal', sans-serif; overflow: hidden; background: #0f2027; background: linear-gradient(to bottom, #2c5364, #203a43, #0f2027); color: white; display: flex; justify-content: center; align-items: center; }
+        .container { text-align: center; z-index: 10; padding: 20px; animation: fadeIn 1.5s ease-out; }
+        .icon-box { font-size: 5rem; color: var(--gold); margin-bottom: 20px; animation: pulse 2s infinite; }
+        .status-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; letter-spacing: 1px; text-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .status-msg { font-size: 1.3rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 40px; line-height: 1.6; max-width: 600px; }
+        .back-home { position: relative; display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: var(--gold); color: #1a1a1a; text-decoration: none; font-weight: 900; border-radius: 50px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(255, 204, 0, 0.2); cursor: pointer; border:none; }
+        .back-home:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 40px rgba(255, 204, 0, 0.4); background: #fff; }
+        #particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        .footer-note { position: absolute; bottom: 30px; font-size: 0.9rem; opacity: 0.6; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+    <div id="particles"></div>
+    <div class="container">
+        <div class="icon-box"><i class="fas fa-tools"></i></div>
+        <h1 class="status-title">نحنُ نبني المستقبل</h1>
+        <h2 style="color: var(--gold); font-weight: 500; margin-bottom: 15px;">عذراً، هذه الصفحة قيد التطوير</h2>
+        <p class="status-msg">نعملُ حالياً على صقل هذه التجربة لتليق بتطلعاتكم. <br><strong>رضاكم غاية أهدافنا.. وترقبوا انطلاقة متميزة قريباً.</strong></p>
+        
+        <button onclick="goBackToPanel()" class="back-home">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        </button>
+    </div>
+    <div class="footer-note">QUARTZ COMPANY | 2026</div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles", { "particles": { "number": { "value": 80 }, "color": { "value": "#ffffff" }, "shape": { "type": "circle" }, "opacity": { "value": 0.5, "random": true }, "size": { "value": 3, "random": true }, "move": { "enable": true, "speed": 1, "direction": "top", "random": true, "straight": false, "out_mode": "out" } } });
+
+        function goBackToPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // جلب الـ scope من الرابط، وإذا لم يوجد نأخذه من بيانات الجلسة إذا كانت مخزنة في المتصفح أو نضع القيمة الافتراضية
+            const currentScope = urlParams.get('scope') || 'SC-8EEF65';
+            
+            // الإصلاح: أضفنا /panel قبل /main-panel ليتطابق مع تعريف السيرفر
+            window.location.href = `/panel/main-panel?scope=${currentScope}`;
+        }
+    </script>
+</body>
+</html>
